@@ -1,0 +1,15 @@
+{
+  "name": "stream-nepal-cms",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Professional CMS for Stream Nepal",
+  "author": "Stream Nepal",
+  "license": "MIT",
+  "packageManager": "pnpm@11.20.0",
+  "scripts": {
+    "frontend": "cd frontend && pnpm dev",
+    "backend": "cd backend && pnpm start:dev",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {}
+}

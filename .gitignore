@@ -1,0 +1,32 @@
+# Node
+node_modules/
+**/node_modules/
+
+# Next.js
+.next/
+out/
+
+# NestJS
+dist/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Environment
+.env
+.env.*
+
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Coverage
+coverage/
+
+# Turbopack
+.turbo/
