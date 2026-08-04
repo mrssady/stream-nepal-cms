@@ -1,27 +1,114 @@
-1. Authentication
+# Stream Nepal CMS
+## Software Requirements Specification (SRS)
 
-2. Dashboard
+---
 
-3. Company Profile
+# 1. Introduction
 
-4. Services
+## Purpose
 
-5. Projects
+The Stream Nepal CMS is a professional content management system that enables administrators to manage the entire Stream Nepal website without modifying source code.
 
-6. Achievements
+The system should allow authorized users to manage company information, services, projects, achievements, events, media, team members, and website settings through an intuitive admin dashboard.
 
-7. Team Members
+---
 
-8. Gallery
+# 2. Project Goals
 
-9. Events
+- Create a professional company portfolio.
+- Showcase achievements and completed projects.
+- Manage website content through an admin panel.
+- Eliminate the need for developers to update content.
+- Provide a scalable architecture for future expansion.
 
-10. Contact
+---
 
-11. Website Settings
+# 3. User Roles
 
-12. SEO
+## Super Admin
 
-13. User Management
+- Full system access
+- User management
+- Role management
+- Website settings
 
-14. Media Library
+## Admin
+
+- Manage website content
+- Manage services
+- Manage projects
+- Manage gallery
+- Manage events
+
+## Editor
+
+- Create content
+- Edit content
+- Publish content
+
+## Viewer
+
+- Read-only access
+
+---
+
+# 4. Core Modules
+
+- Authentication
+- Dashboard
+- Company Profile
+- Services
+- Projects
+- Achievements
+- Gallery
+- Events
+- Team Members
+- Clients
+- Testimonials
+- Contact Messages
+- Website Settings
+
+---
+
+# 5. Functional Requirements
+
+The CMS shall:
+
+- Allow secure login.
+- Manage users.
+- Manage services.
+- Manage projects.
+- Manage achievements.
+- Manage events.
+- Manage gallery.
+- Manage team members.
+- Manage client information.
+- Manage testimonials.
+- Manage SEO settings.
+- Manage homepage content.
+
+---
+
+# 6. Non-Functional Requirements
+
+- Responsive design
+- Secure authentication
+- Fast loading
+- SEO friendly
+- Mobile compatible
+- Clean UI
+- Modular architecture
+- Reusable components
+- Scalable database
+
+---
+
+# 7. Future Scope
+
+- Multi-company support
+- Tournament Management
+- Event Registration
+- Live Score Management
+- Mobile App
+- Analytics Dashboard
+- Client Portal
