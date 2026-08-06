@@ -26,3 +26,56 @@ enum Role {
   MANAGER
   STAFF
 }
+
+enum Department {
+  MANAGEMENT
+  ESPORTS
+  BROADCAST
+  PRODUCTION
+  MEDIA
+  MARKETING
+}
+
+enum TeamPosition {
+  OWNER
+  CO_OWNER
+  MANAGER
+  OBSERVER
+  CASTER
+  HOST
+  CAMERA_OPERATOR
+  GRAPHICS_OPERATOR
+  VIDEO_EDITOR
+  SOCIAL_MEDIA_MANAGER
+  TOURNAMENT_ADMIN
+  REFEREE
+}
+
+model TeamMember {
+  id             String        @id @default(cuid())
+
+  fullName       String
+  nickname       String?
+
+  position       TeamPosition
+  department     Department
+
+  bio            String?
+
+  profileImage   String?
+
+  facebook       String?
+  instagram      String?
+  youtube        String?
+  discord        String?
+
+  phone          String?
+  email          String?
+
+  displayOrder   Int           @default(0)
+
+  isActive       Boolean       @default(true)
+
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
