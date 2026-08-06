@@ -79,3 +79,181 @@ model TeamMember {
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 }
+
+enum TournamentGame {
+  PUBG_MOBILE
+  FREE_FIRE
+  VALORANT
+  CS2
+  DOTA2
+  EA_FC
+  EFOOTBALL
+  MOBILE_LEGENDS
+  OTHER
+}
+
+enum TournamentStatus {
+  DRAFT
+  PUBLISHED
+  REGISTRATION_OPEN
+  REGISTRATION_CLOSED
+  LIVE
+  COMPLETED
+  CANCELLED
+}
+
+model Tournament {
+  id                    String               @id @default(cuid())
+
+  name                  String
+  slug                  String               @unique
+
+  game                  TournamentGame
+
+  logo                  String?
+  banner                String?
+
+  description           String?
+  rules                 String?
+
+  organizer             String
+
+  registrationFee       Float                @default(0)
+
+  prizePool             String?
+
+  maxTeams              Int
+
+  currentTeams          Int                  @default(0)
+
+  registrationOpen      DateTime
+  registrationClose     DateTime
+
+  tournamentStart       DateTime
+  tournamentEnd         DateTime
+
+  discordUrl            String?
+  whatsappUrl           String?
+  streamUrl             String?
+  websiteUrl            String?
+
+  featured              Boolean              @default(false)
+  isPublic              Boolean              @default(true)
+
+  status                TournamentStatus     @default(DRAFT)
+
+  registrations         Registration[]
+
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+}
+
+enum RegistrationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  WAITLIST
+}
+
+enum PaymentStatus {
+  UNPAID
+  PENDING
+  PAID
+  REFUNDED
+}
+
+enum TeamStatus {
+  ACTIVE
+  ELIMINATED
+  DISQUALIFIED
+  WITHDRAWN
+}
+
+model Registration {
+  id                  String                @id @default(cuid())
+
+  tournamentId        String
+
+  teamName            String
+  teamLogo            String?
+
+  captainName         String
+  captainEmail        String
+  captainPhone        String
+
+  managerName         String?
+  managerPhone        String?
+
+  discordUsername     String?
+
+  gameUID             String
+  gameIGN             String
+
+  rosterSize          Int
+
+  paymentStatus       PaymentStatus         @default(UNPAID)
+  registrationStatus  RegistrationStatus    @default(PENDING)
+
+  remarks             String?
+
+  tournament          Tournament            @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+
+  team                Team?
+
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+}
+
+model Team {
+  id               String        @id @default(cuid())
+
+  registrationId   String        @unique
+
+  teamName         String
+  teamLogo         String?
+
+  status           TeamStatus    @default(ACTIVE)
+
+  wins             Int           @default(0)
+  losses           Int           @default(0)
+  points           Int           @default(0)
+  kills            Int           @default(0)
+
+  registration     Registration  @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+
+  players          Player[]
+
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+}
+enum PlayerRole {
+  CAPTAIN
+  PLAYER
+  SUBSTITUTE
+  COACH
+  MANAGER
+}
+model Player {
+  id               String       @id @default(cuid())
+
+  teamId           String
+
+  fullName         String
+  inGameName       String
+
+  gameUID          String
+
+  role             PlayerRole   @default(PLAYER)
+
+  country          String?
+  nationality      String?
+
+  profileImage     String?
+
+  isActive         Boolean      @default(true)
+
+  team             Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+}
