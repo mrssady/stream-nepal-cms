@@ -14,6 +14,8 @@ import { TournamentsModule } from './modules/tournaments/tournaments.module';
 import { RegistrationsModule } from './modules/registrations/registrations.module';
 import { TournamentTeamsModule } from './modules/tournament-teams/tournament-teams.module';
 import { PlayersModule } from './modules/players/players.module';
+import { MatchesModule } from './modules/matches/matches.module';
+import { SettingsModule } from './modules/settings/settings.module';
 
 @Module({
   imports: [
@@ -32,6 +34,8 @@ import { PlayersModule } from './modules/players/players.module';
     RegistrationsModule,
     TournamentTeamsModule,
     PlayersModule,
+    MatchesModule,
+    SettingsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,0 +1,30 @@
+-- CreateTable
+CREATE TABLE "WebsiteSetting" (
+    "id" TEXT NOT NULL,
+    "companyName" TEXT NOT NULL,
+    "tagline" TEXT,
+    "logo" TEXT,
+    "favicon" TEXT,
+    "email" TEXT,
+    "phone" TEXT,
+    "alternatePhone" TEXT,
+    "address" TEXT,
+    "city" TEXT,
+    "country" TEXT,
+    "website" TEXT,
+    "facebook" TEXT,
+    "instagram" TEXT,
+    "youtube" TEXT,
+    "discord" TEXT,
+    "tiktok" TEXT,
+    "linkedin" TEXT,
+    "seoTitle" TEXT,
+    "seoDescription" TEXT,
+    "seoKeywords" TEXT,
+    "footerText" TEXT,
+    "copyrightText" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "WebsiteSetting_pkey" PRIMARY KEY ("id")
+);

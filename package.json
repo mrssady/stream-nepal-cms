@@ -7,9 +7,11 @@
   "license": "MIT",
   "packageManager": "pnpm@11.20.0",
   "scripts": {
-    "frontend": "cd frontend && pnpm dev",
-    "backend": "cd backend && pnpm start:dev",
-    "format": "prettier --write ."
+    "frontend": "pnpm --filter frontend dev",
+    "backend": "pnpm --filter backend start:dev",
+    "gen": "node scripts/make.js"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "hygen": "^6.2.11"
+  }
 }
