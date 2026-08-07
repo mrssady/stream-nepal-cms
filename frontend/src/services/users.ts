@@ -1,21 +1,28 @@
 import api from "./api";
+import { User, CreateUserDto, UpdateUserDto } from "@/types/user";
 
-export async function getUsers() {
-  try {
-    const response = await api.get("/users");
+export async function getUsers(): Promise<User[]> {
+  const response = await api.get("/users");
+  return response.data.data;
+}
 
-    console.log("✅ Full Axios Response:", response);
-    console.log("✅ Response Data:", response.data);
+export async function createUser(
+  data: CreateUserDto,
+): Promise<User> {
+  const response = await api.post("/users", data);
+  return response.data.data;
+}
 
-    return response.data.data;
-  } catch (error: any) {
-    console.error("❌ Users API Error:", error);
+export async function updateUser(
+  id: string,
+  data: UpdateUserDto,
+): Promise<User> {
+  const response = await api.patch(`/users/${id}`, data);
+  return response.data.data;
+}
 
-    if (error.response) {
-      console.log("Status:", error.response.status);
-      console.log("Response:", error.response.data);
-    }
-
-    throw error;
-  }
+export async function deleteUser(
+  id: string,
+): Promise<void> {
+  await api.delete(`/users/${id}`);
 }
