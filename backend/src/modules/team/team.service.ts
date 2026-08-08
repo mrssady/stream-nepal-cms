@@ -1,45 +1,85 @@
 import {
   Injectable,
   NotFoundException,
-} from '@nestjs/common';
+} from "@nestjs/common";
 
-import { PrismaService } from '../../prisma/prisma.service';
+import { PrismaService } from "../../prisma/prisma.service";
 
-import { CreateTeamDto } from './dto/create-team.dto';
-import { UpdateTeamDto } from './dto/update-team.dto';
+import { CreateTeamDto } from "./dto/create-team.dto";
+import { UpdateTeamDto } from "./dto/update-team.dto";
 
 @Injectable()
 export class TeamService {
   constructor(private readonly prisma: PrismaService) {}
 
+  private async getOrganization() {
+    const organization =
+      await this.prisma.organization.findUnique({
+        where: {
+          slug: "stream-nepal",
+        },
+      });
+
+    if (!organization) {
+      throw new NotFoundException(
+        "Stream Nepal organization not found",
+      );
+    }
+
+    return organization;
+  }
+
   async create(createTeamDto: CreateTeamDto) {
+    const organization =
+      await this.getOrganization();
+
     return this.prisma.teamMember.create({
-      data: createTeamDto,
+      data: {
+        ...createTeamDto,
+        organization: {
+          connect: {
+            id: organization.id,
+          },
+        },
+      },
     });
   }
 
   async findAll() {
+    const organization =
+      await this.getOrganization();
+
     return this.prisma.teamMember.findMany({
+      where: {
+        organizationId: organization.id,
+      },
       orderBy: [
         {
-          displayOrder: 'asc',
+          displayOrder: "asc",
         },
         {
-          createdAt: 'desc',
+          createdAt: "desc",
         },
       ],
     });
   }
 
   async findOne(id: string) {
-    const member = await this.prisma.teamMember.findUnique({
-      where: {
-        id,
-      },
-    });
+    const organization =
+      await this.getOrganization();
+
+    const member =
+      await this.prisma.teamMember.findFirst({
+        where: {
+          id,
+          organizationId: organization.id,
+        },
+      });
 
     if (!member) {
-      throw new NotFoundException('Team member not found');
+      throw new NotFoundException(
+        "Team member not found",
+      );
     }
 
     return member;

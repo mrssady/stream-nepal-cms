@@ -5,14 +5,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import {
+  BriefcaseBusiness,
   ChevronLeft,
   ChevronRight,
-  Gamepad2,
   Handshake,
   Image,
   LayoutDashboard,
   Settings,
-  Shield,
   Trophy,
   Users,
 } from "lucide-react";
@@ -29,14 +28,9 @@ const menus = [
     icon: Users,
   },
   {
-    name: "Teams",
-    href: "/teams",
-    icon: Shield,
-  },
-  {
-    name: "Players",
-    href: "/players",
-    icon: Gamepad2,
+    name: "Services",
+    href: "/services",
+    icon: BriefcaseBusiness,
   },
   {
     name: "Events",
@@ -63,7 +57,8 @@ const menus = [
 export default function Sidebar() {
   const pathname = usePathname();
 
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] =
+    useState(false);
 
   return (
     <aside
@@ -71,21 +66,33 @@ export default function Sidebar() {
         collapsed ? "w-24" : "w-72"
       }`}
     >
+      {/* Collapse Button */}
       <button
-        onClick={() => setCollapsed(!collapsed)}
-        className="absolute -right-4 top-7 flex h-8 w-8 items-center justify-center rounded-full border bg-white shadow"
+        type="button"
+        onClick={() =>
+          setCollapsed(!collapsed)
+        }
+        className="absolute -right-4 top-7 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm transition hover:bg-slate-50"
+        aria-label={
+          collapsed
+            ? "Expand sidebar"
+            : "Collapse sidebar"
+        }
       >
         {collapsed ? (
-          <ChevronRight size={16} />
+          <ChevronRight size={18} />
         ) : (
-          <ChevronLeft size={16} />
+          <ChevronLeft size={18} />
         )}
       </button>
 
+      {/* Logo / Brand */}
       <div className="border-b border-slate-200 p-6">
         <h1
           className={`font-bold text-blue-600 transition-all ${
-            collapsed ? "text-lg" : "text-2xl"
+            collapsed
+              ? "text-center text-lg"
+              : "text-2xl"
           }`}
         >
           SN
@@ -93,7 +100,7 @@ export default function Sidebar() {
 
         {!collapsed && (
           <>
-            <p className="mt-2 text-lg font-semibold">
+            <p className="mt-2 text-lg font-semibold text-slate-900">
               Stream Nepal
             </p>
 
@@ -104,11 +111,23 @@ export default function Sidebar() {
         )}
       </div>
 
-      <nav className="flex-1 space-y-2 p-4">
+      {/* Navigation */}
+      <nav className="flex-1 space-y-2 overflow-y-auto p-4">
         {menus.map((item) => {
-          const active = pathname === item.href;
-
           const Icon = item.icon;
+
+          /*
+           * Dashboard should only be active on "/".
+           * Other pages are active when pathname matches
+           * the menu route or one of its child routes.
+           */
+          const active =
+            item.href === "/"
+              ? pathname === "/"
+              : pathname === item.href ||
+                pathname.startsWith(
+                  `${item.href}/`,
+                );
 
           return (
             <Link
@@ -123,6 +142,11 @@ export default function Sidebar() {
                   ? "bg-blue-600 text-white shadow-lg"
                   : "text-slate-600 hover:bg-slate-100"
               }`}
+              title={
+                collapsed
+                  ? item.name
+                  : undefined
+              }
             >
               <Icon size={20} />
 
@@ -136,23 +160,27 @@ export default function Sidebar() {
         })}
       </nav>
 
+      {/* Administrator */}
       <div className="border-t border-slate-200 p-4">
         {collapsed ? (
-          <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 font-semibold text-white">
+          <div
+            className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 font-semibold text-white"
+            title="Administrator"
+          >
             A
           </div>
         ) : (
           <div className="flex items-center gap-3 rounded-xl bg-slate-100 p-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-blue-600 font-semibold text-white">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-blue-600 font-semibold text-white">
               A
             </div>
 
-            <div>
-              <p className="font-semibold">
+            <div className="min-w-0">
+              <p className="truncate font-semibold text-slate-900">
                 Administrator
               </p>
 
-              <p className="text-xs text-slate-500">
+              <p className="truncate text-xs text-slate-500">
                 Stream Nepal
               </p>
             </div>

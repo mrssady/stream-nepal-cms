@@ -16,6 +16,8 @@ import { TournamentTeamsModule } from './modules/tournament-teams/tournament-tea
 import { PlayersModule } from './modules/players/players.module';
 import { MatchesModule } from './modules/matches/matches.module';
 import { SettingsModule } from './modules/settings/settings.module';
+import { MediaModule } from "./media/media.module";
+import { ServicesModule } from "./modules/services/services.module";
 
 @Module({
   imports: [
@@ -36,6 +38,8 @@ import { SettingsModule } from './modules/settings/settings.module';
     PlayersModule,
     MatchesModule,
     SettingsModule,
+    MediaModule,
+    ServicesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

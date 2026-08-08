@@ -1,29 +1,46 @@
 import { api } from "./api";
 
-export async function login(email: string, password: string) {
-  const response = await api.post("/auth/login", {
-    email,
-    password,
-  });
+export type LoginCredentials = {
+  email: string;
+  password: string;
+};
 
-  const { access_token, user } = response.data;
+export type LoginResponse = {
+  access_token: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+  };
+};
 
-  if (typeof window !== "undefined") {
-    localStorage.setItem("accessToken", access_token);
-    localStorage.setItem("user", JSON.stringify(user));
-  }
+export async function login(
+  credentials: LoginCredentials,
+): Promise<LoginResponse> {
+  const response = await api.post("/auth/login", credentials);
 
-  return user;
+  // Backend response:
+  // {
+  //   success: true,
+  //   statusCode: 201,
+  //   data: {
+  //     access_token: "...",
+  //     user: {...}
+  //   }
+  // }
+
+  return response.data.data;
 }
 
 export async function getProfile() {
   const response = await api.get("/auth/me");
+
   return response.data;
 }
 
 export function logout() {
   if (typeof window !== "undefined") {
-    localStorage.removeItem("accessToken");
     localStorage.removeItem("user");
   }
 }

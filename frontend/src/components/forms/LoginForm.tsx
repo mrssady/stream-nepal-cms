@@ -13,11 +13,17 @@ import { saveToken } from "@/lib/auth";
 export default function LoginForm() {
   const router = useRouter();
 
-  const [email, setEmail] = useState("sadab@example.com");
-  const [password, setPassword] = useState("12345678");
+  const [email, setEmail] =
+    useState("sadab@example.com");
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [password, setPassword] =
+    useState("12345678");
+
+  const [loading, setLoading] =
+    useState(false);
+
+  const [error, setError] =
+    useState("");
 
   async function handleSubmit(
     e: React.FormEvent<HTMLFormElement>,
@@ -35,6 +41,11 @@ export default function LoginForm() {
 
       saveToken(data.access_token);
 
+      localStorage.setItem(
+        "user",
+        JSON.stringify(data.user),
+      );
+
       router.push("/dashboard");
     } catch (err: any) {
       setError(
@@ -48,8 +59,8 @@ export default function LoginForm() {
 
   return (
     <Card>
-      <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold">
+      <div className="mb-6 text-center">
+        <h1 className="text-2xl font-bold">
           Stream Nepal CMS
         </h1>
 

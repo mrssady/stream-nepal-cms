@@ -7,13 +7,39 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  password  String
+// ============================================================
+// ORGANIZATION / SAAS FOUNDATION
+// ============================================================
 
-  role      Role     @default(STAFF)
+model Organization {
+  id   String  @id @default(cuid())
+  name String
+  slug String  @unique
+  logo String?
+
+  users           User[]
+  teamMembers     TeamMember[]
+  services        Service[]
+  websiteSettings WebsiteSetting[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ============================================================
+// USERS / AUTHENTICATION
+// ============================================================
+
+model User {
+  id       String @id @default(cuid())
+  name     String
+  email    String @unique
+  password String
+
+  role Role @default(STAFF)
+
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -26,6 +52,10 @@ enum Role {
   MANAGER
   STAFF
 }
+
+// ============================================================
+// COMPANY TEAM MEMBERS
+// ============================================================
 
 enum Department {
   MANAGEMENT
@@ -52,33 +82,63 @@ enum TeamPosition {
 }
 
 model TeamMember {
-  id             String        @id @default(cuid())
+  id String @id @default(cuid())
 
-  fullName       String
-  nickname       String?
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  position       TeamPosition
-  department     Department
+  fullName String
+  nickname String?
 
-  bio            String?
+  position   TeamPosition
+  department Department
 
-  profileImage   String?
+  bio          String?
+  profileImage String?
 
-  facebook       String?
-  instagram      String?
-  youtube        String?
-  discord        String?
+  facebook  String?
+  instagram String?
+  youtube   String?
+  discord   String?
 
-  phone          String?
-  email          String?
+  phone String?
+  email String?
 
-  displayOrder   Int           @default(0)
+  displayOrder Int     @default(0)
+  isActive     Boolean @default(true)
 
-  isActive       Boolean       @default(true)
-
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
+
+model Service {
+  id String @id @default(cuid())
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  title            String
+  slug             String
+  shortDescription String?
+  description      String?
+
+  image String?
+  icon  String?
+
+  displayOrder Int     @default(0)
+  isActive     Boolean @default(true)
+  featured     Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([organizationId, slug])
+  @@index([organizationId])
+}
+
+// ============================================================
+// TOURNAMENT SYSTEM
+// ============================================================
 
 enum TournamentGame {
   PUBG_MOBILE
@@ -103,51 +163,49 @@ enum TournamentStatus {
 }
 
 model Tournament {
-  id                    String               @id @default(cuid())
+  id   String         @id @default(cuid())
+  name String
+  slug String         @unique
+  game TournamentGame
 
-  name                  String
-  slug                  String               @unique
+  logo        String?
+  banner      String?
+  description String?
+  rules       String?
 
-  game                  TournamentGame
+  organizer       String
+  registrationFee Float   @default(0)
+  prizePool       String?
 
-  logo                  String?
-  banner                String?
+  maxTeams     Int
+  currentTeams Int @default(0)
 
-  description           String?
-  rules                 String?
+  registrationOpen  DateTime
+  registrationClose DateTime
 
-  organizer             String
+  tournamentStart DateTime
+  tournamentEnd   DateTime
 
-  registrationFee       Float                @default(0)
+  discordUrl  String?
+  whatsappUrl String?
+  streamUrl   String?
+  websiteUrl  String?
 
-  prizePool             String?
+  featured Boolean @default(false)
+  isPublic Boolean @default(true)
 
-  maxTeams              Int
+  status TournamentStatus @default(DRAFT)
 
-  currentTeams          Int                  @default(0)
+  registrations Registration[]
+  matches       Match[]
 
-  registrationOpen      DateTime
-  registrationClose     DateTime
-
-  tournamentStart       DateTime
-  tournamentEnd         DateTime
-
-  discordUrl            String?
-  whatsappUrl           String?
-  streamUrl             String?
-  websiteUrl            String?
-
-  featured              Boolean              @default(false)
-  isPublic              Boolean              @default(true)
-
-  status                TournamentStatus     @default(DRAFT)
-
-  registrations         Registration[]
-  matches               Match[]
-
-  createdAt             DateTime             @default(now())
-  updatedAt             DateTime             @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
+
+// ============================================================
+// REGISTRATIONS
+// ============================================================
 
 enum RegistrationStatus {
   PENDING
@@ -163,6 +221,42 @@ enum PaymentStatus {
   REFUNDED
 }
 
+model Registration {
+  id           String @id @default(cuid())
+  tournamentId String
+
+  teamName String
+  teamLogo String?
+
+  captainName  String
+  captainEmail String
+  captainPhone String
+
+  managerName  String?
+  managerPhone String?
+
+  discordUsername String?
+
+  gameUID    String
+  gameIGN    String
+  rosterSize Int
+
+  paymentStatus      PaymentStatus      @default(UNPAID)
+  registrationStatus RegistrationStatus @default(PENDING)
+
+  remarks String?
+
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  team       Team?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ============================================================
+// TOURNAMENT TEAMS
+// ============================================================
+
 enum TeamStatus {
   ACTIVE
   ELIMINATED
@@ -170,66 +264,35 @@ enum TeamStatus {
   WITHDRAWN
 }
 
-model Registration {
-  id                  String                @id @default(cuid())
-
-  tournamentId        String
-
-  teamName            String
-  teamLogo            String?
-
-  captainName         String
-  captainEmail        String
-  captainPhone        String
-
-  managerName         String?
-  managerPhone        String?
-
-  discordUsername     String?
-
-  gameUID             String
-  gameIGN             String
-
-  rosterSize          Int
-
-  paymentStatus       PaymentStatus         @default(UNPAID)
-  registrationStatus  RegistrationStatus    @default(PENDING)
-
-  remarks             String?
-
-  tournament          Tournament            @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
-
-  team                Team?
-
-  createdAt           DateTime              @default(now())
-  updatedAt           DateTime              @updatedAt
-}
-
 model Team {
-  id               String        @id @default(cuid())
+  id             String @id @default(cuid())
+  registrationId String @unique
 
-  registrationId   String        @unique
+  teamName String
+  teamLogo String?
 
-  teamName         String
-  teamLogo         String?
+  status TeamStatus @default(ACTIVE)
 
-  status           TeamStatus    @default(ACTIVE)
+  wins   Int @default(0)
+  losses Int @default(0)
+  points Int @default(0)
+  kills  Int @default(0)
 
-  wins             Int           @default(0)
-  losses           Int           @default(0)
-  points           Int           @default(0)
-  kills            Int           @default(0)
+  registration Registration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
 
-  registration     Registration  @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  players Player[]
 
-  players          Player[]
+  homeMatches Match[] @relation("HomeTeam")
+  awayMatches Match[] @relation("AwayTeam")
 
-  homeMatches      Match[]       @relation("HomeTeam")
-  awayMatches      Match[]       @relation("AwayTeam")
-
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
+
+// ============================================================
+// PLAYERS
+// ============================================================
+
 enum PlayerRole {
   CAPTAIN
   PLAYER
@@ -237,30 +300,32 @@ enum PlayerRole {
   COACH
   MANAGER
 }
+
 model Player {
-  id               String       @id @default(cuid())
+  id     String @id @default(cuid())
+  teamId String
 
-  teamId           String
+  fullName   String
+  inGameName String
+  gameUID    String
 
-  fullName         String
-  inGameName       String
+  role PlayerRole @default(PLAYER)
 
-  gameUID          String
+  country     String?
+  nationality String?
 
-  role             PlayerRole   @default(PLAYER)
+  profileImage String?
+  isActive     Boolean @default(true)
 
-  country          String?
-  nationality      String?
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
-  profileImage     String?
-
-  isActive         Boolean      @default(true)
-
-  team             Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
-
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
+
+// ============================================================
+// MATCHES
+// ============================================================
 
 enum MatchStatus {
   SCHEDULED
@@ -275,75 +340,77 @@ enum MatchType {
   BO5
   CUSTOM
 }
+
 model Match {
-  id               String        @id @default(cuid())
+  id           String @id @default(cuid())
+  tournamentId String
 
-  tournamentId     String
+  homeTeamId   String
+  awayTeamId   String
+  winnerTeamId String?
 
-  homeTeamId       String
-  awayTeamId       String
+  title String
+  round String?
 
-  winnerTeamId     String?
+  matchType MatchType   @default(BO1)
+  status    MatchStatus @default(SCHEDULED)
 
-  title            String
+  scheduledAt DateTime
 
-  round            String?
+  homeScore Int @default(0)
+  awayScore Int @default(0)
 
-  matchType        MatchType     @default(BO1)
+  notes String?
 
-  status           MatchStatus   @default(SCHEDULED)
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
 
-  scheduledAt      DateTime
+  homeTeam Team @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeam Team @relation("AwayTeam", fields: [awayTeamId], references: [id])
 
-  homeScore        Int           @default(0)
-  awayScore        Int           @default(0)
-
-  notes            String?
-
-  tournament       Tournament    @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
-
-  homeTeam         Team          @relation("HomeTeam", fields: [homeTeamId], references: [id])
-
-  awayTeam         Team          @relation("AwayTeam", fields: [awayTeamId], references: [id])
-
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
+
+// ============================================================
+// WEBSITE SETTINGS
+// ============================================================
+
 model WebsiteSetting {
-  id                String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  companyName       String
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  tagline           String?
+  companyName String
+  tagline     String?
 
-  logo              String?
-  favicon           String?
+  logo    String?
+  favicon String?
 
-  email             String?
-  phone             String?
-  alternatePhone    String?
+  email          String?
+  phone          String?
+  alternatePhone String?
 
-  address           String?
-  city              String?
-  country           String?
+  address String?
+  city    String?
+  country String?
 
-  website           String?
+  website String?
 
-  facebook          String?
-  instagram         String?
-  youtube           String?
-  discord           String?
-  tiktok            String?
-  linkedin          String?
+  facebook  String?
+  instagram String?
+  youtube   String?
+  discord   String?
+  tiktok    String?
+  linkedin  String?
 
-  seoTitle          String?
-  seoDescription    String?
-  seoKeywords       String?
+  seoTitle       String?
+  seoDescription String?
+  seoKeywords    String?
 
-  footerText        String?
+  footerText    String?
+  copyrightText String?
 
-  copyrightText     String?
-
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
