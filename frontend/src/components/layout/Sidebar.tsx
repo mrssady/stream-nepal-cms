@@ -1,25 +1,37 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import {
   BriefcaseBusiness,
-  ChevronLeft,
-  ChevronRight,
+  FolderKanban,
+  GalleryVerticalEnd,
   Handshake,
-  Image,
   LayoutDashboard,
   Settings,
   Trophy,
   Users,
 } from "lucide-react";
 
-const menus = [
+import {
+  Sidebar as SidebarPrimitive,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarRail,
+} from "@/components/ui/sidebar";
+
+const mainMenu = [
   {
     name: "Dashboard",
-    href: "/",
+    href: "/dashboard",
     icon: LayoutDashboard,
   },
   {
@@ -27,10 +39,18 @@ const menus = [
     href: "/users",
     icon: Users,
   },
+];
+
+const contentMenu = [
   {
     name: "Services",
     href: "/services",
     icon: BriefcaseBusiness,
+  },
+  {
+    name: "Projects",
+    href: "/projects",
+    icon: FolderKanban,
   },
   {
     name: "Events",
@@ -40,13 +60,16 @@ const menus = [
   {
     name: "Gallery",
     href: "/gallery",
-    icon: Image,
+    icon: GalleryVerticalEnd,
   },
   {
     name: "Sponsors",
     href: "/sponsors",
     icon: Handshake,
   },
+];
+
+const systemMenu = [
   {
     name: "Settings",
     href: "/settings",
@@ -54,139 +77,156 @@ const menus = [
   },
 ];
 
-export default function Sidebar() {
-  const pathname = usePathname();
-
-  const [collapsed, setCollapsed] =
-    useState(false);
+function isActiveRoute(pathname: string, href: string) {
+  if (href === "/dashboard") {
+    return pathname === "/dashboard";
+  }
 
   return (
-    <aside
-      className={`relative flex h-screen flex-col border-r border-slate-200 bg-white transition-all duration-300 ${
-        collapsed ? "w-24" : "w-72"
-      }`}
-    >
-      {/* Collapse Button */}
-      <button
-        type="button"
-        onClick={() =>
-          setCollapsed(!collapsed)
-        }
-        className="absolute -right-4 top-7 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm transition hover:bg-slate-50"
-        aria-label={
-          collapsed
-            ? "Expand sidebar"
-            : "Collapse sidebar"
-        }
+    pathname === href ||
+    pathname.startsWith(`${href}/`)
+  );
+}
+
+function NavigationItem({
+  name,
+  href,
+  icon: Icon,
+}: {
+  name: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+}) {
+  const pathname = usePathname();
+  const active = isActiveRoute(pathname, href);
+
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton
+        render={<Link href={href} />}
+        isActive={active}
+        tooltip={name}
       >
-        {collapsed ? (
-          <ChevronRight size={18} />
-        ) : (
-          <ChevronLeft size={18} />
-        )}
-      </button>
+        <Icon />
+        <span>{name}</span>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  );
+}
 
-      {/* Logo / Brand */}
-      <div className="border-b border-slate-200 p-6">
-        <h1
-          className={`font-bold text-blue-600 transition-all ${
-            collapsed
-              ? "text-center text-lg"
-              : "text-2xl"
-          }`}
-        >
-          SN
-        </h1>
-
-        {!collapsed && (
-          <>
-            <p className="mt-2 text-lg font-semibold text-slate-900">
-              Stream Nepal
-            </p>
-
-            <p className="text-sm text-slate-500">
-              CMS v1.0
-            </p>
-          </>
-        )}
-      </div>
-
-      {/* Navigation */}
-      <nav className="flex-1 space-y-2 overflow-y-auto p-4">
-        {menus.map((item) => {
-          const Icon = item.icon;
-
-          /*
-           * Dashboard should only be active on "/".
-           * Other pages are active when pathname matches
-           * the menu route or one of its child routes.
-           */
-          const active =
-            item.href === "/"
-              ? pathname === "/"
-              : pathname === item.href ||
-                pathname.startsWith(
-                  `${item.href}/`,
-                );
-
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center rounded-xl transition-all ${
-                collapsed
-                  ? "justify-center p-3"
-                  : "gap-3 px-4 py-3"
-              } ${
-                active
-                  ? "bg-blue-600 text-white shadow-lg"
-                  : "text-slate-600 hover:bg-slate-100"
-              }`}
-              title={
-                collapsed
-                  ? item.name
-                  : undefined
+export default function Sidebar() {
+  return (
+    <SidebarPrimitive
+      collapsible="icon"
+      variant="sidebar"
+    >
+      <SidebarHeader className="border-b">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              render={
+                <Link href="/dashboard" />
               }
+              size="lg"
+              tooltip="Stream Nepal CMS"
             >
-              <Icon size={20} />
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
+                SN
+              </div>
 
-              {!collapsed && (
-                <span className="font-medium">
-                  {item.name}
+              <div className="flex flex-col gap-0.5 leading-none">
+                <span className="font-semibold">
+                  Stream Nepal
                 </span>
-              )}
-            </Link>
-          );
-        })}
-      </nav>
 
-      {/* Administrator */}
-      <div className="border-t border-slate-200 p-4">
-        {collapsed ? (
-          <div
-            className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 font-semibold text-white"
-            title="Administrator"
-          >
-            A
-          </div>
-        ) : (
-          <div className="flex items-center gap-3 rounded-xl bg-slate-100 p-3">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-blue-600 font-semibold text-white">
-              A
-            </div>
+                <span className="text-xs text-muted-foreground">
+                  CMS
+                </span>
+              </div>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
 
-            <div className="min-w-0">
-              <p className="truncate font-semibold text-slate-900">
-                Administrator
-              </p>
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>
+            Main
+          </SidebarGroupLabel>
 
-              <p className="truncate text-xs text-slate-500">
-                Stream Nepal
-              </p>
-            </div>
-          </div>
-        )}
-      </div>
-    </aside>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {mainMenu.map((item) => (
+                <NavigationItem
+                  key={item.href}
+                  {...item}
+                />
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>
+            Content
+          </SidebarGroupLabel>
+
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {contentMenu.map((item) => (
+                <NavigationItem
+                  key={item.href}
+                  {...item}
+                />
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>
+            System
+          </SidebarGroupLabel>
+
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {systemMenu.map((item) => (
+                <NavigationItem
+                  key={item.href}
+                  {...item}
+                />
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+
+      <SidebarFooter className="border-t">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              size="lg"
+              tooltip="Administrator"
+            >
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
+                A
+              </div>
+
+              <div className="flex min-w-0 flex-col text-left leading-tight">
+                <span className="truncate font-semibold">
+                  Administrator
+                </span>
+
+                <span className="truncate text-xs text-muted-foreground">
+                  Stream Nepal
+                </span>
+              </div>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
+
+      <SidebarRail />
+    </SidebarPrimitive>
   );
 }

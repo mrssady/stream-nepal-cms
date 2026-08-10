@@ -4,8 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import Card from "@/components/ui/Card";
-import Input from "@/components/ui/Input";
-import Button from "@/components/ui/Button";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 import { login } from "@/services/auth";
 import { saveToken } from "@/lib/auth";
@@ -97,11 +97,8 @@ export default function LoginForm() {
           </p>
         )}
 
-        <Button
-          type="submit"
-          loading={loading}
-        >
-          Login
+        <Button type="submit" disabled={loading}>
+          {loading ? "Logging in..." : "Login"}
         </Button>
       </form>
     </Card>

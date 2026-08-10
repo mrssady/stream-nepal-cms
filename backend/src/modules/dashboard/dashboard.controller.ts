@@ -19,4 +19,9 @@ export class DashboardController {
   getStats() {
     return this.dashboardService.getStats();
   }
+  @Get('activity')
+@Roles(Role.OWNER, Role.ADMIN)
+getRecentActivity() {
+  return this.dashboardService.getRecentActivity();
+}
 }

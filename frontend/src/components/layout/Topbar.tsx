@@ -1,75 +1,93 @@
 "use client";
 
+import { Bell, Settings } from "lucide-react";
+
 import {
-  Bell,
-  ChevronDown,
-  Search,
-  Settings,
-} from "lucide-react";
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import {
+  Button,
+} from "@/components/ui/button";
+import {
+  Separator,
+} from "@/components/ui/separator";
+import {
+  Input,
+} from "@/components/ui/input";
 
 export default function Topbar() {
   return (
-    <header className="sticky top-0 z-40 flex h-18 items-center justify-between border-b border-slate-200 bg-white px-8">
-      {/* Left */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">
-          Dashboard
-        </h1>
+    <header className="flex h-16 shrink-0 items-center gap-3 border-b bg-background px-4 lg:px-6">
+      {/* Sidebar toggle */}
+      <SidebarTrigger />
 
-        <p className="text-sm text-slate-500">
-          Welcome back 👋
-        </p>
+      <Separator
+        orientation="vertical"
+        className="mr-1 h-6"
+      />
+
+      {/* Page title */}
+      <div className="flex min-w-0 flex-1 items-center">
+        <div>
+          <h1 className="text-sm font-semibold">
+            Dashboard
+          </h1>
+
+          <p className="hidden text-xs text-muted-foreground sm:block">
+            Stream Nepal CMS
+          </p>
+        </div>
       </div>
 
-      {/* Right */}
-      <div className="flex items-center gap-4">
-        {/* Search */}
-        <div className="relative hidden lg:block">
-          <Search
-            size={18}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-          />
+      {/* Search */}
+      <div className="hidden w-64 md:block lg:w-80">
+        <Input
+          placeholder="Search..."
+          className="h-9"
+        />
+      </div>
 
-          <input
-            type="text"
-            placeholder="Search..."
-            className="w-72 rounded-xl border border-slate-200 bg-slate-50 py-2 pl-10 pr-4 outline-none transition focus:border-blue-500 focus:bg-white"
-          />
+      {/* Notifications */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="relative"
+        aria-label="Notifications"
+      >
+        <Bell />
+
+        <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-destructive" />
+      </Button>
+
+      {/* Settings */}
+      <Button
+        variant="ghost"
+        size="icon"
+        aria-label="Settings"
+      >
+        <Settings />
+      </Button>
+
+      <Separator
+        orientation="vertical"
+        className="mx-1 h-6"
+      />
+
+      {/* Administrator */}
+      <div className="flex items-center gap-3">
+        <div className="flex size-8 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
+          A
         </div>
 
-        {/* Notification */}
-        <button className="relative flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 transition hover:bg-slate-100">
-          <Bell size={20} />
+        <div className="hidden min-w-0 lg:block">
+          <p className="truncate text-sm font-medium">
+            Administrator
+          </p>
 
-          <span className="absolute right-3 top-3 h-2 w-2 rounded-full bg-red-500"></span>
-        </button>
-
-        {/* Settings */}
-        <button className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 transition hover:bg-slate-100">
-          <Settings size={20} />
-        </button>
-
-        {/* User */}
-        <button className="flex items-center gap-3 rounded-xl border border-slate-200 px-3 py-2 transition hover:bg-slate-100">
-          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-blue-600 font-semibold text-white">
-            A
-          </div>
-
-          <div className="hidden text-left lg:block">
-            <p className="text-sm font-semibold text-slate-800">
-              Administrator
-            </p>
-
-            <p className="text-xs text-slate-500">
-              admin@streamnepal.com
-            </p>
-          </div>
-
-          <ChevronDown
-            size={18}
-            className="text-slate-500"
-          />
-        </button>
+          <p className="truncate text-xs text-muted-foreground">
+            admin@streamnepal.com
+          </p>
+        </div>
       </div>
     </header>
   );

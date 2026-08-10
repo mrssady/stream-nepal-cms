@@ -1,6 +1,6 @@
 import DashboardLayout from "@/components/layout/DashboardLayout";
 
-export default function Layout({
+export default function DashboardGroupLayout({
   children,
 }: {
   children: React.ReactNode;

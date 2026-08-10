@@ -1,57 +1,68 @@
 "use client";
 
+import Link from "next/link";
 import {
   CalendarPlus,
-  FolderPlus,
-  ShieldPlus,
+  ImagePlus,
   UserPlus,
 } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 
 const actions = [
   {
     title: "Create User",
+    href: "/users",
     icon: UserPlus,
-    color: "bg-blue-600",
-  },
-  {
-    title: "Create Team",
-    icon: ShieldPlus,
-    color: "bg-green-600",
   },
   {
     title: "Create Event",
+    href: "/events",
     icon: CalendarPlus,
-    color: "bg-purple-600",
   },
   {
     title: "Upload Gallery",
-    icon: FolderPlus,
-    color: "bg-orange-500",
+    href: "/gallery",
+    icon: ImagePlus,
   },
 ];
 
 export default function QuickActions() {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 className="mb-6 text-lg font-semibold">
-        Quick Actions
-      </h2>
+    <div className="rounded-xl border bg-card">
+      <div className="border-b px-6 py-4">
+        <h2 className="font-semibold">
+          Quick Actions
+        </h2>
 
-      <div className="grid grid-cols-2 gap-4">
+        <p className="mt-1 text-sm text-muted-foreground">
+          Quickly access common CMS tasks.
+        </p>
+      </div>
+
+      <div className="grid gap-2 p-4 sm:grid-cols-3">
         {actions.map((action) => {
           const Icon = action.icon;
 
           return (
-            <button
+            <Link
               key={action.title}
-              className={`${action.color} flex flex-col items-center justify-center gap-3 rounded-2xl p-6 text-white transition-all hover:scale-[1.03]`}
+              href={action.href}
+              className="block"
             >
-              <Icon size={28} />
+              <Button
+                variant="outline"
+                className="h-auto w-full justify-start gap-3 px-4 py-4"
+              >
+                <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Icon className="size-4" />
+                </span>
 
-              <span className="text-sm font-semibold">
-                {action.title}
-              </span>
-            </button>
+                <span className="text-sm font-medium">
+                  {action.title}
+                </span>
+              </Button>
+            </Link>
           );
         })}
       </div>
