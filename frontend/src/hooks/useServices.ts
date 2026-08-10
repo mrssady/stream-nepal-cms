@@ -1,20 +1,14 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
+import { useEffect, useState } from "react";
 
 import {
-  createService,
-  CreateServiceDto,
-  deleteService,
   getServices,
-  Service,
-  updateService,
-  UpdateServiceDto,
-} from "@/services/service";
+} from "@/services/services";
+
+import {
+  type Service,
+} from "@/types/service";
 
 export function useServices() {
   const [services, setServices] =
@@ -23,50 +17,36 @@ export function useServices() {
   const [loading, setLoading] =
     useState(true);
 
-  const fetchServices = useCallback(async () => {
+  const [error, setError] =
+    useState<string | null>(null);
+
+  async function loadServices() {
     try {
       setLoading(true);
+      setError(null);
 
-      const data = await getServices();
+      const data =
+        await getServices();
 
       setServices(data);
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+      setError(
+        error?.response?.data?.message ||
+          "Failed to load services.",
+      );
     } finally {
       setLoading(false);
     }
-  }, []);
+  }
 
   useEffect(() => {
-    void fetchServices();
-  }, [fetchServices]);
-
-  async function addService(
-    data: CreateServiceDto,
-  ) {
-    await createService(data);
-    await fetchServices();
-  }
-
-  async function editService(
-    id: string,
-    data: UpdateServiceDto,
-  ) {
-    await updateService(id, data);
-    await fetchServices();
-  }
-
-  async function removeService(id: string) {
-    await deleteService(id);
-    await fetchServices();
-  }
+    loadServices();
+  }, []);
 
   return {
     services,
     loading,
-    fetchServices,
-    addService,
-    editService,
-    removeService,
+    error,
+    refresh: loadServices,
   };
 }
