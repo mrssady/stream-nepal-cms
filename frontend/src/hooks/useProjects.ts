@@ -1,20 +1,19 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
+import { useEffect, useState } from "react";
 
 import {
   createProject,
-  CreateProjectDto,
   deleteProject,
   getProjects,
-  Project,
   updateProject,
-  UpdateProjectDto,
-} from "@/services/project";
+} from "@/services/projects";
+
+import {
+  type CreateProjectDto,
+  type Project,
+  type UpdateProjectDto,
+} from "@/types/project";
 
 export function useProjects() {
   const [projects, setProjects] =
@@ -23,51 +22,81 @@ export function useProjects() {
   const [loading, setLoading] =
     useState(true);
 
-  const fetchProjects =
-    useCallback(async () => {
-      try {
-        setLoading(true);
+  const [error, setError] =
+    useState<string | null>(null);
 
-        const data = await getProjects();
+  async function loadProjects() {
+    try {
+      setLoading(true);
+      setError(null);
 
-        setProjects(data);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    }, []);
+      const data =
+        await getProjects();
 
-  useEffect(() => {
-    void fetchProjects();
-  }, [fetchProjects]);
+      setProjects(data);
+    } catch (error: any) {
+      setError(
+        error?.response?.data?.message ||
+          "Failed to load projects.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
 
   async function addProject(
     data: CreateProjectDto,
   ) {
-    await createProject(data);
-    await fetchProjects();
+    const project =
+      await createProject(data);
+
+    setProjects((current) => [
+      project,
+      ...current,
+    ]);
+
+    return project;
   }
 
   async function editProject(
     id: string,
     data: UpdateProjectDto,
   ) {
-    await updateProject(id, data);
-    await fetchProjects();
+    const project =
+      await updateProject(id, data);
+
+    setProjects((current) =>
+      current.map((item) =>
+        item.id === id
+          ? project
+          : item,
+      ),
+    );
+
+    return project;
   }
 
   async function removeProject(
     id: string,
   ) {
     await deleteProject(id);
-    await fetchProjects();
+
+    setProjects((current) =>
+      current.filter(
+        (item) => item.id !== id,
+      ),
+    );
   }
+
+  useEffect(() => {
+    loadProjects();
+  }, []);
 
   return {
     projects,
     loading,
-    fetchProjects,
+    error,
+    refresh: loadProjects,
     addProject,
     editProject,
     removeProject,

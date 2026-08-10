@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react";
 
 import {
-  CreateProjectDto,
-  Project,
-  UpdateProjectDto,
-} from "@/services/project";
+  type CreateProjectDto,
+  type Project,
+  type UpdateProjectDto,
+} from "@/types/project";
 
 type ProjectModalProps = {
   open: boolean;
@@ -50,7 +50,9 @@ export default function ProjectModal({
     );
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      return;
+    }
 
     if (
       mode === "edit" &&
@@ -63,10 +65,12 @@ export default function ProjectModal({
           initialData.shortDescription ??
           "",
         description:
-          initialData.description ?? "",
+          initialData.description ??
+          "",
         coverImage:
           initialData.coverImage ?? "",
-        client: initialData.client ?? "",
+        client:
+          initialData.client ?? "",
         category:
           initialData.category ?? "",
         projectDate:
@@ -78,20 +82,30 @@ export default function ProjectModal({
             : "",
         projectUrl:
           initialData.projectUrl ?? "",
-        featured: initialData.featured,
-        isActive: initialData.isActive,
+        featured:
+          initialData.featured,
+        isActive:
+          initialData.isActive,
         displayOrder:
           initialData.displayOrder,
       });
     } else {
-      setForm(INITIAL_FORM);
+      setForm({
+        ...INITIAL_FORM,
+      });
     }
-  }, [open, mode, initialData]);
+  }, [
+    open,
+    mode,
+    initialData,
+  ]);
 
-  if (!open) return null;
+  if (!open) {
+    return null;
+  }
 
   function handleChange(
-    e: React.ChangeEvent<
+    event: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement
     >,
   ) {
@@ -99,11 +113,11 @@ export default function ProjectModal({
       name,
       value,
       type,
-    } = e.target;
+    } = event.target;
 
     if (type === "checkbox") {
       const checked = (
-        e.target as HTMLInputElement
+        event.target as HTMLInputElement
       ).checked;
 
       setForm((previous) => ({
@@ -124,27 +138,25 @@ export default function ProjectModal({
   }
 
   async function handleSubmit(
-    e: React.FormEvent,
+    event: React.FormEvent<HTMLFormElement>,
   ) {
-    e.preventDefault();
+    event.preventDefault();
 
     await onSubmit(form);
-
-    onClose();
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white shadow-xl">
         <div className="border-b p-6">
-          <h2 className="text-xl font-semibold">
+          <h2 className="text-xl font-semibold text-slate-900">
             {mode === "create"
               ? "Create Project"
               : "Edit Project"}
           </h2>
 
           <p className="mt-1 text-sm text-slate-500">
-            Add a Stream Nepal portfolio
+            Manage a Stream Nepal portfolio
             project.
           </p>
         </div>
@@ -165,7 +177,7 @@ export default function ProjectModal({
                 value={form.title}
                 onChange={handleChange}
                 placeholder="PMBC PUBG LAN Tournament"
-                className="w-full rounded-xl border px-3 py-2"
+                className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
               />
             </div>
 
@@ -180,7 +192,7 @@ export default function ProjectModal({
                 value={form.slug}
                 onChange={handleChange}
                 placeholder="pmbc-pubg-lan-tournament"
-                className="w-full rounded-xl border px-3 py-2"
+                className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
               />
             </div>
           </div>
@@ -196,7 +208,7 @@ export default function ProjectModal({
                 value={form.client ?? ""}
                 onChange={handleChange}
                 placeholder="Client / Organization"
-                className="w-full rounded-xl border px-3 py-2"
+                className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
               />
             </div>
 
@@ -207,10 +219,12 @@ export default function ProjectModal({
 
               <input
                 name="category"
-                value={form.category ?? ""}
+                value={
+                  form.category ?? ""
+                }
                 onChange={handleChange}
                 placeholder="Esports / Broadcast / Event"
-                className="w-full rounded-xl border px-3 py-2"
+                className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
               />
             </div>
           </div>
@@ -223,11 +237,12 @@ export default function ProjectModal({
             <input
               name="shortDescription"
               value={
-                form.shortDescription ?? ""
+                form.shortDescription ??
+                ""
               }
               onChange={handleChange}
               placeholder="Short portfolio description"
-              className="w-full rounded-xl border px-3 py-2"
+              className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
             />
           </div>
 
@@ -239,10 +254,12 @@ export default function ProjectModal({
             <textarea
               name="description"
               rows={5}
-              value={form.description ?? ""}
+              value={
+                form.description ?? ""
+              }
               onChange={handleChange}
               placeholder="Full project description"
-              className="w-full rounded-xl border px-3 py-2"
+              className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
             />
           </div>
 
@@ -259,7 +276,7 @@ export default function ProjectModal({
                 }
                 onChange={handleChange}
                 placeholder="https://..."
-                className="w-full rounded-xl border px-3 py-2"
+                className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
               />
             </div>
 
@@ -275,7 +292,7 @@ export default function ProjectModal({
                 }
                 onChange={handleChange}
                 placeholder="https://..."
-                className="w-full rounded-xl border px-3 py-2"
+                className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
               />
             </div>
           </div>
@@ -293,7 +310,7 @@ export default function ProjectModal({
                   form.projectDate ?? ""
                 }
                 onChange={handleChange}
-                className="w-full rounded-xl border px-3 py-2"
+                className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
               />
             </div>
 
@@ -310,7 +327,7 @@ export default function ProjectModal({
                   form.displayOrder ?? 0
                 }
                 onChange={handleChange}
-                className="w-full rounded-xl border px-3 py-2"
+                className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
               />
             </div>
           </div>
@@ -351,7 +368,8 @@ export default function ProjectModal({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl border px-5 py-2"
+              disabled={loading}
+              className="rounded-xl border px-5 py-2 hover:bg-slate-50 disabled:opacity-50"
             >
               Cancel
             </button>
@@ -359,7 +377,7 @@ export default function ProjectModal({
             <button
               type="submit"
               disabled={loading}
-              className="rounded-xl bg-blue-600 px-5 py-2 text-white disabled:opacity-50"
+              className="rounded-xl bg-blue-600 px-5 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
             >
               {loading
                 ? "Saving..."
