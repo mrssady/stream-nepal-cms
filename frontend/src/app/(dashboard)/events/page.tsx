@@ -14,10 +14,10 @@ import EventsTable from "@/components/events/EventsTable";
 import { useEvents } from "@/hooks/useEvents";
 
 import {
-  Event,
-  CreateEventDto,
-  UpdateEventDto,
-} from "@/services/event";
+  type CreateTournamentDto,
+  type Tournament,
+  type UpdateTournamentDto,
+} from "@/types/tournament";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -30,17 +30,22 @@ export default function EventsPage() {
     removeEvent,
   } = useEvents();
 
-  const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
+  const [search, setSearch] =
+    useState("");
+
+  const [page, setPage] =
+    useState(1);
 
   const [openModal, setOpenModal] =
     useState(false);
 
   const [mode, setMode] =
-    useState<"create" | "edit">("create");
+    useState<"create" | "edit">(
+      "create",
+    );
 
   const [selectedEvent, setSelectedEvent] =
-    useState<Event | null>(null);
+    useState<Tournament | null>(null);
 
   const [saving, setSaving] =
     useState(false);
@@ -52,17 +57,28 @@ export default function EventsPage() {
     useState(false);
 
   const filteredEvents = useMemo(() => {
-    const keyword = search.toLowerCase();
+    const keyword =
+      search.trim().toLowerCase();
+
+    if (!keyword) {
+      return events;
+    }
 
     return events.filter(
       (event) =>
-        event.title
+        event.name
+          .toLowerCase()
+          .includes(keyword) ||
+        event.slug
           .toLowerCase()
           .includes(keyword) ||
         event.game
           .toLowerCase()
           .includes(keyword) ||
-        event.location
+        event.organizer
+          .toLowerCase()
+          .includes(keyword) ||
+        event.status
           .toLowerCase()
           .includes(keyword),
     );
@@ -76,44 +92,75 @@ export default function EventsPage() {
     ),
   );
 
+  const currentPage = Math.min(
+    page,
+    totalPages,
+  );
+
   const paginatedEvents = useMemo(() => {
     const start =
-      (page - 1) * ITEMS_PER_PAGE;
+      (currentPage - 1) *
+      ITEMS_PER_PAGE;
 
     return filteredEvents.slice(
       start,
       start + ITEMS_PER_PAGE,
     );
-  }, [filteredEvents, page]);
+  }, [
+    filteredEvents,
+    currentPage,
+  ]);
+
+  function openCreate() {
+    setMode("create");
+    setSelectedEvent(null);
+    setOpenModal(true);
+  }
+
+  function openEdit(
+    event: Tournament,
+  ) {
+    setMode("edit");
+    setSelectedEvent(event);
+    setOpenModal(true);
+  }
 
   async function handleSubmit(
     data:
-      | CreateEventDto
-      | UpdateEventDto,
+      | CreateTournamentDto
+      | UpdateTournamentDto,
   ) {
     try {
       setSaving(true);
 
       if (mode === "create") {
         await addEvent(
-          data as CreateEventDto,
+          data as CreateTournamentDto,
         );
       } else if (selectedEvent) {
         await editEvent(
           selectedEvent.id,
-          data as UpdateEventDto,
+          data as UpdateTournamentDto,
         );
       }
 
       setOpenModal(false);
       setSelectedEvent(null);
+    } catch (error) {
+      console.error(error);
+
+      alert(
+        "Unable to save the event.",
+      );
     } finally {
       setSaving(false);
     }
   }
 
   async function handleDelete() {
-    if (!selectedEvent) return;
+    if (!selectedEvent) {
+      return;
+    }
 
     try {
       setDeleting(true);
@@ -124,6 +171,12 @@ export default function EventsPage() {
 
       setOpenDelete(false);
       setSelectedEvent(null);
+    } catch (error) {
+      console.error(error);
+
+      alert(
+        "Unable to delete the event.",
+      );
     } finally {
       setDeleting(false);
     }
@@ -132,68 +185,61 @@ export default function EventsPage() {
   if (loading) {
     return (
       <div className="p-6">
-        Loading events...
+        <div className="rounded-xl border bg-white p-12 text-center text-slate-500">
+          Loading events...
+        </div>
       </div>
     );
   }
 
   return (
-    <>
-      <div className="space-y-6">
-        <PageHeader
-          title="Events"
-          description="Manage tournaments and events."
-          action={
-            <button
-              onClick={() => {
-                setMode("create");
-                setSelectedEvent(null);
-                setOpenModal(true);
-              }}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-white"
-            >
-              Create Event
-            </button>
-          }
-        />
+    <div className="space-y-6">
+      <PageHeader
+        title="Events"
+        description="Manage tournaments and events."
+        action={
+          <button
+            type="button"
+            onClick={openCreate}
+            className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+          >
+            Create Event
+          </button>
+        }
+      />
 
-        <SearchBar
-          value={search}
-          onChange={(value) => {
-            setSearch(value);
-            setPage(1);
-          }}
-          placeholder="Search events..."
-        />
+      <SearchBar
+        value={search}
+        onChange={(value) => {
+          setSearch(value);
+          setPage(1);
+        }}
+        placeholder="Search events..."
+      />
 
-        {filteredEvents.length === 0 ? (
-          <EmptyState
-            title="No Events Found"
-            description="Create your first event."
+      {filteredEvents.length === 0 ? (
+        <EmptyState
+          title="No Events Found"
+          description="Create your first event."
+        />
+      ) : (
+        <>
+          <EventsTable
+            events={paginatedEvents}
+            onEdit={openEdit}
+            onDelete={(event) => {
+              setSelectedEvent(event);
+              setOpenDelete(true);
+            }}
           />
-        ) : (
-          <>
-            <EventsTable
-              events={paginatedEvents}
-              onEdit={(event) => {
-                setMode("edit");
-                setSelectedEvent(event);
-                setOpenModal(true);
-              }}
-              onDelete={(event) => {
-                setSelectedEvent(event);
-                setOpenDelete(true);
-              }}
-            />
 
-            <Pagination
-              currentPage={page}
-              totalPages={totalPages}
-              onPageChange={setPage}
-            />
-          </>
-        )}
-      </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setPage}
+          />
+        </>
+      )}
 
       <EventModal
         open={openModal}
@@ -201,8 +247,10 @@ export default function EventsPage() {
         loading={saving}
         initialData={selectedEvent}
         onClose={() => {
-          setOpenModal(false);
-          setSelectedEvent(null);
+          if (!saving) {
+            setOpenModal(false);
+            setSelectedEvent(null);
+          }
         }}
         onSubmit={handleSubmit}
       />
@@ -211,13 +259,15 @@ export default function EventsPage() {
         open={openDelete}
         loading={deleting}
         title="Delete Event"
-        message={`Are you sure you want to delete "${selectedEvent?.title}"?`}
+        message={`Are you sure you want to delete "${selectedEvent?.name}"?`}
         onCancel={() => {
-          setOpenDelete(false);
-          setSelectedEvent(null);
+          if (!deleting) {
+            setOpenDelete(false);
+            setSelectedEvent(null);
+          }
         }}
         onConfirm={handleDelete}
       />
-    </>
+    </div>
   );
 }

@@ -1,57 +1,94 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 
 import {
-  getEvents,
-  createEvent,
-  updateEvent,
-  deleteEvent,
-  Event,
-  CreateEventDto,
-  UpdateEventDto,
-} from "@/services/event";
+  createTournament,
+  deleteTournament,
+  getTournaments,
+  updateTournament,
+} from "@/services/tournaments";
+
+import {
+  type CreateTournamentDto,
+  type Tournament,
+  type UpdateTournamentDto,
+} from "@/types/tournament";
 
 export function useEvents() {
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [events, setEvents] =
+    useState<Tournament[]>([]);
 
-  const fetchEvents = useCallback(async () => {
-    try {
-      setLoading(true);
+  const [loading, setLoading] =
+    useState(true);
 
-      const data = await getEvents();
+  const fetchEvents = useCallback(
+    async () => {
+      try {
+        setLoading(true);
 
-      setEvents(data);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+        const data =
+          await getTournaments();
+
+        setEvents(data);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     void fetchEvents();
   }, [fetchEvents]);
 
   async function addEvent(
-    data: CreateEventDto,
+    data: CreateTournamentDto,
   ) {
-    await createEvent(data);
-    await fetchEvents();
+    const created =
+      await createTournament(data);
+
+    setEvents((current) => [
+      created,
+      ...current,
+    ]);
   }
 
   async function editEvent(
     id: string,
-    data: UpdateEventDto,
+    data: UpdateTournamentDto,
   ) {
-    await updateEvent(id, data);
-    await fetchEvents();
+    const updated =
+      await updateTournament(
+        id,
+        data,
+      );
+
+    setEvents((current) =>
+      current.map((event) =>
+        event.id === id
+          ? updated
+          : event,
+      ),
+    );
   }
 
-  async function removeEvent(id: string) {
-    await deleteEvent(id);
-    await fetchEvents();
+  async function removeEvent(
+    id: string,
+  ) {
+    await deleteTournament(id);
+
+    setEvents((current) =>
+      current.filter(
+        (event) => event.id !== id,
+      ),
+    );
   }
 
   return {
