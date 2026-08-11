@@ -6,11 +6,11 @@ import {
 
 import { PrismaService } from "../../prisma/prisma.service";
 
-import { CreateServiceDto } from "./dto/create-service.dto";
-import { UpdateServiceDto } from "./dto/update-service.dto";
+import { CreateMediaDto } from "./dto/create-media.dto";
+import { UpdateMediaDto } from "./dto/update-media.dto";
 
 @Injectable()
-export class ServicesService {
+export class MediaService {
   constructor(
     private readonly prisma: PrismaService,
   ) {}
@@ -32,29 +32,27 @@ export class ServicesService {
     return organization;
   }
 
-  async create(createServiceDto: CreateServiceDto) {
+  async create(createMediaDto: CreateMediaDto) {
     const organization =
       await this.getOrganization();
 
     const existing =
-      await this.prisma.service.findUnique({
+      await this.prisma.media.findFirst({
         where: {
-          organizationId_slug: {
-            organizationId: organization.id,
-            slug: createServiceDto.slug,
-          },
+          organizationId: organization.id,
+          sourceUrl: createMediaDto.sourceUrl,
         },
       });
 
     if (existing) {
       throw new ConflictException(
-        "A service with this slug already exists",
+        "This media URL already exists",
       );
     }
 
-    return this.prisma.service.create({
+    return this.prisma.media.create({
       data: {
-        ...createServiceDto,
+        ...createMediaDto,
         organization: {
           connect: {
             id: organization.id,
@@ -68,7 +66,7 @@ export class ServicesService {
     const organization =
       await this.getOrganization();
 
-    return this.prisma.service.findMany({
+    return this.prisma.media.findMany({
       where: {
         organizationId: organization.id,
       },
@@ -87,36 +85,38 @@ export class ServicesService {
     const organization =
       await this.getOrganization();
 
-    const service =
-      await this.prisma.service.findFirst({
+    const media =
+      await this.prisma.media.findFirst({
         where: {
           id,
           organizationId: organization.id,
         },
       });
 
-    if (!service) {
+    if (!media) {
       throw new NotFoundException(
-        "Service not found",
+        "Media not found",
       );
     }
 
-    return service;
+    return media;
   }
 
   async update(
     id: string,
-    updateServiceDto: UpdateServiceDto,
+    updateMediaDto: UpdateMediaDto,
   ) {
-    const service = await this.findOne(id);
+    const media =
+      await this.findOne(id);
 
-    if (updateServiceDto.slug) {
+    if (updateMediaDto.sourceUrl) {
       const existing =
-        await this.prisma.service.findFirst({
+        await this.prisma.media.findFirst({
           where: {
             organizationId:
-              service.organizationId,
-            slug: updateServiceDto.slug,
+              media.organizationId,
+            sourceUrl:
+              updateMediaDto.sourceUrl,
             NOT: {
               id,
             },
@@ -125,45 +125,26 @@ export class ServicesService {
 
       if (existing) {
         throw new ConflictException(
-          "A service with this slug already exists",
+          "This media URL already exists",
         );
       }
     }
 
-    return this.prisma.service.update({
+    return this.prisma.media.update({
       where: {
         id,
       },
-      data: updateServiceDto,
+      data: updateMediaDto,
     });
   }
 
   async remove(id: string) {
     await this.findOne(id);
 
-    return this.prisma.service.delete({
+    return this.prisma.media.delete({
       where: {
         id,
       },
-    });
-  }
-  async findPublic() {
-    const organization =
-      await this.getOrganization();
-
-    return this.prisma.service.findMany({
-      where: {
-        organizationId: organization.id,
-        isActive: true,
-      },
-      orderBy: [
-        {
-          displayOrder: "asc",
-        },
-        {
-          createdAt: "desc",
-        },
-      ],
     });
   }
 }

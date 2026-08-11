@@ -140,4 +140,22 @@ export class TournamentsService {
       },
     });
   }
+  async findPublic() {
+    return this.prisma.tournament.findMany({
+      where: {
+        isPublic: true,
+      },
+      orderBy: [
+        {
+          featured: "desc",
+        },
+        {
+          tournamentStart: "asc",
+        },
+        {
+          createdAt: "desc",
+        },
+      ],
+    });
+  }
 }

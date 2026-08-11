@@ -5,34 +5,31 @@ import {
   Trash2,
 } from "lucide-react";
 
-import {
-  type Tournament,
-} from "@/types/tournament";
+import type { Event } from "@/services/event";
 
 type EventsTableProps = {
-  events: Tournament[];
-  onEdit: (
-    event: Tournament,
-  ) => void;
-  onDelete: (
-    event: Tournament,
-  ) => void;
+  events: Event[];
+  onEdit: (event: Event) => void;
+  onDelete: (event: Event) => void;
 };
 
-function formatGame(game: string) {
-  return game
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (letter) =>
-      letter.toUpperCase(),
-    );
-}
+function formatDate(
+  value: string,
+) {
+  const date = new Date(value);
 
-function formatStatus(status: string) {
-  return status
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (letter) =>
-      letter.toUpperCase(),
-    );
+  if (Number.isNaN(date.getTime())) {
+    return "Invalid date";
+  }
+
+  return date.toLocaleDateString(
+    "en-US",
+    {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    },
+  );
 }
 
 export default function EventsTable({
@@ -51,15 +48,15 @@ export default function EventsTable({
               </th>
 
               <th className="px-6 py-4 text-left text-sm font-semibold">
-                Game
+                Category
               </th>
 
               <th className="px-6 py-4 text-left text-sm font-semibold">
-                Organizer
+                Client
               </th>
 
               <th className="px-6 py-4 text-left text-sm font-semibold">
-                Teams
+                Date
               </th>
 
               <th className="px-6 py-4 text-left text-sm font-semibold">
@@ -80,21 +77,21 @@ export default function EventsTable({
               >
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
-                    {event.logo ? (
+                    {event.coverImage ? (
                       <img
-                        src={event.logo}
-                        alt={event.name}
-                        className="size-10 rounded-lg object-cover"
+                        src={event.coverImage}
+                        alt={event.title}
+                        className="size-12 rounded-lg object-cover"
                       />
                     ) : (
-                      <div className="flex size-10 items-center justify-center rounded-lg bg-blue-100 text-sm font-bold text-blue-600">
+                      <div className="flex size-12 items-center justify-center rounded-lg bg-blue-100 text-sm font-bold text-blue-600">
                         SN
                       </div>
                     )}
 
                     <div>
-                      <p className="font-semibold">
-                        {event.name}
+                      <p className="font-semibold text-slate-900">
+                        {event.title}
                       </p>
 
                       <p className="text-xs text-slate-500">
@@ -105,24 +102,39 @@ export default function EventsTable({
                 </td>
 
                 <td className="px-6 py-4">
-                  {formatGame(event.game)}
+                  {event.category || "—"}
                 </td>
 
                 <td className="px-6 py-4">
-                  {event.organizer}
+                  {event.client || "—"}
                 </td>
 
                 <td className="px-6 py-4">
-                  {event.currentTeams} /{" "}
-                  {event.maxTeams}
+                  {formatDate(
+                    event.eventDate,
+                  )}
                 </td>
 
                 <td className="px-6 py-4">
-                  <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
-                    {formatStatus(
-                      event.status,
+                  <div className="flex flex-wrap gap-2">
+                    <span
+                      className={`rounded-full px-3 py-1 text-xs font-medium ${
+                        event.isActive
+                          ? "bg-green-50 text-green-700"
+                          : "bg-slate-100 text-slate-500"
+                      }`}
+                    >
+                      {event.isActive
+                        ? "Active"
+                        : "Inactive"}
+                    </span>
+
+                    {event.featured && (
+                      <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">
+                        Featured
+                      </span>
                     )}
-                  </span>
+                  </div>
                 </td>
 
                 <td className="px-6 py-4">
@@ -135,9 +147,7 @@ export default function EventsTable({
                       className="rounded-lg border p-2 text-slate-600 hover:bg-slate-100"
                       title="Edit"
                     >
-                      <Pencil
-                        size={16}
-                      />
+                      <Pencil size={16} />
                     </button>
 
                     <button
@@ -148,9 +158,7 @@ export default function EventsTable({
                       className="rounded-lg border p-2 text-red-600 hover:bg-red-50"
                       title="Delete"
                     >
-                      <Trash2
-                        size={16}
-                      />
+                      <Trash2 size={16} />
                     </button>
                   </div>
                 </td>

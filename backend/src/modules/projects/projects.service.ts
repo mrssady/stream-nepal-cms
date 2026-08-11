@@ -179,4 +179,23 @@ export class ProjectsService {
       },
     });
   }
+  async findPublic() {
+    const organization =
+      await this.getOrganization();
+
+    return this.prisma.project.findMany({
+      where: {
+        organizationId: organization.id,
+        isActive: true,
+      },
+      orderBy: [
+        {
+          displayOrder: "asc",
+        },
+        {
+          createdAt: "desc",
+        },
+      ],
+    });
+  }
 }

@@ -7,32 +7,29 @@ import {
 } from "react";
 
 import {
-  createTournament,
-  deleteTournament,
-  getTournaments,
-  updateTournament,
-} from "@/services/tournaments";
-
-import {
-  type CreateTournamentDto,
-  type Tournament,
-  type UpdateTournamentDto,
-} from "@/types/tournament";
+  createEvent,
+  deleteEvent,
+  getEvents,
+  updateEvent,
+  type CreateEventDto,
+  type Event,
+  type UpdateEventDto,
+} from "@/services/event";
 
 export function useEvents() {
   const [events, setEvents] =
-    useState<Tournament[]>([]);
+    useState<Event[]>([]);
 
   const [loading, setLoading] =
     useState(true);
 
-  const fetchEvents = useCallback(
-    async () => {
+  const fetchEvents =
+    useCallback(async () => {
       try {
         setLoading(true);
 
         const data =
-          await getTournaments();
+          await getEvents();
 
         setEvents(data);
       } catch (error) {
@@ -40,19 +37,17 @@ export function useEvents() {
       } finally {
         setLoading(false);
       }
-    },
-    [],
-  );
+    }, []);
 
   useEffect(() => {
     void fetchEvents();
   }, [fetchEvents]);
 
   async function addEvent(
-    data: CreateTournamentDto,
+    data: CreateEventDto,
   ) {
     const created =
-      await createTournament(data);
+      await createEvent(data);
 
     setEvents((current) => [
       created,
@@ -62,13 +57,10 @@ export function useEvents() {
 
   async function editEvent(
     id: string,
-    data: UpdateTournamentDto,
+    data: UpdateEventDto,
   ) {
     const updated =
-      await updateTournament(
-        id,
-        data,
-      );
+      await updateEvent(id, data);
 
     setEvents((current) =>
       current.map((event) =>
@@ -82,7 +74,7 @@ export function useEvents() {
   async function removeEvent(
     id: string,
   ) {
-    await deleteTournament(id);
+    await deleteEvent(id);
 
     setEvents((current) =>
       current.filter(

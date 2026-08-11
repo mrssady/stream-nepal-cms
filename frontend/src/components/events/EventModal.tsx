@@ -1,129 +1,46 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
 
 import {
-  type CreateTournamentDto,
-  type Tournament,
-  type TournamentGame,
-  type TournamentStatus,
-  type UpdateTournamentDto,
-} from "@/types/tournament";
+  type CreateEventDto,
+  type Event,
+  type UpdateEventDto,
+} from "@/services/event";
 
 type EventModalProps = {
   open: boolean;
   mode: "create" | "edit";
   loading: boolean;
-  initialData?: Tournament | null;
+  initialData?: Event | null;
   onClose: () => void;
   onSubmit: (
     data:
-      | CreateTournamentDto
-      | UpdateTournamentDto,
+      | CreateEventDto
+      | UpdateEventDto,
   ) => Promise<void>;
 };
 
-const INITIAL_FORM: CreateTournamentDto = {
-  name: "",
+const INITIAL_FORM: CreateEventDto = {
+  title: "",
   slug: "",
-  game: "PUBG_MOBILE",
-  logo: "",
-  banner: "",
+  shortDescription: "",
   description: "",
-  rules: "",
+  coverImage: "",
+  category: "",
+  client: "",
   organizer: "",
-  registrationFee: 0,
-  prizePool: "",
-  maxTeams: 1,
-  currentTeams: 0,
-  registrationOpen: "",
-  registrationClose: "",
-  tournamentStart: "",
-  tournamentEnd: "",
-  discordUrl: "",
-  whatsappUrl: "",
-  streamUrl: "",
-  websiteUrl: "",
+  location: "",
+  eventDate: "",
+  eventUrl: "",
+  eventSeriesId: "",
   featured: false,
-  isPublic: true,
-  status: "DRAFT",
+  isActive: true,
+  displayOrder: 0,
 };
-
-const GAME_OPTIONS: {
-  value: TournamentGame;
-  label: string;
-}[] = [
-  {
-    value: "PUBG_MOBILE",
-    label: "PUBG Mobile",
-  },
-  {
-    value: "FREE_FIRE",
-    label: "Free Fire",
-  },
-  {
-    value: "VALORANT",
-    label: "Valorant",
-  },
-  {
-    value: "CS2",
-    label: "CS2",
-  },
-  {
-    value: "DOTA2",
-    label: "Dota 2",
-  },
-  {
-    value: "EA_FC",
-    label: "EA FC",
-  },
-  {
-    value: "EFOOTBALL",
-    label: "eFootball",
-  },
-  {
-    value: "MOBILE_LEGENDS",
-    label: "Mobile Legends",
-  },
-  {
-    value: "OTHER",
-    label: "Other",
-  },
-];
-
-const STATUS_OPTIONS: {
-  value: TournamentStatus;
-  label: string;
-}[] = [
-  {
-    value: "DRAFT",
-    label: "Draft",
-  },
-  {
-    value: "PUBLISHED",
-    label: "Published",
-  },
-  {
-    value: "REGISTRATION_OPEN",
-    label: "Registration Open",
-  },
-  {
-    value: "REGISTRATION_CLOSED",
-    label: "Registration Closed",
-  },
-  {
-    value: "LIVE",
-    label: "Live",
-  },
-  {
-    value: "COMPLETED",
-    label: "Completed",
-  },
-  {
-    value: "CANCELLED",
-    label: "Cancelled",
-  },
-];
 
 function formatDateTimeLocal(
   value: string | null | undefined,
@@ -169,7 +86,7 @@ export default function EventModal({
   onSubmit,
 }: EventModalProps) {
   const [form, setForm] =
-    useState<CreateTournamentDto>(
+    useState<CreateEventDto>(
       INITIAL_FORM,
     );
 
@@ -183,56 +100,43 @@ export default function EventModal({
       initialData
     ) {
       setForm({
-        name: initialData.name,
+        title: initialData.title,
         slug: initialData.slug,
-        game: initialData.game,
-        logo: initialData.logo ?? "",
-        banner:
-          initialData.banner ?? "",
+        shortDescription:
+          initialData.shortDescription ??
+          "",
         description:
-          initialData.description ?? "",
-        rules:
-          initialData.rules ?? "",
+          initialData.description ??
+          "",
+        coverImage:
+          initialData.coverImage ??
+          "",
+        category:
+          initialData.category ??
+          "",
+        client:
+          initialData.client ?? "",
         organizer:
-          initialData.organizer,
-        registrationFee:
-          initialData.registrationFee,
-        prizePool:
-          initialData.prizePool ?? "",
-        maxTeams:
-          initialData.maxTeams,
-        currentTeams:
-          initialData.currentTeams,
-        registrationOpen:
+          initialData.organizer ??
+          "",
+        location:
+          initialData.location ??
+          "",
+        eventDate:
           formatDateTimeLocal(
-            initialData.registrationOpen,
+            initialData.eventDate,
           ),
-        registrationClose:
-          formatDateTimeLocal(
-            initialData.registrationClose,
-          ),
-        tournamentStart:
-          formatDateTimeLocal(
-            initialData.tournamentStart,
-          ),
-        tournamentEnd:
-          formatDateTimeLocal(
-            initialData.tournamentEnd,
-          ),
-        discordUrl:
-          initialData.discordUrl ?? "",
-        whatsappUrl:
-          initialData.whatsappUrl ?? "",
-        streamUrl:
-          initialData.streamUrl ?? "",
-        websiteUrl:
-          initialData.websiteUrl ?? "",
+        eventUrl:
+          initialData.eventUrl ?? "",
+        eventSeriesId:
+          initialData.eventSeriesId ??
+          "",
         featured:
           initialData.featured,
-        isPublic:
-          initialData.isPublic,
-        status:
-          initialData.status,
+        isActive:
+          initialData.isActive,
+        displayOrder:
+          initialData.displayOrder,
       });
     } else {
       setForm({
@@ -251,7 +155,8 @@ export default function EventModal({
 
   function handleChange(
     event: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+      HTMLInputElement |
+        HTMLTextAreaElement
     >,
   ) {
     const {
@@ -273,25 +178,10 @@ export default function EventModal({
       return;
     }
 
-    if (
-      name === "registrationFee"
-    ) {
+    if (name === "displayOrder") {
       setForm((previous) => ({
         ...previous,
-        registrationFee:
-          Number(value),
-      }));
-
-      return;
-    }
-
-    if (
-      name === "maxTeams" ||
-      name === "currentTeams"
-    ) {
-      setForm((previous) => ({
-        ...previous,
-        [name]: Number(value),
+        displayOrder: Number(value),
       }));
 
       return;
@@ -322,8 +212,8 @@ export default function EventModal({
           </h2>
 
           <p className="mt-1 text-sm text-slate-500">
-            Manage tournament and event
-            information.
+            Add an event to the Stream Nepal
+            portfolio.
           </p>
         </div>
 
@@ -334,13 +224,13 @@ export default function EventModal({
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <label className="mb-1 block text-sm font-medium">
-                Event Name
+                Event Title
               </label>
 
               <input
                 required
-                name="name"
-                value={form.name}
+                name="title"
+                value={form.title}
                 onChange={handleChange}
                 placeholder="PUBG Mobile Championship"
                 className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
@@ -363,109 +253,21 @@ export default function EventModal({
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
-            <div>
-              <label className="mb-1 block text-sm font-medium">
-                Game
-              </label>
+          <div>
+            <label className="mb-1 block text-sm font-medium">
+              Short Description
+            </label>
 
-              <select
-                required
-                name="game"
-                value={form.game}
-                onChange={handleChange}
-                className="w-full rounded-xl border bg-white px-3 py-2 outline-none focus:border-blue-500"
-              >
-                {GAME_OPTIONS.map(
-                  (option) => (
-                    <option
-                      key={option.value}
-                      value={option.value}
-                    >
-                      {option.label}
-                    </option>
-                  ),
-                )}
-              </select>
-            </div>
-
-            <div>
-              <label className="mb-1 block text-sm font-medium">
-                Organizer
-              </label>
-
-              <input
-                required
-                name="organizer"
-                value={
-                  form.organizer
-                }
-                onChange={handleChange}
-                placeholder="Stream Nepal"
-                className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="mb-1 block text-sm font-medium">
-                Status
-              </label>
-
-              <select
-                name="status"
-                value={
-                  form.status ??
-                  "DRAFT"
-                }
-                onChange={handleChange}
-                className="w-full rounded-xl border bg-white px-3 py-2 outline-none focus:border-blue-500"
-              >
-                {STATUS_OPTIONS.map(
-                  (option) => (
-                    <option
-                      key={option.value}
-                      value={option.value}
-                    >
-                      {option.label}
-                    </option>
-                  ),
-                )}
-              </select>
-            </div>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <label className="mb-1 block text-sm font-medium">
-                Logo URL
-              </label>
-
-              <input
-                name="logo"
-                value={
-                  form.logo ?? ""
-                }
-                onChange={handleChange}
-                placeholder="https://..."
-                className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="mb-1 block text-sm font-medium">
-                Banner URL
-              </label>
-
-              <input
-                name="banner"
-                value={
-                  form.banner ?? ""
-                }
-                onChange={handleChange}
-                placeholder="https://..."
-                className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
-              />
-            </div>
+            <input
+              name="shortDescription"
+              value={
+                form.shortDescription ??
+                ""
+              }
+              onChange={handleChange}
+              placeholder="A short description of the event"
+              className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
+            />
           </div>
 
           <div>
@@ -475,229 +277,155 @@ export default function EventModal({
 
             <textarea
               name="description"
-              rows={4}
+              rows={5}
               value={
                 form.description ?? ""
               }
               onChange={handleChange}
-              placeholder="Event description"
+              placeholder="Detailed event description"
               className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
             />
           </div>
 
-          <div>
-            <label className="mb-1 block text-sm font-medium">
-              Rules
-            </label>
-
-            <textarea
-              name="rules"
-              rows={4}
-              value={
-                form.rules ?? ""
-              }
-              onChange={handleChange}
-              placeholder="Tournament rules"
-              className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
-            />
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2">
             <div>
               <label className="mb-1 block text-sm font-medium">
-                Registration Fee
+                Category
+              </label>
+
+              <input
+                name="category"
+                value={
+                  form.category ?? ""
+                }
+                onChange={handleChange}
+                placeholder="Esports / Broadcast / Event"
+                className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium">
+                Client
+              </label>
+
+              <input
+                name="client"
+                value={
+                  form.client ?? ""
+                }
+                onChange={handleChange}
+                placeholder="Client or organization"
+                className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium">
+                Organizer
+              </label>
+
+              <input
+                name="organizer"
+                value={
+                  form.organizer ?? ""
+                }
+                onChange={handleChange}
+                placeholder="Stream Nepal"
+                className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium">
+                Location
+              </label>
+
+              <input
+                name="location"
+                value={
+                  form.location ?? ""
+                }
+                onChange={handleChange}
+                placeholder="Biratnagar, Nepal"
+                className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-sm font-medium">
+                Event Date
+              </label>
+
+              <input
+                required
+                type="datetime-local"
+                name="eventDate"
+                value={
+                  form.eventDate
+                }
+                onChange={handleChange}
+                className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium">
+                Display Order
               </label>
 
               <input
                 type="number"
                 min="0"
-                name="registrationFee"
+                name="displayOrder"
                 value={
-                  form.registrationFee ??
+                  form.displayOrder ??
                   0
                 }
                 onChange={handleChange}
                 className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
               />
             </div>
+          </div>
 
-            <div>
-              <label className="mb-1 block text-sm font-medium">
-                Prize Pool
-              </label>
+          <div>
+            <label className="mb-1 block text-sm font-medium">
+              Cover Image URL
+            </label>
 
-              <input
-                name="prizePool"
-                value={
-                  form.prizePool ?? ""
-                }
-                onChange={handleChange}
-                placeholder="Rs. 100,000"
-                className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
-              />
-            </div>
+            <input
+              type="url"
+              name="coverImage"
+              value={
+                form.coverImage ?? ""
+              }
+              onChange={handleChange}
+              placeholder="https://..."
+              className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
+            />
+          </div>
 
-            <div>
-              <label className="mb-1 block text-sm font-medium">
-                Maximum Teams
-              </label>
+          <div>
+            <label className="mb-1 block text-sm font-medium">
+              Event URL
+            </label>
 
-              <input
-                required
-                type="number"
-                min="1"
-                name="maxTeams"
-                value={
-                  form.maxTeams
-                }
-                onChange={handleChange}
-                className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
-              />
-            </div>
+            <input
+              type="url"
+              name="eventUrl"
+              value={
+                form.eventUrl ?? ""
+              }
+              onChange={handleChange}
+              placeholder="https://..."
+              className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
+            />
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <label className="mb-1 block text-sm font-medium">
-                Registration Open
-              </label>
-
-              <input
-                required
-                type="datetime-local"
-                name="registrationOpen"
-                value={
-                  form.registrationOpen
-                }
-                onChange={handleChange}
-                className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="mb-1 block text-sm font-medium">
-                Registration Close
-              </label>
-
-              <input
-                required
-                type="datetime-local"
-                name="registrationClose"
-                value={
-                  form.registrationClose
-                }
-                onChange={handleChange}
-                className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="mb-1 block text-sm font-medium">
-                Tournament Start
-              </label>
-
-              <input
-                required
-                type="datetime-local"
-                name="tournamentStart"
-                value={
-                  form.tournamentStart
-                }
-                onChange={handleChange}
-                className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="mb-1 block text-sm font-medium">
-                Tournament End
-              </label>
-
-              <input
-                required
-                type="datetime-local"
-                name="tournamentEnd"
-                value={
-                  form.tournamentEnd
-                }
-                onChange={handleChange}
-                className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
-              />
-            </div>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <label className="mb-1 block text-sm font-medium">
-                Discord URL
-              </label>
-
-              <input
-                type="url"
-                name="discordUrl"
-                value={
-                  form.discordUrl ?? ""
-                }
-                onChange={handleChange}
-                placeholder="https://discord.gg/..."
-                className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="mb-1 block text-sm font-medium">
-                WhatsApp URL
-              </label>
-
-              <input
-                type="url"
-                name="whatsappUrl"
-                value={
-                  form.whatsappUrl ?? ""
-                }
-                onChange={handleChange}
-                placeholder="https://chat.whatsapp.com/..."
-                className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="mb-1 block text-sm font-medium">
-                Stream URL
-              </label>
-
-              <input
-                type="url"
-                name="streamUrl"
-                value={
-                  form.streamUrl ?? ""
-                }
-                onChange={handleChange}
-                placeholder="https://..."
-                className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="mb-1 block text-sm font-medium">
-                Website URL
-              </label>
-
-              <input
-                type="url"
-                name="websiteUrl"
-                value={
-                  form.websiteUrl ?? ""
-                }
-                onChange={handleChange}
-                placeholder="https://..."
-                className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
-              />
-            </div>
-          </div>
-
-          <div className="flex gap-6">
-            <label className="flex items-center gap-2">
+            <label className="flex items-center gap-3 rounded-xl border p-4">
               <input
                 type="checkbox"
                 name="featured"
@@ -708,25 +436,38 @@ export default function EventModal({
                 onChange={handleChange}
               />
 
-              <span className="text-sm">
-                Featured
-              </span>
+              <div>
+                <p className="text-sm font-medium">
+                  Featured Event
+                </p>
+
+                <p className="text-xs text-slate-500">
+                  Highlight this event on the
+                  public website.
+                </p>
+              </div>
             </label>
 
-            <label className="flex items-center gap-2">
+            <label className="flex items-center gap-3 rounded-xl border p-4">
               <input
                 type="checkbox"
-                name="isPublic"
+                name="isActive"
                 checked={
-                  form.isPublic ??
+                  form.isActive ??
                   true
                 }
                 onChange={handleChange}
               />
 
-              <span className="text-sm">
-                Public
-              </span>
+              <div>
+                <p className="text-sm font-medium">
+                  Active
+                </p>
+
+                <p className="text-xs text-slate-500">
+                  Make this event visible publicly.
+                </p>
+              </div>
             </label>
           </div>
 

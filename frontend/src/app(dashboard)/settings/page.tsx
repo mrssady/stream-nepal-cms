@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 
@@ -30,22 +30,35 @@ export default function EventsPage() {
     removeEvent,
   } = useEvents();
 
-  const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
+  const [search, setSearch] =
+    useState("");
 
-  const [openModal, setOpenModal] = useState(false);
+  const [page, setPage] =
+    useState(1);
+
+  const [openModal, setOpenModal] =
+    useState(false);
+
   const [mode, setMode] =
-    useState<"create" | "edit">("create");
+    useState<"create" | "edit">(
+      "create",
+    );
 
   const [selectedEvent, setSelectedEvent] =
     useState<Event | null>(null);
 
-  const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [openDelete, setOpenDelete] = useState(false);
+  const [saving, setSaving] =
+    useState(false);
+
+  const [deleting, setDeleting] =
+    useState(false);
+
+  const [openDelete, setOpenDelete] =
+    useState(false);
 
   const filteredEvents = useMemo(() => {
-    const keyword = search.trim().toLowerCase();
+    const keyword =
+      search.trim().toLowerCase();
 
     if (!keyword) {
       return events;
@@ -53,8 +66,12 @@ export default function EventsPage() {
 
     return events.filter(
       (event) =>
-        event.title.toLowerCase().includes(keyword) ||
-        event.slug.toLowerCase().includes(keyword) ||
+        event.title
+          .toLowerCase()
+          .includes(keyword) ||
+        event.slug
+          .toLowerCase()
+          .includes(keyword) ||
         (event.category ?? "")
           .toLowerCase()
           .includes(keyword) ||
@@ -73,21 +90,29 @@ export default function EventsPage() {
   const totalPages = Math.max(
     1,
     Math.ceil(
-      filteredEvents.length / ITEMS_PER_PAGE,
+      filteredEvents.length /
+        ITEMS_PER_PAGE,
     ),
   );
 
-  const currentPage = Math.min(page, totalPages);
+  const currentPage = Math.min(
+    page,
+    totalPages,
+  );
 
   const paginatedEvents = useMemo(() => {
     const start =
-      (currentPage - 1) * ITEMS_PER_PAGE;
+      (currentPage - 1) *
+      ITEMS_PER_PAGE;
 
     return filteredEvents.slice(
       start,
       start + ITEMS_PER_PAGE,
     );
-  }, [filteredEvents, currentPage]);
+  }, [
+    filteredEvents,
+    currentPage,
+  ]);
 
   function openCreate() {
     setMode("create");
@@ -95,20 +120,26 @@ export default function EventsPage() {
     setOpenModal(true);
   }
 
-  function openEdit(event: Event) {
+  function openEdit(
+    event: Event,
+  ) {
     setMode("edit");
     setSelectedEvent(event);
     setOpenModal(true);
   }
 
   async function handleSubmit(
-    data: CreateEventDto | UpdateEventDto,
+    data:
+      | CreateEventDto
+      | UpdateEventDto,
   ) {
     try {
       setSaving(true);
 
       if (mode === "create") {
-        await addEvent(data as CreateEventDto);
+        await addEvent(
+          data as CreateEventDto,
+        );
       } else if (selectedEvent) {
         await editEvent(
           selectedEvent.id,
@@ -120,7 +151,10 @@ export default function EventsPage() {
       setSelectedEvent(null);
     } catch (error) {
       console.error(error);
-      alert("Unable to save the event.");
+
+      alert(
+        "Unable to save the event.",
+      );
     } finally {
       setSaving(false);
     }
@@ -134,13 +168,18 @@ export default function EventsPage() {
     try {
       setDeleting(true);
 
-      await removeEvent(selectedEvent.id);
+      await removeEvent(
+        selectedEvent.id,
+      );
 
       setOpenDelete(false);
       setSelectedEvent(null);
     } catch (error) {
       console.error(error);
-      alert("Unable to delete the event.");
+
+      alert(
+        "Unable to delete the event.",
+      );
     } finally {
       setDeleting(false);
     }

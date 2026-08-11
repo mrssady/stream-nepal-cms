@@ -21,7 +21,10 @@ model Organization {
   teamMembers     TeamMember[]
   services        Service[]
   projects        Project[]
+  events          Event[]
+  eventSeries     EventSeries[]
   websiteSettings WebsiteSetting[]
+  media           Media[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -112,6 +115,10 @@ model TeamMember {
   updatedAt DateTime @updatedAt
 }
 
+// ============================================================
+// SERVICES
+// ============================================================
+
 model Service {
   id String @id @default(cuid())
 
@@ -136,6 +143,10 @@ model Service {
   @@unique([organizationId, slug])
   @@index([organizationId])
 }
+
+// ============================================================
+// PROJECTS
+// ============================================================
 
 model Project {
   id String @id @default(cuid())
@@ -167,6 +178,174 @@ model Project {
 
   @@unique([organizationId, slug])
   @@index([organizationId])
+}
+
+// ============================================================
+// EVENTS / PORTFOLIO SHOWCASE
+// ============================================================
+
+model EventSeries {
+  id String @id @default(cuid())
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  title       String
+  slug        String
+  description String?
+  coverImage  String?
+
+  isActive     Boolean @default(true)
+  featured     Boolean @default(false)
+  displayOrder Int     @default(0)
+
+  events Event[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([organizationId, slug])
+  @@index([organizationId])
+}
+
+model Event {
+  id String @id @default(cuid())
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  eventSeriesId String?
+  eventSeries   EventSeries? @relation(fields: [eventSeriesId], references: [id], onDelete: SetNull)
+
+  title String
+  slug  String
+
+  shortDescription String?
+  description      String?
+
+  coverImage String?
+
+  category  String?
+  client    String?
+  organizer String?
+  location  String?
+
+  eventDate DateTime
+
+  eventUrl String?
+
+  featured     Boolean @default(false)
+  isActive     Boolean @default(true)
+  displayOrder Int     @default(0)
+
+  photos   EventPhoto[]
+  videos   EventVideo[]
+  timeline EventTimeline[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([organizationId, slug])
+  @@index([organizationId])
+  @@index([eventSeriesId])
+  @@index([eventDate])
+  @@index([isActive])
+  @@index([featured])
+}
+
+// ============================================================
+// EVENT PHOTO GALLERY
+// ============================================================
+
+model EventPhoto {
+  id String @id @default(cuid())
+
+  eventId String
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  title       String?
+  description String?
+
+  imageUrl     String
+  thumbnailUrl String?
+
+  featured     Boolean @default(false)
+  isActive     Boolean @default(true)
+  displayOrder Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([eventId])
+  @@index([isActive])
+  @@index([featured])
+}
+
+// ============================================================
+// EVENT VIDEO GALLERY
+// ============================================================
+
+enum EventVideoPlatform {
+  YOUTUBE
+  FACEBOOK
+  VIMEO
+  OTHER
+}
+
+model EventVideo {
+  id String @id @default(cuid())
+
+  eventId String
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  title       String
+  description String?
+
+  platform EventVideoPlatform
+
+  videoUrl     String
+  thumbnailUrl String?
+
+  featured     Boolean @default(false)
+  isActive     Boolean @default(true)
+  displayOrder Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([eventId])
+  @@index([platform])
+  @@index([isActive])
+  @@index([featured])
+}
+
+// ============================================================
+// EVENT TIMELINE
+// ============================================================
+
+model EventTimeline {
+  id String @id @default(cuid())
+
+  eventId String
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  title       String
+  description String?
+
+  timelineDate DateTime
+
+  imageUrl String?
+
+  displayOrder Int     @default(0)
+  isActive     Boolean @default(true)
+  featured     Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([eventId])
+  @@index([timelineDate])
+  @@index([isActive])
 }
 
 // ============================================================
@@ -402,6 +581,46 @@ model Match {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// ============================================================
+// MEDIA / GALLERY
+// ============================================================
+
+enum MediaPlatform {
+  FACEBOOK
+  YOUTUBE
+  IMAGE
+  VIDEO
+}
+
+model Media {
+  id String @id @default(cuid())
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  title       String
+  description String?
+
+  platform MediaPlatform
+
+  sourceUrl    String
+  thumbnailUrl String?
+
+  category String?
+
+  featured     Boolean @default(false)
+  isActive     Boolean @default(true)
+  displayOrder Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([organizationId])
+  @@index([platform])
+  @@index([category])
+  @@index([isActive])
 }
 
 // ============================================================
