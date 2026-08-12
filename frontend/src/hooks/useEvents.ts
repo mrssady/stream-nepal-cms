@@ -11,9 +11,12 @@ import {
   deleteEvent,
   getEvents,
   updateEvent,
-  type CreateEventDto,
-  type Event,
-  type UpdateEventDto,
+} from "@/services/event";
+
+import type {
+  CreateEventDto,
+  Event,
+  UpdateEventDto,
 } from "@/services/event";
 
 export function useEvents() {
@@ -23,8 +26,8 @@ export function useEvents() {
   const [loading, setLoading] =
     useState(true);
 
-  const fetchEvents =
-    useCallback(async () => {
+  const fetchEvents = useCallback(
+    async () => {
       try {
         setLoading(true);
 
@@ -37,7 +40,9 @@ export function useEvents() {
       } finally {
         setLoading(false);
       }
-    }, []);
+    },
+    [],
+  );
 
   useEffect(() => {
     void fetchEvents();

@@ -4,26 +4,97 @@ export interface EventSeries {
   id: string;
   title: string;
   slug: string;
+  description?: string | null;
+  coverImage?: string | null;
+}
+
+export interface EventPhoto {
+  id: string;
+  eventId: string;
+  title: string | null;
+  description: string | null;
+  imageUrl: string;
+  thumbnailUrl: string | null;
+  featured: boolean;
+  isActive: boolean;
+  displayOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type EventVideoPlatform =
+  | "YOUTUBE"
+  | "FACEBOOK"
+  | "VIMEO"
+  | "OTHER";
+
+export interface EventVideo {
+  id: string;
+  eventId: string;
+  title: string;
+  description: string | null;
+  platform: EventVideoPlatform;
+  videoUrl: string;
+  thumbnailUrl: string | null;
+  featured: boolean;
+  isActive: boolean;
+  displayOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface EventTimeline {
+  id: string;
+  eventId: string;
+  title: string;
+  description: string | null;
+  timelineDate: string;
+  imageUrl: string | null;
+  displayOrder: number;
+  isActive: boolean;
+  featured: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Event {
   id: string;
+
+  organizationId: string;
+
+  eventSeriesId: string | null;
+  eventSeries: EventSeries | null;
+
   title: string;
   slug: string;
+
   shortDescription: string | null;
   description: string | null;
+
   coverImage: string | null;
+
   category: string | null;
   client: string | null;
   organizer: string | null;
   location: string | null;
+
   eventDate: string;
+
   eventUrl: string | null;
-  eventSeriesId: string | null;
+
   featured: boolean;
   isActive: boolean;
   displayOrder: number;
-  eventSeries?: EventSeries | null;
+
+  photos?: EventPhoto[];
+  videos?: EventVideo[];
+  timeline?: EventTimeline[];
+
+  _count?: {
+    photos: number;
+    videos: number;
+  };
+
   createdAt: string;
   updatedAt: string;
 }
@@ -31,16 +102,23 @@ export interface Event {
 export interface CreateEventDto {
   title: string;
   slug: string;
+
+  eventSeriesId?: string;
+
   shortDescription?: string;
   description?: string;
+
   coverImage?: string;
+
   category?: string;
   client?: string;
   organizer?: string;
   location?: string;
+
   eventDate: string;
+
   eventUrl?: string;
-  eventSeriesId?: string;
+
   featured?: boolean;
   isActive?: boolean;
   displayOrder?: number;
@@ -49,16 +127,23 @@ export interface CreateEventDto {
 export interface UpdateEventDto {
   title?: string;
   slug?: string;
+
+  eventSeriesId?: string | null;
+
   shortDescription?: string;
   description?: string;
+
   coverImage?: string;
+
   category?: string;
   client?: string;
   organizer?: string;
   location?: string;
+
   eventDate?: string;
+
   eventUrl?: string;
-  eventSeriesId?: string;
+
   featured?: boolean;
   isActive?: boolean;
   displayOrder?: number;
@@ -70,7 +155,7 @@ export async function getEvents(): Promise<Event[]> {
   return response.data.data;
 }
 
-export async function getEvent(
+export async function getEventById(
   id: string,
 ): Promise<Event> {
   const response = await api.get(

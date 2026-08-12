@@ -1,5 +1,5 @@
 "use client";
-
+import Link from "next/link";
 import {
   Pencil,
   Trash2,
@@ -90,9 +90,12 @@ export default function EventsTable({
                     )}
 
                     <div>
-                      <p className="font-semibold text-slate-900">
-                        {event.title}
-                      </p>
+                      <Link
+  href={`/events/${event.id}`}
+  className="font-semibold hover:text-blue-600 hover:underline"
+>
+  {event.title}
+</Link>
 
                       <p className="text-xs text-slate-500">
                         /{event.slug}

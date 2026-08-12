@@ -12,6 +12,7 @@ import {
   Settings,
   Trophy,
   Users,
+  Layers3,
 } from "lucide-react";
 
 import {
@@ -58,6 +59,11 @@ const contentMenu = [
     icon: Trophy,
   },
   {
+    name: "Event Series",
+    href: "/event-series",
+    icon: Layers3,
+  },
+  {
     name: "Gallery",
     href: "/gallery",
     icon: GalleryVerticalEnd,
@@ -77,7 +83,10 @@ const systemMenu = [
   },
 ];
 
-function isActiveRoute(pathname: string, href: string) {
+function isActiveRoute(
+  pathname: string,
+  href: string,
+) {
   if (href === "/dashboard") {
     return pathname === "/dashboard";
   }
@@ -95,10 +104,16 @@ function NavigationItem({
 }: {
   name: string;
   href: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: React.ComponentType<{
+    className?: string;
+  }>;
 }) {
   const pathname = usePathname();
-  const active = isActiveRoute(pathname, href);
+
+  const active = isActiveRoute(
+    pathname,
+    href,
+  );
 
   return (
     <SidebarMenuItem>

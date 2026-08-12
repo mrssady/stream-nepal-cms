@@ -11,6 +11,10 @@ import {
   type UpdateEventDto,
 } from "@/services/event";
 
+import { getEventSeries } from "@/services/event-series";
+
+import type { EventSeries } from "@/types/event-series";
+
 type EventModalProps = {
   open: boolean;
   mode: "create" | "edit";
@@ -27,6 +31,7 @@ type EventModalProps = {
 const INITIAL_FORM: CreateEventDto = {
   title: "",
   slug: "",
+  eventSeriesId: "",
   shortDescription: "",
   description: "",
   coverImage: "",
@@ -36,7 +41,6 @@ const INITIAL_FORM: CreateEventDto = {
   location: "",
   eventDate: "",
   eventUrl: "",
-  eventSeriesId: "",
   featured: false,
   isActive: true,
   displayOrder: 0,
@@ -55,8 +59,7 @@ function formatDateTimeLocal(
     return "";
   }
 
-  const year =
-    date.getFullYear();
+  const year = date.getFullYear();
 
   const month = String(
     date.getMonth() + 1,
@@ -90,6 +93,43 @@ export default function EventModal({
       INITIAL_FORM,
     );
 
+  const [eventSeries, setEventSeries] =
+    useState<EventSeries[]>([]);
+
+  const [seriesLoading, setSeriesLoading] =
+    useState(false);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    async function loadEventSeries() {
+      try {
+        setSeriesLoading(true);
+
+        const data =
+          await getEventSeries();
+
+        setEventSeries(
+          data.filter(
+            (series) =>
+              series.isActive,
+          ),
+        );
+      } catch (error) {
+        console.error(
+          "Failed to load event series:",
+          error,
+        );
+      } finally {
+        setSeriesLoading(false);
+      }
+    }
+
+    void loadEventSeries();
+  }, [open]);
+
   useEffect(() => {
     if (!open) {
       return;
@@ -102,39 +142,54 @@ export default function EventModal({
       setForm({
         title: initialData.title,
         slug: initialData.slug,
+
+        eventSeriesId:
+          initialData.eventSeriesId ??
+          "",
+
         shortDescription:
           initialData.shortDescription ??
           "",
+
         description:
           initialData.description ??
           "",
+
         coverImage:
           initialData.coverImage ??
           "",
+
         category:
           initialData.category ??
           "",
+
         client:
-          initialData.client ?? "",
+          initialData.client ??
+          "",
+
         organizer:
           initialData.organizer ??
           "",
+
         location:
           initialData.location ??
           "",
+
         eventDate:
           formatDateTimeLocal(
             initialData.eventDate,
           ),
+
         eventUrl:
-          initialData.eventUrl ?? "",
-        eventSeriesId:
-          initialData.eventSeriesId ??
+          initialData.eventUrl ??
           "",
+
         featured:
           initialData.featured,
+
         isActive:
           initialData.isActive,
+
         displayOrder:
           initialData.displayOrder,
       });
@@ -156,7 +211,8 @@ export default function EventModal({
   function handleChange(
     event: React.ChangeEvent<
       HTMLInputElement |
-        HTMLTextAreaElement
+        HTMLTextAreaElement |
+        HTMLSelectElement
     >,
   ) {
     const {
@@ -181,7 +237,8 @@ export default function EventModal({
     if (name === "displayOrder") {
       setForm((previous) => ({
         ...previous,
-        displayOrder: Number(value),
+        displayOrder:
+          Number(value),
       }));
 
       return;
@@ -198,7 +255,16 @@ export default function EventModal({
   ) {
     event.preventDefault();
 
-    await onSubmit(form);
+    const cleanedData = {
+      ...form,
+
+      eventSeriesId:
+        form.eventSeriesId?.trim()
+          ? form.eventSeriesId
+          : undefined,
+    };
+
+    await onSubmit(cleanedData);
   }
 
   return (
@@ -221,6 +287,8 @@ export default function EventModal({
           onSubmit={handleSubmit}
           className="space-y-5 p-6"
         >
+          {/* BASIC INFORMATION */}
+
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <label className="mb-1 block text-sm font-medium">
@@ -252,6 +320,58 @@ export default function EventModal({
               />
             </div>
           </div>
+
+          {/* EVENT SERIES */}
+
+          <div className="rounded-xl border bg-slate-50 p-4">
+            <label className="mb-1 block text-sm font-medium text-slate-900">
+              Event Series
+            </label>
+
+            <p className="mb-3 text-xs text-slate-500">
+              Group this event with previous or
+              future editions of the same event.
+            </p>
+
+            <select
+              name="eventSeriesId"
+              value={
+                form.eventSeriesId ?? ""
+              }
+              onChange={handleChange}
+              disabled={seriesLoading}
+              className="w-full rounded-xl border bg-white px-3 py-2 outline-none focus:border-blue-500 disabled:cursor-not-allowed disabled:bg-slate-100"
+            >
+              <option value="">
+                {seriesLoading
+                  ? "Loading event series..."
+                  : "No Event Series"}
+              </option>
+
+              {eventSeries.map(
+                (series) => (
+                  <option
+                    key={series.id}
+                    value={series.id}
+                  >
+                    {series.title}
+                  </option>
+                ),
+              )}
+            </select>
+
+            {eventSeries.length ===
+              0 &&
+              !seriesLoading && (
+                <p className="mt-2 text-xs text-amber-600">
+                  No active event series found.
+                  You can create one from the
+                  Event Series section.
+                </p>
+              )}
+          </div>
+
+          {/* DESCRIPTION */}
 
           <div>
             <label className="mb-1 block text-sm font-medium">
@@ -286,6 +406,8 @@ export default function EventModal({
               className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
             />
           </div>
+
+          {/* CATEGORY / CLIENT / ORGANIZER / LOCATION */}
 
           <div className="grid gap-4 md:grid-cols-2">
             <div>
@@ -353,6 +475,8 @@ export default function EventModal({
             </div>
           </div>
 
+          {/* DATE */}
+
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <label className="mb-1 block text-sm font-medium">
@@ -390,6 +514,8 @@ export default function EventModal({
             </div>
           </div>
 
+          {/* IMAGES / URL */}
+
           <div>
             <label className="mb-1 block text-sm font-medium">
               Cover Image URL
@@ -423,6 +549,8 @@ export default function EventModal({
               className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
             />
           </div>
+
+          {/* SETTINGS */}
 
           <div className="grid gap-4 md:grid-cols-2">
             <label className="flex items-center gap-3 rounded-xl border p-4">
@@ -471,6 +599,8 @@ export default function EventModal({
             </label>
           </div>
 
+          {/* ACTIONS */}
+
           <div className="flex justify-end gap-3 border-t pt-5">
             <button
               type="button"
@@ -483,7 +613,10 @@ export default function EventModal({
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={
+                loading ||
+                seriesLoading
+              }
               className="rounded-xl bg-blue-600 px-5 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
             >
               {loading

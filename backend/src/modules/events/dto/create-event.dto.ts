@@ -16,6 +16,10 @@ export class CreateEventDto {
 
   @IsOptional()
   @IsString()
+  eventSeriesId?: string;
+
+  @IsOptional()
+  @IsString()
   shortDescription?: string;
 
   @IsOptional()
@@ -48,10 +52,6 @@ export class CreateEventDto {
   @IsOptional()
   @IsString()
   eventUrl?: string;
-
-  @IsOptional()
-  @IsString()
-  eventSeriesId?: string;
 
   @IsOptional()
   @IsBoolean()

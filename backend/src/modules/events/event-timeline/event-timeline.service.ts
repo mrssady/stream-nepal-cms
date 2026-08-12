@@ -1,0 +1,177 @@
+import {
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
+
+import { PrismaService } from "../../../prisma/prisma.service";
+
+import { CreateEventTimelineDto } from "./dto/create-event-timeline.dto";
+import { UpdateEventTimelineDto } from "./dto/update-event-timeline.dto";
+
+@Injectable()
+export class EventTimelineService {
+  constructor(
+    private readonly prisma: PrismaService,
+  ) {}
+
+  private async getOrganization() {
+    const organization =
+      await this.prisma.organization.findFirst({
+        orderBy: {
+          createdAt: "asc",
+        },
+      });
+
+    if (!organization) {
+      throw new NotFoundException(
+        "Organization not found",
+      );
+    }
+
+    return organization;
+  }
+
+  private async getEvent(
+    eventId: string,
+  ) {
+    const organization =
+      await this.getOrganization();
+
+    const event =
+      await this.prisma.event.findFirst({
+        where: {
+          id: eventId,
+          organizationId:
+            organization.id,
+        },
+      });
+
+    if (!event) {
+      throw new NotFoundException(
+        "Event not found",
+      );
+    }
+
+    return event;
+  }
+
+  async create(
+    eventId: string,
+    dto: CreateEventTimelineDto,
+  ) {
+    await this.getEvent(eventId);
+
+    return this.prisma.eventTimeline.create({
+      data: {
+        eventId,
+
+        title: dto.title,
+        description:
+          dto.description,
+
+        timelineDate: new Date(
+          dto.timelineDate,
+        ),
+
+        imageUrl:
+          dto.imageUrl,
+
+        displayOrder:
+          dto.displayOrder ?? 0,
+
+        isActive:
+          dto.isActive ?? true,
+
+        featured:
+          dto.featured ?? false,
+      },
+    });
+  }
+
+  async findAll(eventId: string) {
+    await this.getEvent(eventId);
+
+    return this.prisma.eventTimeline.findMany({
+      where: {
+        eventId,
+      },
+      orderBy: [
+        {
+          timelineDate: "asc",
+        },
+        {
+          displayOrder: "asc",
+        },
+      ],
+    });
+  }
+
+  async findOne(
+    eventId: string,
+    id: string,
+  ) {
+    await this.getEvent(eventId);
+
+    const timeline =
+      await this.prisma.eventTimeline.findFirst({
+        where: {
+          id,
+          eventId,
+        },
+      });
+
+    if (!timeline) {
+      throw new NotFoundException(
+        "Timeline entry not found",
+      );
+    }
+
+    return timeline;
+  }
+
+  async update(
+    eventId: string,
+    id: string,
+    dto: UpdateEventTimelineDto,
+  ) {
+    await this.findOne(
+      eventId,
+      id,
+    );
+
+    const data: Record<
+      string,
+      unknown
+    > = {
+      ...dto,
+    };
+
+    if (dto.timelineDate) {
+      data.timelineDate =
+        new Date(dto.timelineDate);
+    }
+
+    return this.prisma.eventTimeline.update({
+      where: {
+        id,
+      },
+      data,
+    });
+  }
+
+  async remove(
+    eventId: string,
+    id: string,
+  ) {
+    await this.findOne(
+      eventId,
+      id,
+    );
+
+    return this.prisma.eventTimeline.delete({
+      where: {
+        id,
+      },
+    });
+  }
+}

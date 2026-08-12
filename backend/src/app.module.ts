@@ -20,6 +20,7 @@ import { MediaModule } from "./modules/media/media.module";
 import { ServicesModule } from "./modules/services/services.module";
 import { ProjectsModule } from "./modules/projects/projects.module";
 import { EventsModule } from "./modules/events/events.module";
+import { EventSeriesModule } from "./modules/event-series/event-series.module";
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { EventsModule } from "./modules/events/events.module";
     ServicesModule,
     ProjectsModule,
     EventsModule,
+    EventSeriesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -17,19 +17,42 @@ export class EventsService {
 
   private async getOrganization() {
     const organization =
-      await this.prisma.organization.findUnique({
-        where: {
-          slug: "stream-nepal",
+      await this.prisma.organization.findFirst({
+        orderBy: {
+          createdAt: "asc",
         },
       });
 
     if (!organization) {
       throw new NotFoundException(
-        "Stream Nepal organization not found",
+        "Organization not found",
       );
     }
 
     return organization;
+  }
+
+  private async validateEventSeries(
+    eventSeriesId: string | null | undefined,
+    organizationId: string,
+  ) {
+    if (!eventSeriesId) {
+      return;
+    }
+
+    const series =
+      await this.prisma.eventSeries.findFirst({
+        where: {
+          id: eventSeriesId,
+          organizationId,
+        },
+      });
+
+    if (!series) {
+      throw new NotFoundException(
+        "Event series not found",
+      );
+    }
   }
 
   async create(
@@ -38,65 +61,62 @@ export class EventsService {
     const organization =
       await this.getOrganization();
 
-    const existing =
-      await this.prisma.event.findUnique({
+    const existingEvent =
+      await this.prisma.event.findFirst({
         where: {
-          organizationId_slug: {
-            organizationId: organization.id,
-            slug: createEventDto.slug,
-          },
+          organizationId: organization.id,
+          slug: createEventDto.slug,
         },
       });
 
-    if (existing) {
+    if (existingEvent) {
       throw new ConflictException(
-        "An event with this slug already exists",
+        "Event slug already exists",
       );
     }
 
-    const {
-      eventDate,
-      eventSeriesId,
-      ...data
-    } = createEventDto;
-
-    if (eventSeriesId) {
-      const series =
-        await this.prisma.eventSeries.findFirst({
-          where: {
-            id: eventSeriesId,
-            organizationId: organization.id,
-          },
-        });
-
-      if (!series) {
-        throw new NotFoundException(
-          "Event series not found",
-        );
-      }
-    }
+    await this.validateEventSeries(
+      createEventDto.eventSeriesId,
+      organization.id,
+    );
 
     return this.prisma.event.create({
       data: {
-        ...data,
-
-        eventDate: new Date(eventDate),
-
-        ...(eventSeriesId
-          ? {
-              eventSeries: {
-                connect: {
-                  id: eventSeriesId,
-                },
-              },
-            }
-          : {}),
-
-        organization: {
-          connect: {
-            id: organization.id,
-          },
-        },
+        organizationId: organization.id,
+        title: createEventDto.title,
+        slug: createEventDto.slug,
+        eventSeriesId:
+          createEventDto.eventSeriesId,
+        shortDescription:
+          createEventDto.shortDescription,
+        description:
+          createEventDto.description,
+        coverImage:
+          createEventDto.coverImage,
+        category:
+          createEventDto.category,
+        client:
+          createEventDto.client,
+        organizer:
+          createEventDto.organizer,
+        location:
+          createEventDto.location,
+        eventDate: new Date(
+          createEventDto.eventDate,
+        ),
+        eventUrl:
+          createEventDto.eventUrl,
+        featured:
+          createEventDto.featured ?? false,
+        isActive:
+          createEventDto.isActive ?? true,
+        displayOrder:
+          createEventDto.displayOrder ?? 0,
+      },
+      include: {
+        eventSeries: true,
+        photos: true,
+        videos: true,
       },
     });
   }
@@ -111,6 +131,12 @@ export class EventsService {
       },
       include: {
         eventSeries: true,
+        _count: {
+          select: {
+            photos: true,
+            videos: true,
+          },
+        },
       },
       orderBy: [
         {
@@ -118,9 +144,6 @@ export class EventsService {
         },
         {
           displayOrder: "asc",
-        },
-        {
-          createdAt: "desc",
         },
       ],
     });
@@ -170,15 +193,28 @@ export class EventsService {
     id: string,
     updateEventDto: UpdateEventDto,
   ) {
-    const event =
-      await this.findOne(id);
+    const organization =
+      await this.getOrganization();
+
+    const existing =
+      await this.prisma.event.findFirst({
+        where: {
+          id,
+          organizationId: organization.id,
+        },
+      });
+
+    if (!existing) {
+      throw new NotFoundException(
+        "Event not found",
+      );
+    }
 
     if (updateEventDto.slug) {
-      const existing =
+      const duplicate =
         await this.prisma.event.findFirst({
           where: {
-            organizationId:
-              event.organizationId,
+            organizationId: organization.id,
             slug: updateEventDto.slug,
             NOT: {
               id,
@@ -186,9 +222,9 @@ export class EventsService {
           },
         });
 
-      if (existing) {
+      if (duplicate) {
         throw new ConflictException(
-          "An event with this slug already exists",
+          "Event slug already exists",
         );
       }
     }
@@ -197,66 +233,58 @@ export class EventsService {
       updateEventDto.eventSeriesId !==
       undefined
     ) {
-      if (updateEventDto.eventSeriesId) {
-        const series =
-          await this.prisma.eventSeries.findFirst({
-            where: {
-              id:
-                updateEventDto.eventSeriesId,
-              organizationId:
-                event.organizationId,
-            },
-          });
-
-        if (!series) {
-          throw new NotFoundException(
-            "Event series not found",
-          );
-        }
-      }
+      await this.validateEventSeries(
+        updateEventDto.eventSeriesId,
+        organization.id,
+      );
     }
 
-    const {
-      eventDate,
-      eventSeriesId,
-      ...data
-    } = updateEventDto;
+    const data: Record<string, unknown> = {
+      ...updateEventDto,
+    };
+
+    if (updateEventDto.eventDate) {
+      data.eventDate = new Date(
+        updateEventDto.eventDate,
+      );
+    }
+
+    if (
+      updateEventDto.eventSeriesId === null
+    ) {
+      data.eventSeriesId = null;
+    }
 
     return this.prisma.event.update({
       where: {
         id,
       },
-      data: {
-        ...data,
-
-        ...(eventDate !== undefined
-          ? {
-              eventDate:
-                new Date(eventDate),
-            }
-          : {}),
-
-        ...(eventSeriesId !== undefined
-          ? eventSeriesId
-            ? {
-                eventSeries: {
-                  connect: {
-                    id: eventSeriesId,
-                  },
-                },
-              }
-            : {
-                eventSeries: {
-                  disconnect: true,
-                },
-              }
-          : {}),
+      data,
+      include: {
+        eventSeries: true,
+        photos: true,
+        videos: true,
       },
     });
   }
 
   async remove(id: string) {
-    await this.findOne(id);
+    const organization =
+      await this.getOrganization();
+
+    const existing =
+      await this.prisma.event.findFirst({
+        where: {
+          id,
+          organizationId: organization.id,
+        },
+      });
+
+    if (!existing) {
+      throw new NotFoundException(
+        "Event not found",
+      );
+    }
 
     return this.prisma.event.delete({
       where: {
@@ -295,13 +323,13 @@ export class EventsService {
       },
       orderBy: [
         {
+          featured: "desc",
+        },
+        {
           eventDate: "desc",
         },
         {
           displayOrder: "asc",
-        },
-        {
-          createdAt: "desc",
         },
       ],
     });

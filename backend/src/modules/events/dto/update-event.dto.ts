@@ -18,6 +18,10 @@ export class UpdateEventDto {
 
   @IsOptional()
   @IsString()
+  eventSeriesId?: string | null;
+
+  @IsOptional()
+  @IsString()
   shortDescription?: string;
 
   @IsOptional()
@@ -51,10 +55,6 @@ export class UpdateEventDto {
   @IsOptional()
   @IsString()
   eventUrl?: string;
-
-  @IsOptional()
-  @IsString()
-  eventSeriesId?: string;
 
   @IsOptional()
   @IsBoolean()
