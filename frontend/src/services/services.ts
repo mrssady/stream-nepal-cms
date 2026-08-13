@@ -22,6 +22,16 @@ export async function getService(
   return response.data.data;
 }
 
+export async function getPublicServices(): Promise<
+  Service[]
+> {
+  const response = await api.get(
+    "/public/services",
+  );
+
+  return response.data.data;
+}
+
 export async function createService(
   data: CreateServiceDto,
 ): Promise<Service> {

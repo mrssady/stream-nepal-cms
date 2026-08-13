@@ -39,7 +39,9 @@ export async function getPublicSettings(): Promise<
     const response = await fetch(
       `${apiUrl}/public/settings`,
       {
-        cache: "no-store",
+        next: {
+          revalidate: 60,
+        },
       },
     );
 

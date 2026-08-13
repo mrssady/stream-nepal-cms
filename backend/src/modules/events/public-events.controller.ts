@@ -1,6 +1,7 @@
 import {
   Controller,
   Get,
+  Param,
 } from "@nestjs/common";
 
 import { EventsService } from "./events.service";
@@ -14,5 +15,14 @@ export class PublicEventsController {
   @Get()
   findAll() {
     return this.eventsService.findPublic();
+  }
+
+  @Get(":slug")
+  findOne(
+    @Param("slug") slug: string,
+  ) {
+    return this.eventsService.findPublicBySlug(
+      slug,
+    );
   }
 }

@@ -179,6 +179,7 @@ export class ProjectsService {
       },
     });
   }
+
   async findPublic() {
     const organization =
       await this.getOrganization();
@@ -197,5 +198,27 @@ export class ProjectsService {
         },
       ],
     });
+  }
+
+  async findPublicOne(slug: string) {
+    const organization =
+      await this.getOrganization();
+
+    const project =
+      await this.prisma.project.findFirst({
+        where: {
+          organizationId: organization.id,
+          slug,
+          isActive: true,
+        },
+      });
+
+    if (!project) {
+      throw new NotFoundException(
+        "Project not found",
+      );
+    }
+
+    return project;
   }
 }

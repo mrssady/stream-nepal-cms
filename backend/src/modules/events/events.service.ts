@@ -114,10 +114,35 @@ export class EventsService {
           createEventDto.displayOrder ?? 0,
       },
       include: {
-        eventSeries: true,
-        photos: true,
-        videos: true,
-      },
+  eventSeries: true,
+
+  photos: {
+    where: {
+      isActive: true,
+    },
+    orderBy: {
+      displayOrder: "asc",
+    },
+  },
+
+  videos: {
+    where: {
+      isActive: true,
+    },
+    orderBy: {
+      displayOrder: "asc",
+    },
+  },
+
+  timeline: {
+    where: {
+      isActive: true,
+    },
+    orderBy: {
+      timelineDate: "asc",
+    },
+  },
+},
     });
   }
 
@@ -294,16 +319,74 @@ export class EventsService {
   }
 
   async findPublic() {
-    const organization =
-      await this.getOrganization();
+  const organization =
+    await this.getOrganization();
 
-    return this.prisma.event.findMany({
+  return this.prisma.event.findMany({
+    where: {
+      organizationId: organization.id,
+      isActive: true,
+    },
+
+    include: {
+      eventSeries: true,
+
+      photos: {
+        where: {
+          isActive: true,
+        },
+        orderBy: {
+          displayOrder: "asc",
+        },
+      },
+
+      videos: {
+        where: {
+          isActive: true,
+        },
+        orderBy: {
+          displayOrder: "asc",
+        },
+      },
+
+      timeline: {
+        where: {
+          isActive: true,
+        },
+        orderBy: {
+          timelineDate: "asc",
+        },
+      },
+    },
+
+    orderBy: [
+      {
+        featured: "desc",
+      },
+      {
+        eventDate: "desc",
+      },
+      {
+        displayOrder: "asc",
+      },
+    ],
+  });
+}
+async findPublicBySlug(slug: string) {
+  const organization =
+    await this.getOrganization();
+
+  const event =
+    await this.prisma.event.findFirst({
       where: {
         organizationId: organization.id,
+        slug,
         isActive: true,
       },
+
       include: {
         eventSeries: true,
+
         photos: {
           where: {
             isActive: true,
@@ -312,6 +395,7 @@ export class EventsService {
             displayOrder: "asc",
           },
         },
+
         videos: {
           where: {
             isActive: true,
@@ -320,18 +404,24 @@ export class EventsService {
             displayOrder: "asc",
           },
         },
+
+        timeline: {
+          where: {
+            isActive: true,
+          },
+          orderBy: {
+            timelineDate: "asc",
+          },
+        },
       },
-      orderBy: [
-        {
-          featured: "desc",
-        },
-        {
-          eventDate: "desc",
-        },
-        {
-          displayOrder: "asc",
-        },
-      ],
     });
+
+  if (!event) {
+    throw new NotFoundException(
+      "Event not found",
+    );
   }
+
+  return event;
+}
 }

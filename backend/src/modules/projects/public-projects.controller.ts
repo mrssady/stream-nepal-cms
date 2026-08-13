@@ -1,4 +1,8 @@
-import { Controller, Get } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  Param,
+} from "@nestjs/common";
 
 import { ProjectsService } from "./projects.service";
 
@@ -11,5 +15,14 @@ export class PublicProjectsController {
   @Get()
   findAll() {
     return this.projectsService.findPublic();
+  }
+
+  @Get(":slug")
+  findOne(
+    @Param("slug") slug: string,
+  ) {
+    return this.projectsService.findPublicOne(
+      slug,
+    );
   }
 }

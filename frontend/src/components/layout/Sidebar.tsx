@@ -45,7 +45,7 @@ const mainMenu = [
 const contentMenu = [
   {
     name: "Services",
-    href: "/services",
+    href: "/dashboard/services",
     icon: BriefcaseBusiness,
   },
   {
