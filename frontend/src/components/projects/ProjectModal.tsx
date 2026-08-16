@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+import ImageUpload from "@/components/media/ImageUpload";
+
 import {
   type CreateProjectDto,
   type Project,
@@ -266,17 +268,21 @@ export default function ProjectModal({
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <label className="mb-1 block text-sm font-medium">
-                Cover Image URL
+                Cover Image
               </label>
 
-              <input
-                name="coverImage"
+              <ImageUpload
                 value={
                   form.coverImage ?? ""
                 }
-                onChange={handleChange}
-                placeholder="https://..."
-                className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
+                folder="projects"
+                onChange={(result) =>
+                  setForm((current) => ({
+                    ...current,
+                    coverImage:
+                      result?.url ?? "",
+                  }))
+                }
               />
             </div>
 

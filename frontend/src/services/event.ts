@@ -57,6 +57,31 @@ export interface EventTimeline {
   updatedAt: string;
 }
 
+export type EventSponsorTier =
+  | "TITLE"
+  | "GOLD"
+  | "SILVER"
+  | "BRONZE"
+  | "MEDIA_PARTNER"
+  | "PARTNER";
+
+export interface EventSponsor {
+  id: string;
+  eventId: string;
+  sponsorId: string;
+  tier: EventSponsorTier;
+  featured: boolean;
+  displayOrder: number;
+  createdAt: string;
+  updatedAt: string;
+  sponsor: {
+    id: string;
+    name: string;
+    logo: string | null;
+    website: string | null;
+  };
+}
+
 export interface Event {
   id: string;
 
@@ -89,6 +114,7 @@ export interface Event {
   photos?: EventPhoto[];
   videos?: EventVideo[];
   timeline?: EventTimeline[];
+  sponsors?: EventSponsor[];
 
   _count?: {
     photos: number;

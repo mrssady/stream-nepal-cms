@@ -14,6 +14,8 @@ import type {
   EventVideo,
 } from "@/services/event";
 
+import ImageUpload from "@/components/media/ImageUpload";
+
 import {
   createEventVideo,
   deleteEventVideo,
@@ -237,7 +239,7 @@ export default function EventVideos({
     <div className="space-y-6">
       <form
         onSubmit={handleSubmit}
-        className="rounded-2xl border bg-white p-6"
+        className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900"
       >
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -254,7 +256,7 @@ export default function EventVideos({
             <button
               type="button"
               onClick={resetForm}
-              className="text-sm text-slate-500 hover:text-slate-900"
+              className="text-sm text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
             >
               Cancel
             </button>
@@ -271,7 +273,7 @@ export default function EventVideos({
               )
             }
             placeholder="Video title"
-            className="rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-slate-200"
+            className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:ring-slate-700"
           />
 
           <select
@@ -282,7 +284,7 @@ export default function EventVideos({
                   .value as VideoPlatform,
               )
             }
-            className="rounded-xl border px-3 py-2 outline-none"
+            className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition dark:border-slate-700 dark:bg-slate-900 dark:text-white"
           >
             <option value="YOUTUBE">
               YouTube
@@ -311,21 +313,23 @@ export default function EventVideos({
               )
             }
             placeholder="Video URL"
-            className="rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-slate-200"
-          />
-
-          <input
-            type="url"
-            value={thumbnailUrl}
-            onChange={(e) =>
-              setThumbnailUrl(
-                e.target.value,
-              )
-            }
-            placeholder="Thumbnail URL (optional)"
-            className="rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-slate-200"
+            className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:ring-slate-700"
           />
         </div>
+
+        <label className="mb-1 block text-sm text-slate-500 dark:text-slate-400">
+          Thumbnail (optional — upload or paste a link)
+        </label>
+
+        <ImageUpload
+          value={thumbnailUrl}
+          folder="gallery"
+          onChange={(result) =>
+            setThumbnailUrl(
+              result?.url ?? "",
+            )
+          }
+        />
 
         <textarea
           rows={3}
@@ -336,7 +340,7 @@ export default function EventVideos({
             )
           }
           placeholder="Description (optional)"
-          className="mt-3 w-full rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-slate-200"
+          className="mt-3 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:ring-slate-700"
         />
 
         <button
@@ -359,7 +363,7 @@ export default function EventVideos({
       </form>
 
       {videos.length === 0 ? (
-        <div className="rounded-2xl border bg-white p-12 text-center text-slate-500">
+        <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
           No videos added yet.
         </div>
       ) : (
@@ -368,10 +372,10 @@ export default function EventVideos({
             (video) => (
               <div
                 key={video.id}
-                className="overflow-hidden rounded-2xl border bg-white"
+                className="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900"
               >
                 {video.thumbnailUrl ? (
-                  <div className="aspect-video bg-slate-100">
+                  <div className="aspect-video bg-slate-100 dark:bg-slate-800">
                     <img
                       src={
                         video.thumbnailUrl
@@ -383,10 +387,10 @@ export default function EventVideos({
                     />
                   </div>
                 ) : (
-                  <div className="flex aspect-video items-center justify-center bg-slate-100">
+                  <div className="flex aspect-video items-center justify-center bg-slate-100 dark:bg-slate-800">
                     <Play
                       size={42}
-                      className="text-slate-300"
+                      className="text-slate-300 dark:text-slate-600"
                     />
                   </div>
                 )}
@@ -417,7 +421,7 @@ export default function EventVideos({
                   </div>
 
                   {video.description && (
-                    <p className="mt-3 line-clamp-2 text-sm text-slate-500">
+                    <p className="mt-3 line-clamp-2 text-sm text-slate-500 dark:text-slate-400">
                       {
                         video.description
                       }
@@ -430,7 +434,7 @@ export default function EventVideos({
                     }
                     target="_blank"
                     rel="noreferrer"
-                    className="mt-4 block truncate text-sm text-blue-600 hover:underline"
+                    className="mt-4 block truncate text-sm text-blue-600 hover:underline dark:text-blue-400"
                   >
                     {
                       video.videoUrl
@@ -445,10 +449,10 @@ export default function EventVideos({
                           video,
                         )
                       }
-                      className={`rounded-lg border p-2 ${
+                      className={`rounded-lg border border-slate-300 dark:border-slate-700 ${
                         video.featured
                           ? "text-amber-500"
-                          : "text-slate-500"
+                          : "text-slate-500 dark:text-slate-400"
                       }`}
                       title={
                         video.featured
@@ -473,7 +477,7 @@ export default function EventVideos({
                           video,
                         )
                       }
-                      className="rounded-lg border p-2 text-slate-600 hover:bg-slate-100"
+                      className="rounded-lg border border-slate-300 p-2 text-slate-600 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
                       title="Edit"
                     >
                       <Pencil
@@ -488,7 +492,7 @@ export default function EventVideos({
                           video.id,
                         )
                       }
-                      className="rounded-lg border p-2 text-red-600 hover:bg-red-50"
+                      className="rounded-lg border border-slate-300 p-2 text-red-600 transition hover:bg-red-50 dark:border-slate-700 dark:text-red-400 dark:hover:bg-red-500/10"
                       title="Delete"
                     >
                       <Trash2

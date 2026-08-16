@@ -1,9 +1,8 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
+import { useState } from "react";
+
+import ImageUpload from "@/components/media/ImageUpload";
 
 import type {
   CreateEventSeriesDto,
@@ -53,39 +52,42 @@ export default function EventSeriesModal({
   const [displayOrder, setDisplayOrder] =
     useState(0);
 
-  useEffect(() => {
-    if (!open) {
-      return;
+  const [prevOpen, setPrevOpen] =
+    useState(open);
+
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+
+    if (open) {
+      setTitle(
+        initialData?.title ?? "",
+      );
+
+      setSlug(
+        initialData?.slug ?? "",
+      );
+
+      setDescription(
+        initialData?.description ?? "",
+      );
+
+      setCoverImage(
+        initialData?.coverImage ?? "",
+      );
+
+      setIsActive(
+        initialData?.isActive ?? true,
+      );
+
+      setFeatured(
+        initialData?.featured ?? false,
+      );
+
+      setDisplayOrder(
+        initialData?.displayOrder ?? 0,
+      );
     }
-
-    setTitle(
-      initialData?.title ?? "",
-    );
-
-    setSlug(
-      initialData?.slug ?? "",
-    );
-
-    setDescription(
-      initialData?.description ?? "",
-    );
-
-    setCoverImage(
-      initialData?.coverImage ?? "",
-    );
-
-    setIsActive(
-      initialData?.isActive ?? true,
-    );
-
-    setFeatured(
-      initialData?.featured ?? false,
-    );
-
-    setDisplayOrder(
-      initialData?.displayOrder ?? 0,
-    );
-  }, [open, initialData]);
+  }
 
   if (!open) {
     return null;
@@ -119,15 +121,15 @@ export default function EventSeriesModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-xl">
-        <div className="border-b px-6 py-5">
-          <h2 className="text-xl font-semibold text-slate-900">
+      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-xl dark:border dark:border-border dark:bg-card">
+        <div className="border-b border-slate-200 px-6 py-5 dark:border-border">
+          <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
             {mode === "create"
               ? "Create Event Series"
               : "Edit Event Series"}
           </h2>
 
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Group related events such as
             PMBC 2019, PMBC 2.0 and future
             editions.
@@ -139,7 +141,7 @@ export default function EventSeriesModal({
           className="space-y-5 p-6"
         >
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">
+            <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Title
             </label>
 
@@ -149,13 +151,13 @@ export default function EventSeriesModal({
                 setTitle(event.target.value)
               }
               placeholder="PMBC"
-              className="w-full rounded-xl border px-4 py-3 outline-none focus:border-blue-500"
+              className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-blue-500 dark:border-border dark:bg-muted dark:text-white"
               disabled={loading}
             />
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">
+            <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Slug
             </label>
 
@@ -165,13 +167,13 @@ export default function EventSeriesModal({
                 setSlug(event.target.value)
               }
               placeholder="pmbc"
-              className="w-full rounded-xl border px-4 py-3 outline-none focus:border-blue-500"
+              className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-blue-500 dark:border-border dark:bg-muted dark:text-white"
               disabled={loading}
             />
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">
+            <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Description
             </label>
 
@@ -184,31 +186,30 @@ export default function EventSeriesModal({
               }
               rows={4}
               placeholder="A series of PUBG Mobile events organized by Stream Nepal."
-              className="w-full resize-none rounded-xl border px-4 py-3 outline-none focus:border-blue-500"
+              className="w-full resize-none rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-blue-500 dark:border-border dark:bg-muted dark:text-white"
               disabled={loading}
             />
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">
-              Cover Image URL
+            <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
+              Cover Image
             </label>
 
-            <input
+            <ImageUpload
               value={coverImage}
-              onChange={(event) =>
+              folder="event-series"
+              onChange={(result) =>
                 setCoverImage(
-                  event.target.value,
+                  result?.url ?? "",
                 )
               }
-              placeholder="https://..."
-              className="w-full rounded-xl border px-4 py-3 outline-none focus:border-blue-500"
               disabled={loading}
             />
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">
+            <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Display Order
             </label>
 
@@ -221,13 +222,13 @@ export default function EventSeriesModal({
                   Number(event.target.value),
                 )
               }
-              className="w-full rounded-xl border px-4 py-3 outline-none focus:border-blue-500"
+              className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-blue-500 dark:border-border dark:bg-muted dark:text-white"
               disabled={loading}
             />
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row">
-            <label className="flex items-center gap-3 rounded-xl border px-4 py-3">
+            <label className="flex items-center gap-3 rounded-xl border border-slate-300 px-4 py-3 dark:border-border">
               <input
                 type="checkbox"
                 checked={isActive}
@@ -239,12 +240,12 @@ export default function EventSeriesModal({
                 disabled={loading}
               />
 
-              <span className="text-sm font-medium">
+              <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
                 Active
               </span>
             </label>
 
-            <label className="flex items-center gap-3 rounded-xl border px-4 py-3">
+            <label className="flex items-center gap-3 rounded-xl border border-slate-300 px-4 py-3 dark:border-border">
               <input
                 type="checkbox"
                 checked={featured}
@@ -256,18 +257,18 @@ export default function EventSeriesModal({
                 disabled={loading}
               />
 
-              <span className="text-sm font-medium">
+              <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
                 Featured
               </span>
             </label>
           </div>
 
-          <div className="flex justify-end gap-3 border-t pt-5">
+          <div className="flex justify-end gap-3 border-t border-slate-200 pt-5 dark:border-border">
             <button
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="rounded-xl border px-5 py-3 font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+              className="rounded-xl border border-slate-300 px-5 py-3 font-medium text-slate-700 transition hover:bg-slate-50 disabled:opacity-50 dark:border-border dark:text-slate-300 dark:hover:bg-muted"
             >
               Cancel
             </button>
@@ -279,7 +280,7 @@ export default function EventSeriesModal({
                 !title.trim() ||
                 !slug.trim()
               }
-              className="rounded-xl bg-blue-600 px-5 py-3 font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-xl bg-blue-600 px-5 py-3 font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90"
             >
               {loading
                 ? "Saving..."

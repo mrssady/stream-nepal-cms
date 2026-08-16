@@ -26,6 +26,8 @@ import {
 
 import { Input } from "@/components/ui/input";
 
+import ImageUpload from "@/components/media/ImageUpload";
+
 import {
   createService,
   updateService,
@@ -233,9 +235,10 @@ export default function ServicesPage() {
       resetForm();
 
       window.location.reload();
-    } catch (error: any) {
+    } catch (error) {
       setFormError(
-        error?.response?.data?.message ||
+        (error as { response?: { data?: { message?: string } } })
+          ?.response?.data?.message ||
           "Failed to create service.",
       );
     } finally {
@@ -296,9 +299,10 @@ export default function ServicesPage() {
       resetForm();
 
       window.location.reload();
-    } catch (error: any) {
+    } catch (error) {
       setFormError(
-        error?.response?.data?.message ||
+        (error as { response?: { data?: { message?: string } } })
+          ?.response?.data?.message ||
           "Failed to update service.",
       );
     } finally {
@@ -324,9 +328,10 @@ export default function ServicesPage() {
       setDeletingService(null);
 
       window.location.reload();
-    } catch (error: any) {
+    } catch (error) {
       setFormError(
-        error?.response?.data?.message ||
+        (error as { response?: { data?: { message?: string } } })
+          ?.response?.data?.message ||
           "Failed to delete service.",
       );
     } finally {
@@ -733,15 +738,16 @@ export default function ServicesPage() {
                   Image
                 </label>
 
-                <Input
+                <ImageUpload
                   value={form.image}
-                  onChange={(event) =>
-                    handleTextChange(
-                      "image",
-                      event,
-                    )
+                  folder="services"
+                  onChange={(result) =>
+                    setForm((previous) => ({
+                      ...previous,
+                      image:
+                        result?.url ?? "",
+                    }))
                   }
-                  placeholder="Image URL"
                 />
               </div>
 
@@ -928,15 +934,16 @@ export default function ServicesPage() {
                   Image
                 </label>
 
-                <Input
+                <ImageUpload
                   value={form.image}
-                  onChange={(event) =>
-                    handleTextChange(
-                      "image",
-                      event,
-                    )
+                  folder="services"
+                  onChange={(result) =>
+                    setForm((previous) => ({
+                      ...previous,
+                      image:
+                        result?.url ?? "",
+                    }))
                   }
-                  placeholder="Image URL"
                 />
               </div>
 

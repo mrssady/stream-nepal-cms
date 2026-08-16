@@ -48,18 +48,18 @@ export default function EventOverview({
 }: EventOverviewProps) {
   return (
     <div className="grid gap-6 lg:grid-cols-3">
-      <div className="rounded-2xl border bg-white p-6 lg:col-span-2">
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 lg:col-span-2 dark:border-slate-800 dark:bg-slate-900">
         <h2 className="text-lg font-semibold">
           About This Event
         </h2>
 
-        <div className="mt-4 whitespace-pre-wrap text-sm leading-7 text-slate-600">
+        <div className="mt-4 whitespace-pre-wrap text-sm leading-7 text-slate-600 dark:text-slate-400">
           {event.description ||
             "No description added."}
         </div>
       </div>
 
-      <div className="rounded-2xl border bg-white p-6">
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
         <h2 className="text-lg font-semibold">
           Event Information
         </h2>

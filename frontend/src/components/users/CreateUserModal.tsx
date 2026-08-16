@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import {
   CreateUserDto,
@@ -28,6 +28,22 @@ const INITIAL_FORM: CreateUserDto = {
   role: "ADMIN",
 };
 
+function buildForm(
+  mode: Mode,
+  initialData?: User | null,
+): CreateUserDto {
+  if (mode === "edit" && initialData) {
+    return {
+      name: initialData.name,
+      email: initialData.email,
+      password: "",
+      role: initialData.role,
+    };
+  }
+
+  return { ...INITIAL_FORM };
+}
+
 export default function CreateUserModal({
   open,
   mode,
@@ -37,20 +53,20 @@ export default function CreateUserModal({
   onSubmit,
 }: CreateUserModalProps) {
   const [form, setForm] =
-    useState<CreateUserDto>(INITIAL_FORM);
+    useState<CreateUserDto>(() =>
+      buildForm(mode, initialData),
+    );
 
-  useEffect(() => {
-    if (mode === "edit" && initialData) {
-      setForm({
-        name: initialData.name,
-        email: initialData.email,
-        password: "",
-        role: initialData.role,
-      });
-    } else {
-      setForm(INITIAL_FORM);
+  const [prevOpen, setPrevOpen] =
+    useState(open);
+
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+
+    if (open) {
+      setForm(buildForm(mode, initialData));
     }
-  }, [mode, initialData, open]);
+  }
 
   if (!open) return null;
 
@@ -94,9 +110,9 @@ export default function CreateUserModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-md rounded-2xl bg-white shadow-xl">
-        <div className="border-b px-6 py-4">
-          <h2 className="text-xl font-semibold">
+      <div className="w-full max-w-md rounded-2xl bg-white shadow-xl dark:border dark:border-slate-800 dark:bg-slate-900">
+        <div className="border-b border-slate-200 px-6 py-4 dark:border-slate-800">
+          <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
             {mode === "create"
               ? "Create User"
               : "Edit User"}
@@ -108,7 +124,7 @@ export default function CreateUserModal({
           className="space-y-4 p-6"
         >
           <div>
-            <label className="mb-1 block text-sm font-medium">
+            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Name
             </label>
 
@@ -117,12 +133,12 @@ export default function CreateUserModal({
               name="name"
               value={form.name}
               onChange={handleChange}
-              className="w-full rounded-lg border px-3 py-2 outline-none focus:border-blue-600"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition focus:border-blue-600 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
             />
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium">
+            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Email
             </label>
 
@@ -132,12 +148,12 @@ export default function CreateUserModal({
               name="email"
               value={form.email}
               onChange={handleChange}
-              className="w-full rounded-lg border px-3 py-2 outline-none focus:border-blue-600"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition focus:border-blue-600 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
             />
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium">
+            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Password
             </label>
 
@@ -153,12 +169,12 @@ export default function CreateUserModal({
                   ? "Leave blank to keep current password"
                   : ""
               }
-              className="w-full rounded-lg border px-3 py-2 outline-none focus:border-blue-600"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition focus:border-blue-600 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
             />
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium">
+            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Role
             </label>
 
@@ -166,7 +182,7 @@ export default function CreateUserModal({
               name="role"
               value={form.role}
               onChange={handleChange}
-              className="w-full rounded-lg border px-3 py-2 outline-none focus:border-blue-600"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition focus:border-blue-600 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
             >
               <option value="OWNER">OWNER</option>
               <option value="ADMIN">ADMIN</option>
@@ -178,7 +194,7 @@ export default function CreateUserModal({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg border px-4 py-2"
+              className="rounded-lg border border-slate-300 px-4 py-2 dark:border-slate-700 dark:text-slate-300"
             >
               Cancel
             </button>

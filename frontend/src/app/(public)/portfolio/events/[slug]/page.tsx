@@ -6,6 +6,8 @@ import {
   type PublicEvent,
 } from "@/services/public-events";
 
+import { resolveMediaUrl } from "@/lib/media";
+
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("en-US", {
     month: "long",
@@ -180,7 +182,7 @@ export default async function PublicEventDetailPage({
             <div className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900">
               {event.coverImage ? (
                 <img
-                  src={event.coverImage}
+                  src={resolveMediaUrl(event.coverImage)}
                   alt={event.title}
                   className="aspect-video w-full object-cover"
                 />
@@ -272,7 +274,7 @@ export default async function PublicEventDetailPage({
                   {item.imageUrl && (
                     <div className="mt-5 overflow-hidden rounded-2xl border border-slate-200 bg-white">
                       <img
-                        src={item.imageUrl}
+                        src={resolveMediaUrl(item.imageUrl)}
                         alt={item.title}
                         className="max-h-96 w-full object-cover"
                       />
@@ -314,11 +316,11 @@ export default async function PublicEventDetailPage({
                 >
                   <div className="aspect-[4/3] overflow-hidden bg-slate-100">
                     <img
-                      src={
+                      src={resolveMediaUrl(
                         photo.imageUrl ||
                         photo.thumbnailUrl ||
-                        ""
-                      }
+                        "",
+                      )}
                       alt={
                         photo.title ||
                         event.title
@@ -369,7 +371,7 @@ export default async function PublicEventDetailPage({
                   <div className="aspect-video overflow-hidden bg-slate-100">
                     {video.thumbnailUrl ? (
                       <img
-                        src={video.thumbnailUrl}
+                        src={resolveMediaUrl(video.thumbnailUrl)}
                         alt={video.title}
                         className="h-full w-full object-cover"
                       />
@@ -398,7 +400,7 @@ export default async function PublicEventDetailPage({
                     )}
 
                     <a
-                      href={video.videoUrl}
+                      href={resolveMediaUrl(video.videoUrl)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="mt-5 inline-flex rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"

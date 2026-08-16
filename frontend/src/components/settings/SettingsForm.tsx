@@ -14,6 +14,24 @@ import type {
   WebsiteSetting,
 } from "@/types/settings";
 
+function getErrorMessage(
+  error: unknown,
+  fallback: string,
+) {
+  const err = error as {
+    response?: {
+      data?: { message?: string };
+    };
+    message?: string;
+  };
+
+  return (
+    err?.response?.data?.message ||
+    err?.message ||
+    fallback
+  );
+}
+
 const emptySettings: UpdateWebsiteSetting = {
   companyName: "Stream Nepal",
   tagline: "",
@@ -68,88 +86,86 @@ export default function SettingsForm() {
     useState("");
 
   useEffect(() => {
-    loadSettings();
-  }, []);
+    getSettings()
+      .then((settings) => {
+        setForm({
+          companyName:
+            settings.companyName ?? "",
+          tagline:
+            settings.tagline ?? "",
 
-  async function loadSettings() {
-    try {
-      setLoading(true);
-      setError("");
+          logo:
+            settings.logo ?? "",
+          favicon:
+            settings.favicon ?? "",
 
-      const settings =
-        await getSettings();
+          email:
+            settings.email ?? "",
+          phone:
+            settings.phone ?? "",
+          alternatePhone:
+            settings.alternatePhone ?? "",
 
-      setForm({
-        companyName:
-          settings.companyName ?? "",
-        tagline:
-          settings.tagline ?? "",
+          address:
+            settings.address ?? "",
+          city:
+            settings.city ?? "",
+          country:
+            settings.country ?? "",
 
-        logo:
-          settings.logo ?? "",
-        favicon:
-          settings.favicon ?? "",
+          website:
+            settings.website ?? "",
 
-        email:
-          settings.email ?? "",
-        phone:
-          settings.phone ?? "",
-        alternatePhone:
-          settings.alternatePhone ?? "",
+          facebook:
+            settings.facebook ?? "",
+          instagram:
+            settings.instagram ?? "",
+          youtube:
+            settings.youtube ?? "",
+          discord:
+            settings.discord ?? "",
+          tiktok:
+            settings.tiktok ?? "",
+          linkedin:
+            settings.linkedin ?? "",
 
-        address:
-          settings.address ?? "",
-        city:
-          settings.city ?? "",
-        country:
-          settings.country ?? "",
+          seoTitle:
+            settings.seoTitle ?? "",
+          seoDescription:
+            settings.seoDescription ?? "",
+          seoKeywords:
+            settings.seoKeywords ?? "",
 
-        website:
-          settings.website ?? "",
+          footerText:
+            settings.footerText ?? "",
+          copyrightText:
+            settings.copyrightText ?? "",
+        });
 
-        facebook:
-          settings.facebook ?? "",
-        instagram:
-          settings.instagram ?? "",
-        youtube:
-          settings.youtube ?? "",
-        discord:
-          settings.discord ?? "",
-        tiktok:
-          settings.tiktok ?? "",
-        linkedin:
-          settings.linkedin ?? "",
+        setHasSettings(true);
+      })
+      .catch((error: unknown) => {
+        const status = (
+          error as {
+            response?: { status?: number };
+          }
+        )?.response?.status;
 
-        seoTitle:
-          settings.seoTitle ?? "",
-        seoDescription:
-          settings.seoDescription ?? "",
-        seoKeywords:
-          settings.seoKeywords ?? "",
-
-        footerText:
-          settings.footerText ?? "",
-        copyrightText:
-          settings.copyrightText ?? "",
+        if (status === 404) {
+          setHasSettings(false);
+        } else {
+          setError(
+            getErrorMessage(
+              error,
+              "Failed to load website settings.",
+            ),
+          );
+        }
+      })
+      .finally(() => {
+        setLoading(false);
       });
-
-      setHasSettings(true);
-    } catch (err: any) {
-      const status =
-        err?.response?.status;
-
-      if (status === 404) {
-        setHasSettings(false);
-      } else {
-        setError(
-          err?.response?.data?.message ||
-            "Failed to load website settings.",
-        );
-      }
-    } finally {
-      setLoading(false);
-    }
-  }
+  }, []);
 
   function updateField(
     field: keyof UpdateWebsiteSetting,
@@ -191,10 +207,12 @@ export default function SettingsForm() {
       setSuccess(
         "Website settings saved successfully.",
       );
-    } catch (err: any) {
+    } catch (error) {
       setError(
-        err?.response?.data?.message ||
+        getErrorMessage(
+          error,
           "Failed to save website settings.",
+        ),
       );
     } finally {
       setSaving(false);
@@ -203,8 +221,8 @@ export default function SettingsForm() {
 
   if (loading) {
     return (
-      <div className="rounded-xl border bg-white p-8">
-        <p className="text-sm text-slate-500">
+      <div className="rounded-xl border border-slate-200 bg-white p-8 dark:border-border dark:bg-card">
+        <p className="text-sm text-slate-500 dark:text-slate-400">
           Loading website settings...
         </p>
       </div>
@@ -217,25 +235,25 @@ export default function SettingsForm() {
       className="space-y-8"
     >
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400">
           {error}
         </div>
       )}
 
       {success && (
-        <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+        <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700 dark:border-green-500/30 dark:bg-green-500/10 dark:text-green-400">
           {success}
         </div>
       )}
 
       {/* BRANDING */}
-      <section className="rounded-xl border bg-white p-6 shadow-sm">
+      <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-border dark:bg-card">
         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-slate-900">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
             Branding
           </h2>
 
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Manage the public identity of Stream Nepal.
           </p>
         </div>
@@ -255,7 +273,7 @@ export default function SettingsForm() {
                   e.target.value,
                 )
               }
-              className="w-full rounded-lg border px-3 py-2 outline-none focus:border-blue-500"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition focus:border-blue-500 dark:border-border dark:bg-muted dark:text-white"
             />
           </div>
 
@@ -273,7 +291,7 @@ export default function SettingsForm() {
                 )
               }
               placeholder="Esports, broadcast and event production."
-              className="w-full rounded-lg border px-3 py-2 outline-none focus:border-blue-500"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition focus:border-blue-500 dark:border-border dark:bg-muted dark:text-white"
             />
           </div>
 
@@ -314,13 +332,13 @@ export default function SettingsForm() {
       </section>
 
       {/* CONTACT */}
-      <section className="rounded-xl border bg-white p-6 shadow-sm">
+      <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-border dark:bg-card">
         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-slate-900">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
             Contact Information
           </h2>
 
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Information displayed on the public website.
           </p>
         </div>
@@ -388,13 +406,13 @@ export default function SettingsForm() {
       </section>
 
       {/* SOCIAL */}
-      <section className="rounded-xl border bg-white p-6 shadow-sm">
+      <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-border dark:bg-card">
         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-slate-900">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
             Social Media
           </h2>
 
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Add the official Stream Nepal social profiles.
           </p>
         </div>
@@ -451,13 +469,13 @@ export default function SettingsForm() {
       </section>
 
       {/* SEO */}
-      <section className="rounded-xl border bg-white p-6 shadow-sm">
+      <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-border dark:bg-card">
         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-slate-900">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
             SEO
           </h2>
 
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Search engine metadata for the public website.
           </p>
         </div>
@@ -488,7 +506,7 @@ export default function SettingsForm() {
                 )
               }
               rows={4}
-              className="w-full rounded-lg border px-3 py-2 outline-none focus:border-blue-500"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition focus:border-blue-500 dark:border-border dark:bg-muted dark:text-white"
             />
           </div>
 
@@ -506,9 +524,9 @@ export default function SettingsForm() {
       </section>
 
       {/* FOOTER */}
-      <section className="rounded-xl border bg-white p-6 shadow-sm">
+      <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-border dark:bg-card">
         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-slate-900">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
             Footer
           </h2>
         </div>
@@ -528,7 +546,7 @@ export default function SettingsForm() {
                 )
               }
               rows={3}
-              className="w-full rounded-lg border px-3 py-2 outline-none focus:border-blue-500"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition focus:border-blue-500 dark:border-border dark:bg-muted dark:text-white"
             />
           </div>
 
@@ -550,7 +568,7 @@ export default function SettingsForm() {
         <button
           type="submit"
           disabled={saving}
-          className="rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90"
         >
           {saving
             ? "Saving..."
@@ -583,7 +601,7 @@ function Field({
         onChange={(e) =>
           onChange(e.target.value)
         }
-        className="w-full rounded-lg border px-3 py-2 outline-none focus:border-blue-500"
+        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition focus:border-blue-500 dark:border-border dark:bg-muted dark:text-white"
       />
     </div>
   );

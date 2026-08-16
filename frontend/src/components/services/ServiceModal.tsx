@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import {
   CreateServiceDto,
   Service,
   UpdateServiceDto,
 } from "@/services/service";
+
+import ImageUpload from "@/components/media/ImageUpload";
 
 type ServiceModalProps = {
   open: boolean;
@@ -41,33 +43,35 @@ export default function ServiceModal({
 }: ServiceModalProps) {
   const [form, setForm] =
     useState<CreateServiceDto>(
-      INITIAL_FORM,
+      () =>
+        mode === "edit" &&
+        initialData
+          ? {
+              title:
+                initialData.title,
+              slug:
+                initialData.slug,
+              shortDescription:
+                initialData.shortDescription ??
+                "",
+              description:
+                initialData.description ??
+                "",
+              image:
+                initialData.image ??
+                "",
+              icon:
+                initialData.icon ??
+                "",
+              displayOrder:
+                initialData.displayOrder,
+              isActive:
+                initialData.isActive,
+              featured:
+                initialData.featured,
+            }
+          : INITIAL_FORM,
     );
-
-  useEffect(() => {
-    if (!open) return;
-
-    if (mode === "edit" && initialData) {
-      setForm({
-        title: initialData.title,
-        slug: initialData.slug,
-        shortDescription:
-          initialData.shortDescription ?? "",
-        description:
-          initialData.description ?? "",
-        image: initialData.image ?? "",
-        icon: initialData.icon ?? "",
-        displayOrder:
-          initialData.displayOrder,
-        isActive:
-          initialData.isActive,
-        featured:
-          initialData.featured,
-      });
-    } else {
-      setForm(INITIAL_FORM);
-    }
-  }, [open, mode, initialData]);
 
   if (!open) return null;
 
@@ -191,34 +195,36 @@ export default function ServiceModal({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="mb-1 block text-sm font-medium">
-                Image URL
-              </label>
+          <div>
+            <label className="mb-1 block text-sm font-medium">
+              Image
+            </label>
 
-              <input
-                name="image"
-                value={form.image ?? ""}
-                onChange={handleChange}
-                placeholder="https://..."
-                className="w-full rounded-xl border px-3 py-2"
-              />
-            </div>
+            <ImageUpload
+              value={form.image ?? ""}
+              folder="services"
+              onChange={(result) =>
+                setForm((prev) => ({
+                  ...prev,
+                  image:
+                    result?.url ?? "",
+                }))
+              }
+            />
+          </div>
 
-            <div>
-              <label className="mb-1 block text-sm font-medium">
-                Icon
-              </label>
+          <div>
+            <label className="mb-1 block text-sm font-medium">
+              Icon
+            </label>
 
-              <input
-                name="icon"
-                value={form.icon ?? ""}
-                onChange={handleChange}
-                placeholder="Trophy"
-                className="w-full rounded-xl border px-3 py-2"
-              />
-            </div>
+            <input
+              name="icon"
+              value={form.icon ?? ""}
+              onChange={handleChange}
+              placeholder="Trophy"
+              className="w-full rounded-xl border px-3 py-2"
+            />
           </div>
 
           <div>

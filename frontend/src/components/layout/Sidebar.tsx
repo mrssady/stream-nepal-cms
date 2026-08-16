@@ -29,6 +29,8 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 
+import { useAuth } from "@/providers/auth-provider";
+
 const mainMenu = [
   {
     name: "Dashboard",
@@ -130,6 +132,11 @@ function NavigationItem({
 }
 
 export default function Sidebar() {
+  const { user } = useAuth();
+
+  const displayName = user?.name || "Administrator";
+  const initial = displayName.charAt(0).toUpperCase() || "A";
+
   return (
     <SidebarPrimitive
       collapsible="icon"
@@ -224,12 +231,12 @@ export default function Sidebar() {
               tooltip="Administrator"
             >
               <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
-                A
+                {initial}
               </div>
 
               <div className="flex min-w-0 flex-col text-left leading-tight">
                 <span className="truncate font-semibold">
-                  Administrator
+                  {displayName}
                 </span>
 
                 <span className="truncate text-xs text-muted-foreground">

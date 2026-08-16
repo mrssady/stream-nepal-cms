@@ -81,6 +81,16 @@ export interface PublicTournament {
   status: string;
 }
 
+export interface PublicSponsor {
+  id: string;
+  name: string;
+  logo: string | null;
+  website: string | null;
+  description: string | null;
+  tier: string;
+  featured: boolean;
+}
+
 interface ApiResponse<T> {
   success: boolean;
   statusCode: number;
@@ -142,5 +152,11 @@ export function getPublicProjects() {
 export function getPublicTournaments() {
   return publicRequest<PublicTournament[]>(
     "/public/tournaments",
+  );
+}
+
+export function getPublicSponsors() {
+  return publicRequest<PublicSponsor[]>(
+    "/public/sponsors",
   );
 }

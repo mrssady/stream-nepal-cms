@@ -4,6 +4,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 import { ThemeProvider } from "@/components/theme-provider";
+import { AuthProvider } from "@/providers/auth-provider";
+import { getPublicSettings } from "@/services/public-settings";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,11 +17,18 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Stream Nepal",
-  description:
-    "Professional esports, live broadcasting and event production by Stream Nepal.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getPublicSettings();
+
+  return {
+    title: "Stream Nepal",
+    description:
+      "Professional esports, live broadcasting and event production by Stream Nepal.",
+    icons: {
+      icon: settings?.favicon || "/favicon.ico",
+    },
+  };
+}
 
 export default function RootLayout({
   children,
@@ -34,7 +43,9 @@ export default function RootLayout({
     >
       <body>
         <ThemeProvider>
-          {children}
+          <AuthProvider>
+            {children}
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -12,6 +12,8 @@ import { useState } from "react";
 
 import type { EventPhoto } from "@/services/event";
 
+import ImageUpload from "@/components/media/ImageUpload";
+
 import {
   createEventPhoto,
   deleteEventPhoto,
@@ -193,7 +195,7 @@ export default function EventPhotos({
     <div className="space-y-6">
       <form
         onSubmit={handleSubmit}
-        className="rounded-2xl border bg-white p-6"
+        className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900"
       >
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -212,38 +214,37 @@ export default function EventPhotos({
             <button
               type="button"
               onClick={resetForm}
-              className="text-sm text-slate-500 hover:text-slate-900"
+              className="text-sm text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
             >
               Cancel
             </button>
           )}
         </div>
 
-        <div className="grid gap-3 md:grid-cols-2">
-          <input
-            value={title}
-            onChange={(e) =>
-              setTitle(
-                e.target.value,
-              )
-            }
-            placeholder="Photo title"
-            className="rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-slate-200"
-          />
+        <input
+          value={title}
+          onChange={(e) =>
+            setTitle(
+              e.target.value,
+            )
+          }
+          placeholder="Photo title"
+          className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:ring-slate-700"
+        />
 
-          <input
-            required
-            type="url"
-            value={imageUrl}
-            onChange={(e) =>
-              setImageUrl(
-                e.target.value,
-              )
-            }
-            placeholder="Image URL"
-            className="rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-slate-200"
-          />
-        </div>
+        <label className="mb-1 block text-sm text-slate-500 dark:text-slate-400">
+          Image (upload or paste a link)
+        </label>
+
+        <ImageUpload
+          value={imageUrl}
+          folder="events"
+          onChange={(result) =>
+            setImageUrl(
+              result?.url ?? "",
+            )
+          }
+        />
 
         <button
           type="submit"
@@ -265,7 +266,7 @@ export default function EventPhotos({
       </form>
 
       {photos.length === 0 ? (
-        <div className="rounded-2xl border bg-white p-12 text-center text-slate-500">
+        <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
           No photos added yet.
         </div>
       ) : (
@@ -274,9 +275,9 @@ export default function EventPhotos({
             (photo) => (
               <div
                 key={photo.id}
-                className="overflow-hidden rounded-2xl border bg-white"
+                className="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900"
               >
-                <div className="relative aspect-video bg-slate-100">
+                <div className="relative aspect-video bg-slate-100 dark:bg-slate-800">
                   <img
                     src={
                       photo.imageUrl
@@ -289,7 +290,7 @@ export default function EventPhotos({
                   />
 
                   {photo.featured && (
-                    <span className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-white/90 px-2 py-1 text-xs font-medium text-amber-600">
+                    <span className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-white/90 px-2 py-1 text-xs font-medium text-amber-600 dark:bg-slate-900/90">
                       <Star
                         size={12}
                         fill="currentColor"
@@ -313,10 +314,10 @@ export default function EventPhotos({
                           photo,
                         )
                       }
-                      className={`rounded-lg border p-2 ${
+                      className={`rounded-lg border border-slate-300 dark:border-slate-700 ${
                         photo.featured
                           ? "text-amber-500"
-                          : "text-slate-500"
+                          : "text-slate-500 dark:text-slate-400"
                       }`}
                       title={
                         photo.featured
@@ -341,7 +342,7 @@ export default function EventPhotos({
                           photo,
                         )
                       }
-                      className="rounded-lg border p-2 text-slate-600 hover:bg-slate-100"
+                      className="rounded-lg border border-slate-300 p-2 text-slate-600 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
                       title="Edit"
                     >
                       <Pencil
@@ -356,7 +357,7 @@ export default function EventPhotos({
                           photo.id,
                         )
                       }
-                      className="rounded-lg border p-2 text-red-600 hover:bg-red-50"
+                      className="rounded-lg border border-slate-300 p-2 text-red-600 transition hover:bg-red-50 dark:border-slate-700 dark:text-red-400 dark:hover:bg-red-500/10"
                       title="Delete"
                     >
                       <Trash2

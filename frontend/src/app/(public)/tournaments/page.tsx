@@ -5,6 +5,8 @@ import {
   type PublicTournament,
 } from "@/services/public";
 
+import { resolveMediaUrl } from "@/lib/media";
+
 function formatDate(value?: string | null) {
   if (!value) {
     return null;
@@ -80,14 +82,14 @@ export default async function TournamentsPage() {
                   <div className="aspect-video overflow-hidden bg-slate-100">
                     {tournament.banner ? (
                       <img
-                        src={tournament.banner}
+                        src={resolveMediaUrl(tournament.banner)}
                         alt={tournament.name}
                         className="h-full w-full object-cover"
                       />
                     ) : tournament.logo ? (
                       <div className="flex h-full items-center justify-center p-8">
                         <img
-                          src={tournament.logo}
+                          src={resolveMediaUrl(tournament.logo)}
                           alt={tournament.name}
                           className="max-h-full max-w-full object-contain"
                         />

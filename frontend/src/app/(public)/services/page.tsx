@@ -13,6 +13,8 @@ import {
 import { getPublicServices } from "@/services/services";
 import type { Service } from "@/types/service";
 
+import { resolveMediaUrl } from "@/lib/media";
+
 function getServiceIcon(icon?: string | null) {
   const value = icon?.toLowerCase();
 
@@ -64,10 +66,12 @@ export default async function ServicesPage() {
     (service) => service.featured,
   );
 
-  const primaryServices =
-    featuredServices.length > 0
-      ? featuredServices
-      : services;
+  const primaryServices = [
+    ...featuredServices,
+    ...services.filter(
+      (service) => !service.featured,
+    ),
+  ];
 
   return (
     <main className="overflow-hidden bg-white text-slate-950 dark:bg-[#05070d] dark:text-white">
@@ -151,7 +155,7 @@ export default async function ServicesPage() {
             <div className="max-w-3xl">
               <p className="text-xl leading-8 text-slate-700 dark:text-slate-300">
                 A successful live event is not just about pressing
-                "Go Live". It is about the cameras, graphics, audio,
+                &quot;Go Live&quot;. It is about the cameras, graphics, audio,
                 data, operators, storytelling and technical decisions
                 working together.
               </p>
@@ -211,24 +215,53 @@ export default async function ServicesPage() {
                 const Icon = getServiceIcon(service.icon);
 
                 return (
-                  <article
+                  <Link
                     key={service.id}
-                    className="group relative overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white p-7 transition duration-300 hover:-translate-y-1 hover:border-blue-500/30 hover:shadow-2xl dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.05]"
+                    href={`/services/${service.slug}`}
+                    className="group relative overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white transition duration-300 hover:-translate-y-1 hover:border-blue-500/30 hover:shadow-2xl dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.05]"
                   >
                     <div className="absolute right-0 top-0 h-40 w-40 translate-x-1/3 -translate-y-1/3 rounded-full bg-blue-500/5 blur-3xl transition group-hover:bg-blue-500/15" />
 
-                    <div className="relative">
+                    {service.image ? (
+                      <div className="relative aspect-video overflow-hidden bg-slate-100 dark:bg-slate-900">
+                        <img
+                          src={resolveMediaUrl(service.image)}
+                          alt={service.title}
+                          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex aspect-video items-center justify-center bg-slate-100 dark:bg-slate-900">
+                        <Icon
+                          size={34}
+                          className="text-slate-300 dark:text-slate-700"
+                        />
+                      </div>
+                    )}
+
+                    <div className="relative p-7">
                       <div className="flex items-start justify-between">
                         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600/10 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
                           <Icon size={22} />
                         </div>
 
-                        <span className="text-xs font-black text-slate-300 dark:text-slate-700">
-                          {String(index + 1).padStart(2, "0")}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          {service.featured && (
+                            <span className="rounded-full bg-blue-600/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
+                              Featured
+                            </span>
+                          )}
+
+                          <span className="text-xs font-black text-slate-300 dark:text-slate-700">
+                            {String(index + 1).padStart(
+                              2,
+                              "0",
+                            )}
+                          </span>
+                        </div>
                       </div>
 
-                      <h3 className="mt-8 text-2xl font-black tracking-tight">
+                      <h3 className="mt-6 text-2xl font-black tracking-tight">
                         {service.title}
                       </h3>
 
@@ -245,14 +278,14 @@ export default async function ServicesPage() {
                       )}
 
                       <div className="mt-7 flex items-center gap-2 text-sm font-bold text-blue-600 dark:text-blue-400">
-                        Talk to us
+                        View service
                         <ArrowRight
                           size={15}
                           className="transition-transform group-hover:translate-x-1"
                         />
                       </div>
                     </div>
-                  </article>
+                  </Link>
                 );
               })}
             </div>
@@ -315,7 +348,7 @@ export default async function ServicesPage() {
                 <div className="relative min-h-[360px] overflow-hidden">
                   {featuredServices[0].image ? (
                     <img
-                      src={featuredServices[0].image}
+                      src={resolveMediaUrl(featuredServices[0].image)}
                       alt={featuredServices[0].title}
                       className="absolute inset-0 h-full w-full object-cover"
                     />
@@ -370,11 +403,11 @@ export default async function ServicesPage() {
             </p>
 
             <h2 className="mx-auto mt-5 max-w-3xl text-4xl font-black tracking-tight sm:text-6xl">
-              Let's build the production behind it.
+              Let&apos;s build the production behind it.
             </h2>
 
             <p className="mx-auto mt-6 max-w-2xl leading-7 text-slate-600 dark:text-slate-400">
-              Tell us what you are planning and we'll help you figure
+              Tell us what you are planning and we&apos;ll help you figure
               out the right production setup for your audience.
             </p>
 

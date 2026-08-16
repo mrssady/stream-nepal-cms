@@ -39,6 +39,33 @@ import {
   type UserRole,
 } from "@/types/user";
 
+function getApiErrorMessage(
+  error: unknown,
+  fallback: string,
+) {
+  if (
+    error &&
+    typeof error === "object" &&
+    "response" in error
+  ) {
+    const response = (
+      error as {
+        response: {
+          data?: {
+            message?: string;
+          };
+        };
+      }
+    ).response;
+
+    if (response.data?.message) {
+      return response.data.message;
+    }
+  }
+
+  return fallback;
+}
+
 const ITEMS_PER_PAGE = 10;
 
 const roleStyles: Record<UserRole, string> = {
@@ -243,10 +270,12 @@ export default function UsersPage() {
       setCreateOpen(false);
 
       window.location.reload();
-    } catch (error: any) {
+    } catch (error) {
       setFormError(
-        error?.response?.data?.message ||
+        getApiErrorMessage(
+          error,
           "Failed to create user.",
+        ),
       );
     } finally {
       setCreating(false);
@@ -310,10 +339,12 @@ export default function UsersPage() {
       });
 
       window.location.reload();
-    } catch (error: any) {
+    } catch (error) {
       setFormError(
-        error?.response?.data?.message ||
+        getApiErrorMessage(
+          error,
           "Failed to update user.",
+        ),
       );
     } finally {
       setUpdating(false);
@@ -338,10 +369,12 @@ export default function UsersPage() {
       setDeletingUser(null);
 
       window.location.reload();
-    } catch (error: any) {
+    } catch (error) {
       setFormError(
-        error?.response?.data?.message ||
+        getApiErrorMessage(
+          error,
           "Failed to delete user.",
+        ),
       );
     } finally {
       setDeleting(false);
@@ -762,7 +795,7 @@ export default function UsersPage() {
             </DialogTitle>
 
             <DialogDescription>
-              Update this CMS user's
+              Update this CMS user&apos;s
               information and permissions.
             </DialogDescription>
           </DialogHeader>

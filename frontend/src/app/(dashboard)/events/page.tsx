@@ -149,7 +149,7 @@ export default function EventsPage() {
   if (loading) {
     return (
       <div className="p-6">
-        <div className="rounded-xl border bg-white p-12 text-center text-slate-500">
+        <div className="rounded-xl border border-slate-200 bg-white p-12 text-center text-slate-500 dark:border-border dark:bg-card dark:text-slate-400">
           Loading events...
         </div>
       </div>
@@ -165,7 +165,7 @@ export default function EventsPage() {
           <button
             type="button"
             onClick={openCreate}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+            className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90"
           >
             Create Event
           </button>

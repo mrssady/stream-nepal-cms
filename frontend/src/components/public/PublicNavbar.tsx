@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Menu, Moon, Sun, X } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore, useState } from "react";
 
 type PublicNavbarProps = {
   companyName: string;
@@ -15,8 +15,7 @@ const navItems = [
   { label: "Services", href: "/services" },
   { label: "Work", href: "/portfolio/projects" },
   { label: "Events", href: "/portfolio/events" },
-  { label: "Tournaments", href: "/tournaments" },
-  { label: "Gallery", href: "/gallery" },
+  { label: "Gallery", href: "/portfolio/gallery" },
 ];
 
 export default function PublicNavbar({
@@ -24,12 +23,12 @@ export default function PublicNavbar({
   logo,
 }: PublicNavbarProps) {
   const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   function toggleTheme() {
     setTheme(theme === "dark" ? "light" : "dark");

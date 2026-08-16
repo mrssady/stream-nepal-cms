@@ -18,6 +18,10 @@ import type {
   Project,
 } from "@/types/project";
 
+import ImageUpload from "@/components/media/ImageUpload";
+
+import { resolveMediaUrl } from "@/lib/media";
+
 type FilterType =
   | "all"
   | "featured"
@@ -120,7 +124,18 @@ export default function ProjectsPage() {
   }
 
   useEffect(() => {
-    loadProjects();
+    getProjects()
+      .then((data) => {
+        setProjects(data);
+      })
+      .catch(() => {
+        setError(
+          "Unable to load projects. Please try again.",
+        );
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
 
   const filteredProjects =
@@ -415,23 +430,22 @@ export default function ProjectsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50">
-      <div className="mx-auto max-w-7xl space-y-8 p-6 lg:p-8">
-        {/* HEADER */}
+    <div className="mx-auto w-full max-w-7xl space-y-8">
+      {/* HEADER */}
 
         <section className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
           <div>
-            <div className="flex items-center gap-2 text-sm font-semibold text-blue-600">
-              <span className="size-2 rounded-full bg-blue-600" />
+            <div className="flex items-center gap-2 text-sm font-semibold text-blue-600 dark:text-blue-400">
+              <span className="size-2 rounded-full bg-blue-600 dark:bg-blue-500" />
 
               Portfolio Management
             </div>
 
-            <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-950 lg:text-4xl">
+            <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-950 dark:text-white lg:text-4xl">
               Projects
             </h1>
 
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-400">
               Manage the projects, productions
               and work displayed on the Stream
               Nepal portfolio.
@@ -443,7 +457,7 @@ export default function ProjectsPage() {
             onClick={
               openCreateModal
             }
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 hover:shadow-md"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 hover:shadow-md dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90"
           >
             <span className="text-lg leading-none">
               +
@@ -456,7 +470,7 @@ export default function ProjectsPage() {
         {/* ALERTS */}
 
         {error && (
-          <div className="flex items-start justify-between gap-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="flex items-start justify-between gap-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400">
             <span>{error}</span>
 
             <button
@@ -464,7 +478,7 @@ export default function ProjectsPage() {
               onClick={() =>
                 setError("")
               }
-              className="font-bold text-red-500 hover:text-red-700"
+              className="font-bold text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
             >
               ×
             </button>
@@ -472,7 +486,7 @@ export default function ProjectsPage() {
         )}
 
         {success && (
-          <div className="flex items-start justify-between gap-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          <div className="flex items-start justify-between gap-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-400">
             <span>{success}</span>
 
             <button
@@ -480,7 +494,7 @@ export default function ProjectsPage() {
               onClick={() =>
                 setSuccess("")
               }
-              className="font-bold text-emerald-500 hover:text-emerald-700"
+              className="font-bold text-emerald-500 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300"
             >
               ×
             </button>
@@ -521,10 +535,10 @@ export default function ProjectsPage() {
 
         {/* TOOLBAR */}
 
-        <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-border dark:bg-card">
           <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-            <div className="relative w-full xl:max-w-md">
-              <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+            <div className="relative w-full min-w-0 xl:max-w-md">
+              <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500">
                 ⌕
               </span>
 
@@ -536,7 +550,7 @@ export default function ProjectsPage() {
                   )
                 }
                 placeholder="Search projects, clients, categories..."
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-50"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-50 dark:border-slate-700 dark:bg-muted dark:text-white dark:placeholder:text-slate-500 dark:focus:border-blue-400 dark:focus:bg-slate-900 dark:focus:ring-2 dark:focus:ring-blue-500/10"
               />
             </div>
 
@@ -601,34 +615,34 @@ export default function ProjectsPage() {
             }).map((_, index) => (
               <div
                 key={index}
-                className="overflow-hidden rounded-2xl border border-slate-200 bg-white"
+                className="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-border dark:bg-card"
               >
-                <div className="aspect-video animate-pulse bg-slate-200" />
+                <div className="aspect-video animate-pulse bg-slate-200 dark:bg-muted" />
 
                 <div className="space-y-3 p-5">
-                  <div className="h-5 w-2/3 animate-pulse rounded bg-slate-200" />
+                  <div className="h-5 w-2/3 animate-pulse rounded bg-slate-200 dark:bg-muted" />
 
-                  <div className="h-4 w-full animate-pulse rounded bg-slate-100" />
+                  <div className="h-4 w-full animate-pulse rounded bg-slate-100 dark:bg-muted" />
 
-                  <div className="h-4 w-1/2 animate-pulse rounded bg-slate-100" />
+                  <div className="h-4 w-1/2 animate-pulse rounded bg-slate-100 dark:bg-muted" />
                 </div>
               </div>
             ))}
           </section>
         ) : filteredProjects.length ===
           0 ? (
-          <section className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-20 text-center">
-            <div className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-blue-50 text-2xl text-blue-600">
+          <section className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-10 text-center dark:border-border dark:bg-card">
+            <div className="mx-auto flex size-12 items-center justify-center rounded-xl bg-blue-50 text-xl text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
               ▦
             </div>
 
-            <h2 className="mt-5 text-xl font-bold text-slate-950">
+            <h2 className="mt-4 text-lg font-bold text-slate-950 dark:text-white">
               {projects.length === 0
                 ? "No projects yet"
                 : "No matching projects"}
             </h2>
 
-            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500 dark:text-slate-400">
               {projects.length === 0
                 ? "Create your first project to start building the Stream Nepal portfolio."
                 : "Try changing your search or filter to find the project you're looking for."}
@@ -641,7 +655,7 @@ export default function ProjectsPage() {
                 onClick={
                   openCreateModal
                 }
-                className="mt-6 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
+                className="mt-5 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90"
               >
                 Create First Project
               </button>
@@ -676,27 +690,25 @@ export default function ProjectsPage() {
             )}
           </section>
         )}
-      </div>
-
       {/* MODAL */}
 
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm dark:bg-black/70">
           <div
             className="absolute inset-0"
             onClick={closeModal}
           />
 
-          <div className="relative flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+          <div className="relative flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:border dark:border-border dark:bg-card">
             {/* MODAL HEADER */}
 
-            <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
+            <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5 dark:border-border">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-600">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400">
                   Portfolio
                 </p>
 
-                <h2 className="mt-1 text-xl font-bold text-slate-950">
+                <h2 className="mt-1 text-xl font-bold text-slate-950 dark:text-white">
                   {editingId
                     ? "Edit Project"
                     : "Create New Project"}
@@ -706,7 +718,7 @@ export default function ProjectsPage() {
               <button
                 type="button"
                 onClick={closeModal}
-                className="flex size-9 items-center justify-center rounded-lg text-xl text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                className="flex size-9 items-center justify-center rounded-lg text-xl text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-muted dark:hover:text-slate-300"
               >
                 ×
               </button>
@@ -720,7 +732,7 @@ export default function ProjectsPage() {
             >
               <div className="space-y-6 p-6">
                 {error && (
-                  <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400">
                     {error}
                   </div>
                 )}
@@ -880,23 +892,21 @@ export default function ProjectsPage() {
 
                 <div className="grid gap-5 md:grid-cols-2">
                   <FormField
-                    label="Cover Image URL"
-                    hint="Direct image URL"
+                    label="Cover Image"
+                    hint="Upload or paste a link"
                   >
-                    <input
+                    <ImageUpload
                       value={
                         form.coverImage ??
                         ""
                       }
-                      onChange={(event) =>
+                      folder="projects"
+                      onChange={(result) =>
                         updateField(
                           "coverImage",
-                          event.target
-                            .value,
+                          result?.url ?? "",
                         )
                       }
-                      placeholder="https://..."
-                      className={inputClass}
                     />
                   </FormField>
 
@@ -919,42 +929,16 @@ export default function ProjectsPage() {
                   </FormField>
                 </div>
 
-                {/* IMAGE PREVIEW */}
-
-                {form.coverImage && (
-                  <div>
-                    <p className="mb-2 text-sm font-medium text-slate-700">
-                      Cover Preview
-                    </p>
-
-                    <div className="aspect-video max-w-md overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
-                      <img
-                        src={
-                          form.coverImage
-                        }
-                        alt="Cover preview"
-                        className="h-full w-full object-cover"
-                        onError={(
-                          event,
-                        ) => {
-                          event.currentTarget.style.display =
-                            "none";
-                        }}
-                      />
-                    </div>
-                  </div>
-                )}
-
                 {/* STATUS */}
 
                 <div className="grid gap-4 md:grid-cols-2">
-                  <label className="flex cursor-pointer items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-4 transition hover:border-blue-200 hover:bg-blue-50/30">
+                  <label className="flex cursor-pointer items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-4 transition hover:border-blue-200 hover:bg-blue-50/30 dark:border-slate-700 dark:bg-muted/60 dark:hover:border-blue-400/40 dark:hover:bg-blue-400/10">
                     <div>
-                      <p className="text-sm font-semibold text-slate-900">
+                      <p className="text-sm font-semibold text-slate-900 dark:text-white">
                         Featured Project
                       </p>
 
-                      <p className="mt-1 text-xs text-slate-500">
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                         Highlight this project
                         on the public portfolio.
                       </p>
@@ -977,13 +961,13 @@ export default function ProjectsPage() {
                     />
                   </label>
 
-                  <label className="flex cursor-pointer items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-4 transition hover:border-emerald-200 hover:bg-emerald-50/30">
+                  <label className="flex cursor-pointer items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-4 transition hover:border-emerald-200 hover:bg-emerald-50/30 dark:border-slate-700 dark:bg-muted/60 dark:hover:border-emerald-500/40 dark:hover:bg-emerald-500/10">
                     <div>
-                      <p className="text-sm font-semibold text-slate-900">
+                      <p className="text-sm font-semibold text-slate-900 dark:text-white">
                         Active Project
                       </p>
 
-                      <p className="mt-1 text-xs text-slate-500">
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                         Make this project visible
                         publicly.
                       </p>
@@ -1010,14 +994,14 @@ export default function ProjectsPage() {
 
               {/* MODAL FOOTER */}
 
-              <div className="flex flex-col-reverse gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4 sm:flex-row sm:justify-end">
+              <div className="flex flex-col-reverse gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4 sm:flex-row sm:justify-end dark:border-border dark:bg-muted">
                 <button
                   type="button"
                   onClick={
                     closeModal
                   }
                   disabled={saving}
-                  className="rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 disabled:opacity-50"
+                  className="rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 disabled:opacity-50 dark:border-border dark:bg-card dark:text-slate-300 dark:hover:bg-muted"
                 >
                   Cancel
                 </button>
@@ -1025,7 +1009,7 @@ export default function ProjectsPage() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90"
                 >
                   {saving
                     ? "Saving..."
@@ -1038,7 +1022,7 @@ export default function ProjectsPage() {
           </div>
         </div>
       )}
-    </main>
+    </div>
   );
 }
 
@@ -1058,14 +1042,14 @@ function StatCard({
   icon: string;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-border dark:bg-card">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm font-medium text-slate-500">
+          <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
             {label}
           </p>
 
-          <p className="mt-2 text-3xl font-bold tracking-tight text-slate-950">
+          <p className="mt-2 text-3xl font-bold tracking-tight text-slate-950 dark:text-white">
             {value}
           </p>
 
@@ -1074,7 +1058,7 @@ function StatCard({
           </p>
         </div>
 
-        <div className="flex size-11 items-center justify-center rounded-xl bg-blue-50 text-lg text-blue-600">
+        <div className="flex size-11 items-center justify-center rounded-xl bg-blue-50 text-lg text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
           {icon}
         </div>
       </div>
@@ -1101,8 +1085,8 @@ function FilterButton({
       onClick={onClick}
       className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
         active
-          ? "bg-blue-600 text-white shadow-sm"
-          : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+          ? "bg-blue-600 text-white shadow-sm dark:bg-primary dark:text-primary-foreground"
+          : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-muted dark:text-slate-400 dark:hover:bg-slate-700"
       }`}
     >
       {children}
@@ -1128,11 +1112,11 @@ function FormField({
   return (
     <div>
       <div className="flex items-center justify-between gap-3">
-        <label className="text-sm font-semibold text-slate-700">
+        <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
           {label}
 
           {required && (
-            <span className="ml-1 text-red-500">
+            <span className="ml-1 text-red-500 dark:text-red-400">
               *
             </span>
           )}
@@ -1170,17 +1154,17 @@ function ProjectCard({
   onToggleActive: () => void;
 }) {
   return (
-    <article className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl">
-      <div className="relative aspect-video overflow-hidden bg-slate-100">
+    <article className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-border dark:bg-card dark:hover:shadow-black/40">
+      <div className="relative aspect-video overflow-hidden bg-slate-100 dark:bg-muted">
         {project.coverImage ? (
           <img
-            src={project.coverImage}
+            src={resolveMediaUrl(project.coverImage)}
             alt={project.title}
             className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
           />
         ) : (
-          <div className="flex h-full items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
-            <span className="text-xs font-bold uppercase tracking-[0.25em] text-slate-400">
+          <div className="flex h-full items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700">
+            <span className="text-xs font-bold uppercase tracking-[0.25em] text-slate-400 dark:text-slate-500">
               Stream Nepal
             </span>
           </div>
@@ -1216,27 +1200,27 @@ function ProjectCard({
       <div className="p-5">
         <div className="flex items-center gap-2">
           {project.category && (
-            <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-600">
+            <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
               {project.category}
             </span>
           )}
         </div>
 
-        <h2 className="mt-3 line-clamp-1 text-xl font-bold text-slate-950">
+        <h2 className="mt-3 line-clamp-1 text-xl font-bold text-slate-950 dark:text-white">
           {project.title}
         </h2>
 
-        <p className="mt-2 line-clamp-2 min-h-10 text-sm leading-5 text-slate-500">
+        <p className="mt-2 line-clamp-2 min-h-10 text-sm leading-5 text-slate-500 dark:text-slate-400">
           {project.shortDescription ||
             "No project description provided."}
         </p>
 
-        <div className="mt-4 space-y-1.5 border-t border-slate-100 pt-4 text-xs text-slate-500">
+        <div className="mt-4 space-y-1.5 border-t border-slate-100 pt-4 text-xs text-slate-500 dark:border-border dark:text-slate-400">
           {project.client && (
             <p className="flex justify-between gap-4">
               <span>Client</span>
 
-              <span className="max-w-[65%] truncate font-medium text-slate-700">
+              <span className="max-w-[65%] truncate font-medium text-slate-700 dark:text-slate-300">
                 {project.client}
               </span>
             </p>
@@ -1245,7 +1229,7 @@ function ProjectCard({
           <p className="flex justify-between gap-4">
             <span>Date</span>
 
-            <span className="font-medium text-slate-700">
+            <span className="font-medium text-slate-700 dark:text-slate-300">
               {formatDate(
                 project.projectDate,
               )}
@@ -1257,7 +1241,7 @@ function ProjectCard({
           <button
             type="button"
             onClick={onEdit}
-            className="flex-1 rounded-lg border border-slate-300 px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+            className="flex-1 rounded-lg border border-slate-300 px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-border dark:text-slate-300 dark:hover:bg-muted"
           >
             Edit
           </button>
@@ -1267,8 +1251,8 @@ function ProjectCard({
             onClick={onToggleActive}
             className={`rounded-lg px-3 py-2.5 text-sm font-semibold transition ${
               project.isActive
-                ? "border border-amber-200 text-amber-700 hover:bg-amber-50"
-                : "border border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                ? "border border-amber-200 text-amber-700 hover:bg-amber-50 dark:border-amber-500/30 dark:text-amber-400 dark:hover:bg-amber-500/10"
+                : "border border-emerald-200 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-500/30 dark:text-emerald-400 dark:hover:bg-emerald-500/10"
             }`}
           >
             {project.isActive
@@ -1280,7 +1264,7 @@ function ProjectCard({
             type="button"
             onClick={onDelete}
             disabled={deleting}
-            className="rounded-lg border border-red-200 px-3 py-2.5 text-sm font-semibold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-lg border border-red-200 px-3 py-2.5 text-sm font-semibold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-500/30 dark:text-red-400 dark:hover:bg-red-500/10"
           >
             {deleting
               ? "..."
@@ -1293,4 +1277,4 @@ function ProjectCard({
 }
 
 const inputClass =
-  "w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-50";
+  "w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-50 dark:border-border dark:bg-muted dark:text-white dark:placeholder:text-slate-500 dark:focus:border-blue-400 dark:focus:bg-slate-900 dark:focus:ring-2 dark:focus:ring-blue-500/10";

@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 
 import type { Project } from "@/types/project";
 
+import { resolveMediaUrl } from "@/lib/media";
+
 type ProjectPageProps = {
   params: Promise<{
     slug: string;
@@ -88,7 +90,7 @@ export default async function ProjectDetailPage({
           <div className="overflow-hidden rounded-3xl">
             {project.coverImage ? (
               <img
-                src={project.coverImage}
+                src={resolveMediaUrl(project.coverImage)}
                 alt={project.title}
                 className="aspect-video w-full object-cover"
               />

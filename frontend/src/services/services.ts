@@ -32,6 +32,16 @@ export async function getPublicServices(): Promise<
   return response.data.data;
 }
 
+export async function getPublicService(
+  slug: string,
+): Promise<Service> {
+  const response = await api.get(
+    `/public/services/${slug}`,
+  );
+
+  return response.data.data;
+}
+
 export async function createService(
   data: CreateServiceDto,
 ): Promise<Service> {

@@ -14,6 +14,8 @@ import type {
   EventTimeline as EventTimelineItem,
 } from "@/services/event";
 
+import ImageUpload from "@/components/media/ImageUpload";
+
 import {
   createEventTimeline,
   deleteEventTimeline,
@@ -292,7 +294,7 @@ export default function EventTimeline({
     <div className="grid gap-6 lg:grid-cols-3">
       <form
         onSubmit={handleSubmit}
-        className="rounded-2xl border bg-white p-6"
+        className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900"
       >
         <div className="mb-4 flex items-center justify-between">
           <div>
@@ -311,7 +313,7 @@ export default function EventTimeline({
             <button
               type="button"
               onClick={resetForm}
-              className="text-sm text-slate-500 hover:text-slate-900"
+              className="text-sm text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
             >
               Cancel
             </button>
@@ -328,7 +330,7 @@ export default function EventTimeline({
               )
             }
             placeholder="Timeline title"
-            className="w-full rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-slate-200"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:ring-slate-700"
           />
 
           <input
@@ -340,7 +342,7 @@ export default function EventTimeline({
                 e.target.value,
               )
             }
-            className="w-full rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-slate-200"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:ring-slate-700"
           />
 
           <textarea
@@ -352,19 +354,17 @@ export default function EventTimeline({
               )
             }
             placeholder="Description"
-            className="w-full rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-slate-200"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:ring-slate-700"
           />
 
-          <input
-            type="url"
+          <ImageUpload
             value={imageUrl}
-            onChange={(e) =>
+            folder="events"
+            onChange={(result) =>
               setImageUrl(
-                e.target.value,
+                result?.url ?? "",
               )
             }
-            placeholder="Image URL (optional)"
-            className="w-full rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-slate-200"
           />
 
           <button
@@ -387,14 +387,14 @@ export default function EventTimeline({
         </div>
       </form>
 
-      <div className="rounded-2xl border bg-white p-6 lg:col-span-2">
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 lg:col-span-2 dark:border-slate-800 dark:bg-slate-900">
         <h2 className="font-semibold">
           Event Timeline
         </h2>
 
         {timeline.length ===
         0 ? (
-          <div className="py-12 text-center text-slate-500">
+          <div className="py-12 text-center text-slate-500 dark:text-slate-400">
             No timeline entries yet.
           </div>
         ) : (
@@ -403,9 +403,9 @@ export default function EventTimeline({
               (item) => (
                 <div
                   key={item.id}
-                  className="relative border-l-2 border-slate-200 pl-7"
+                  className="relative border-l-2 border-slate-200 pl-7 dark:border-slate-700"
                 >
-                  <div className="absolute -left-[7px] top-1 size-3 rounded-full bg-slate-900" />
+                  <div className="absolute -left-[7px] top-1 size-3 rounded-full bg-slate-900 dark:bg-blue-600" />
 
                   <div className="flex items-start justify-between gap-4">
                     <div>
@@ -421,7 +421,7 @@ export default function EventTimeline({
                         </span>
 
                         {item.featured && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs text-amber-600">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs text-amber-600 dark:bg-amber-500/10 dark:text-amber-400">
                             <Star
                               size={11}
                               fill="currentColor"
@@ -436,7 +436,7 @@ export default function EventTimeline({
                       </h3>
 
                       {item.description && (
-                        <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-500">
+                        <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-500 dark:text-slate-400">
                           {
                             item.description
                           }
@@ -452,10 +452,10 @@ export default function EventTimeline({
                             item,
                           )
                         }
-                        className={`rounded-lg border p-2 ${
+                        className={`rounded-lg border border-slate-300 dark:border-slate-700 ${
                           item.featured
                             ? "text-amber-500"
-                            : "text-slate-500"
+                            : "text-slate-500 dark:text-slate-400"
                         }`}
                         title={
                           item.featured
@@ -480,7 +480,7 @@ export default function EventTimeline({
                             item,
                           )
                         }
-                        className="rounded-lg border p-2 text-slate-600 hover:bg-slate-100"
+                        className="rounded-lg border border-slate-300 p-2 text-slate-600 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
                         title="Edit"
                       >
                         <Pencil
@@ -495,7 +495,7 @@ export default function EventTimeline({
                             item.id,
                           )
                         }
-                        className="rounded-lg border p-2 text-red-600 hover:bg-red-50"
+                        className="rounded-lg border border-slate-300 p-2 text-red-600 transition hover:bg-red-50 dark:border-slate-700 dark:text-red-400 dark:hover:bg-red-500/10"
                         title="Delete"
                       >
                         <Trash2
@@ -506,7 +506,7 @@ export default function EventTimeline({
                   </div>
 
                   {item.imageUrl && (
-                    <div className="mt-4 overflow-hidden rounded-xl border">
+                    <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700">
                       <img
                         src={
                           item.imageUrl

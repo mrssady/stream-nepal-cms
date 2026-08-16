@@ -11,19 +11,19 @@ type DataTableProps<T> = {
   data: T[];
 };
 
-export default function DataTable<T extends Record<string, any>>({
+export default function DataTable<T extends object>({
   columns,
   data,
 }: DataTableProps<T>) {
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <table className="w-full">
-        <thead className="bg-slate-100">
+        <thead className="bg-slate-100 dark:bg-slate-800/60">
           <tr>
             {columns.map((column) => (
               <th
                 key={String(column.key)}
-                className="px-4 py-3 text-left text-sm font-semibold text-slate-700"
+                className="px-4 py-3 text-left text-sm font-semibold text-slate-700 dark:text-slate-300"
               >
                 {column.title}
               </th>
@@ -36,7 +36,7 @@ export default function DataTable<T extends Record<string, any>>({
             <tr>
               <td
                 colSpan={columns.length}
-                className="px-4 py-8 text-center text-slate-500"
+                className="px-4 py-8 text-center text-slate-500 dark:text-slate-400"
               >
                 No data available.
               </td>
@@ -45,7 +45,7 @@ export default function DataTable<T extends Record<string, any>>({
             data.map((row, index) => (
               <tr
                 key={index}
-                className="border-t transition hover:bg-slate-50"
+                className="border-t border-slate-200 transition hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/40"
               >
                 {columns.map((column) => (
                   <td
