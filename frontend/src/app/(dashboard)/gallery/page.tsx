@@ -10,6 +10,10 @@ import {
 
 import { useMedia } from "@/hooks/useMedia";
 
+import ImageUpload from "@/components/media/ImageUpload";
+
+import { resolveMediaUrl } from "@/lib/media";
+
 import {
   type CreateMediaDto,
   type Media,
@@ -82,6 +86,9 @@ export default function GalleryPage() {
   const [selectedMedia, setSelectedMedia] =
     useState<Media | null>(null);
 
+  const [thumbnailUrl, setThumbnailUrl] =
+    useState("");
+
   const [saving, setSaving] =
     useState(false);
 
@@ -153,6 +160,7 @@ export default function GalleryPage() {
   function openCreate() {
     setModalMode("create");
     setSelectedMedia(null);
+    setThumbnailUrl("");
     setModalOpen(true);
   }
 
@@ -161,6 +169,7 @@ export default function GalleryPage() {
   ) {
     setModalMode("edit");
     setSelectedMedia(item);
+    setThumbnailUrl(item.thumbnailUrl ?? "");
     setModalOpen(true);
   }
 
@@ -222,7 +231,7 @@ export default function GalleryPage() {
   if (loading) {
     return (
       <div className="p-6">
-        <div className="rounded-xl border bg-white p-12 text-center text-slate-500">
+        <div className="rounded-xl border bg-white p-12 text-center text-slate-500 dark:border-border dark:bg-card dark:text-slate-400">
           Loading gallery...
         </div>
       </div>
@@ -235,11 +244,11 @@ export default function GalleryPage() {
 
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
             Gallery
           </h1>
 
-          <p className="mt-1 text-slate-500">
+          <p className="mt-1 text-slate-500 dark:text-slate-400">
             Manage Stream Nepal media,
             social posts, and portfolio
             content.
@@ -249,7 +258,7 @@ export default function GalleryPage() {
         <button
           type="button"
           onClick={openCreate}
-          className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 font-medium text-white shadow-sm hover:bg-blue-700"
+          className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 font-medium text-white shadow-sm hover:bg-blue-700 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90"
         >
           <Plus size={18} />
           Add Media
@@ -259,7 +268,7 @@ export default function GalleryPage() {
       {/* Error */}
 
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400">
           {error}
         </div>
       )}
@@ -277,7 +286,7 @@ export default function GalleryPage() {
             setPage(1);
           }}
           placeholder="Search media..."
-          className="h-11 w-full rounded-xl border bg-white px-4 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 md:max-w-md"
+          className="h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-border dark:bg-muted dark:text-white dark:placeholder:text-slate-500 dark:focus:border-blue-400 dark:focus:ring-blue-500/10 md:max-w-md"
         />
 
         <select
@@ -291,7 +300,7 @@ export default function GalleryPage() {
             );
             setPage(1);
           }}
-          className="h-11 rounded-xl border bg-white px-4 text-sm outline-none focus:border-blue-500"
+          className="h-11 rounded-xl border border-slate-300 bg-white px-4 text-sm text-slate-900 outline-none transition focus:border-blue-500 dark:border-border dark:bg-muted dark:text-white"
         >
           <option value="ALL">
             All Platforms
@@ -313,15 +322,15 @@ export default function GalleryPage() {
       {/* Empty */}
 
       {filteredMedia.length === 0 ? (
-        <div className="rounded-xl border border-dashed bg-white p-16 text-center">
-          <h2 className="text-xl font-semibold text-slate-900">
+        <div className="rounded-xl border border-dashed border-slate-300 bg-white p-16 text-center dark:border-border dark:bg-card">
+          <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
             {search ||
             platformFilter !== "ALL"
               ? "No Media Found"
               : "No Media Yet"}
           </h2>
 
-          <p className="mt-2 text-slate-500">
+          <p className="mt-2 text-slate-500 dark:text-slate-400">
             {search ||
             platformFilter !== "ALL"
               ? "Try changing your search or filter."
@@ -334,7 +343,7 @@ export default function GalleryPage() {
               <button
                 type="button"
                 onClick={openCreate}
-                className="mt-6 rounded-xl bg-blue-600 px-5 py-3 text-sm font-medium text-white hover:bg-blue-700"
+                className="mt-6 rounded-xl bg-blue-600 px-5 py-3 text-sm font-medium text-white hover:bg-blue-700 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90"
               >
                 Add Media
               </button>
@@ -349,16 +358,16 @@ export default function GalleryPage() {
               (item) => (
                 <div
                   key={item.id}
-                  className="overflow-hidden rounded-2xl border bg-white shadow-sm"
+                  className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-border dark:bg-card"
                 >
                   {/* Preview */}
 
-                  <div className="relative aspect-video overflow-hidden bg-slate-100">
+                  <div className="relative aspect-video overflow-hidden bg-slate-100 dark:bg-muted">
                     {item.thumbnailUrl ? (
                       <img
-                        src={
-                          item.thumbnailUrl
-                        }
+                        src={resolveMediaUrl(
+                          item.thumbnailUrl,
+                        )}
                         alt={
                           item.title
                         }
@@ -366,7 +375,7 @@ export default function GalleryPage() {
                       />
                     ) : (
                       <div className="flex h-full items-center justify-center">
-                        <span className="text-2xl font-bold text-slate-300">
+                        <span className="text-2xl font-bold text-slate-300 dark:text-slate-600">
                           {formatPlatform(
                             item.platform,
                           )}
@@ -396,12 +405,12 @@ export default function GalleryPage() {
                   <div className="p-5">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <h2 className="truncate font-semibold text-slate-900">
+                        <h2 className="truncate font-semibold text-slate-900 dark:text-white">
                           {item.title}
                         </h2>
 
                         {item.category && (
-                          <p className="mt-1 text-xs text-blue-600">
+                          <p className="mt-1 text-xs text-blue-600 dark:text-blue-400">
                             {
                               item.category
                             }
@@ -412,8 +421,8 @@ export default function GalleryPage() {
                       <span
                         className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${
                           item.isActive
-                            ? "bg-green-50 text-green-700"
-                            : "bg-slate-100 text-slate-500"
+                            ? "bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400"
+                            : "bg-slate-100 text-slate-500 dark:bg-muted dark:text-slate-400"
                         }`}
                       >
                         {item.isActive
@@ -423,7 +432,7 @@ export default function GalleryPage() {
                     </div>
 
                     {item.description && (
-                      <p className="mt-3 line-clamp-2 text-sm text-slate-500">
+                      <p className="mt-3 line-clamp-2 text-sm text-slate-500 dark:text-slate-400">
                         {
                           item.description
                         }
@@ -437,7 +446,7 @@ export default function GalleryPage() {
                         }
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-700"
+                        className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
                       >
                         Open Source
                         <ExternalLink
@@ -453,7 +462,7 @@ export default function GalleryPage() {
                               item,
                             )
                           }
-                          className="rounded-lg border p-2 text-slate-600 hover:bg-slate-50"
+                          className="rounded-lg border border-slate-300 p-2 text-slate-600 transition hover:bg-slate-50 dark:border-border dark:text-slate-300 dark:hover:bg-muted"
                           title="Edit media"
                         >
                           <Pencil
@@ -468,7 +477,7 @@ export default function GalleryPage() {
                               item,
                             )
                           }
-                          className="rounded-lg border p-2 text-red-600 hover:bg-red-50"
+                          className="rounded-lg border border-slate-300 p-2 text-red-600 transition hover:bg-red-50 dark:border-border dark:text-red-400 dark:hover:bg-red-500/10"
                           title="Delete media"
                         >
                           <Trash2
@@ -485,8 +494,8 @@ export default function GalleryPage() {
 
           {/* Pagination */}
 
-          <div className="flex items-center justify-between rounded-xl border bg-white px-5 py-3">
-            <p className="text-xs text-slate-500">
+          <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-5 py-3 dark:border-border dark:bg-card">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               Showing{" "}
               {(currentPage - 1) *
                 ITEMS_PER_PAGE +
@@ -513,7 +522,7 @@ export default function GalleryPage() {
                       value - 1,
                   )
                 }
-                className="rounded-lg border px-3 py-1.5 text-sm disabled:cursor-not-allowed disabled:opacity-40"
+                className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-border dark:text-slate-300 dark:hover:bg-muted"
               >
                 Previous
               </button>
@@ -530,7 +539,7 @@ export default function GalleryPage() {
                       value + 1,
                   )
                 }
-                className="rounded-lg border px-3 py-1.5 text-sm disabled:cursor-not-allowed disabled:opacity-40"
+                className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-border dark:text-slate-300 dark:hover:bg-muted"
               >
                 Next
               </button>
@@ -543,15 +552,15 @@ export default function GalleryPage() {
 
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-xl">
-            <div className="border-b p-6">
-              <h2 className="text-xl font-semibold text-slate-900">
+          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-xl dark:border dark:border-border dark:bg-card">
+            <div className="border-b border-slate-200 p-6 dark:border-border">
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
                 {modalMode === "create"
                   ? "Add Media"
                   : "Edit Media"}
               </h2>
 
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                 Add a Facebook post,
                 YouTube video, image, or
                 video.
@@ -598,11 +607,7 @@ export default function GalleryPage() {
                     ),
 
                   thumbnailUrl:
-                    String(
-                      form.get(
-                        "thumbnailUrl",
-                      ) || "",
-                    ) || undefined,
+                    thumbnailUrl || undefined,
 
                   category:
                     String(
@@ -632,7 +637,7 @@ export default function GalleryPage() {
               className="space-y-5 p-6"
             >
               <div>
-                <label className="mb-1 block text-sm font-medium">
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                   Title
                 </label>
 
@@ -644,12 +649,12 @@ export default function GalleryPage() {
                     ""
                   }
                   placeholder="PMBC 2026 Grand Finals"
-                  className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
+                  className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition focus:border-blue-500 dark:border-border dark:bg-muted dark:text-white"
                 />
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium">
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                   Platform
                 </label>
 
@@ -659,7 +664,7 @@ export default function GalleryPage() {
                     selectedMedia?.platform ??
                     "FACEBOOK"
                   }
-                  className="w-full rounded-xl border bg-white px-3 py-2 outline-none focus:border-blue-500"
+                  className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition focus:border-blue-500 dark:border-border dark:bg-muted dark:text-white"
                 >
                   {PLATFORM_OPTIONS.map(
                     (option) => (
@@ -681,7 +686,7 @@ export default function GalleryPage() {
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium">
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                   Source URL
                 </label>
 
@@ -694,39 +699,38 @@ export default function GalleryPage() {
                     ""
                   }
                   placeholder="https://www.facebook.com/..."
-                  className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
+                  className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition focus:border-blue-500 dark:border-border dark:bg-muted dark:text-white"
                 />
 
-                <p className="mt-1 text-xs text-slate-500">
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                   Paste the public Facebook
                   post/video URL here.
                 </p>
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium">
-                  Thumbnail URL
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Thumbnail Image
                 </label>
 
-                <input
-                  type="url"
-                  name="thumbnailUrl"
-                  defaultValue={
-                    selectedMedia?.thumbnailUrl ??
-                    ""
+                <ImageUpload
+                  value={thumbnailUrl}
+                  folder="gallery"
+                  onChange={(result) =>
+                    setThumbnailUrl(
+                      result?.url ?? "",
+                    )
                   }
-                  placeholder="https://..."
-                  className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
                 />
 
-                <p className="mt-1 text-xs text-slate-500">
-                  Optional fallback image
-                  for the gallery preview.
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                  Optional preview image for
+                  the gallery card.
                 </p>
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium">
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                   Category
                 </label>
 
@@ -737,12 +741,12 @@ export default function GalleryPage() {
                     ""
                   }
                   placeholder="Tournament / Event / Portfolio"
-                  className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
+                  className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition focus:border-blue-500 dark:border-border dark:bg-muted dark:text-white"
                 />
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium">
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                   Description
                 </label>
 
@@ -754,12 +758,12 @@ export default function GalleryPage() {
                     ""
                   }
                   placeholder="Short description..."
-                  className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
+                  className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition focus:border-blue-500 dark:border-border dark:bg-muted dark:text-white"
                 />
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium">
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                   Display Order
                 </label>
 
@@ -771,7 +775,7 @@ export default function GalleryPage() {
                     selectedMedia?.displayOrder ??
                     0
                   }
-                  className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
+                  className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition focus:border-blue-500 dark:border-border dark:bg-muted dark:text-white"
                 />
               </div>
 
@@ -786,7 +790,7 @@ export default function GalleryPage() {
                     }
                   />
 
-                  <span className="text-sm">
+                  <span className="text-sm text-slate-700 dark:text-slate-300">
                     Active
                   </span>
                 </label>
@@ -801,13 +805,13 @@ export default function GalleryPage() {
                     }
                   />
 
-                  <span className="text-sm">
+                  <span className="text-sm text-slate-700 dark:text-slate-300">
                     Featured
                   </span>
                 </label>
               </div>
 
-              <div className="flex justify-end gap-3 border-t pt-5">
+              <div className="flex justify-end gap-3 border-t border-slate-200 pt-5 dark:border-border">
                 <button
                   type="button"
                   onClick={() => {
@@ -821,7 +825,7 @@ export default function GalleryPage() {
                     }
                   }}
                   disabled={saving}
-                  className="rounded-xl border px-5 py-2 disabled:opacity-50"
+                  className="rounded-xl border border-slate-300 px-5 py-2 text-slate-700 transition hover:bg-slate-50 disabled:opacity-50 dark:border-border dark:text-slate-300 dark:hover:bg-muted"
                 >
                   Cancel
                 </button>
@@ -829,7 +833,7 @@ export default function GalleryPage() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="rounded-xl bg-blue-600 px-5 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
+                  className="rounded-xl bg-blue-600 px-5 py-2 text-white hover:bg-blue-700 disabled:opacity-50 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90"
                 >
                   {saving
                     ? "Saving..."

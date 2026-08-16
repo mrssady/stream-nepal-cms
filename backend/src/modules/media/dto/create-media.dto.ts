@@ -6,9 +6,9 @@ import {
   IsString,
   IsUrl,
   Min,
-} from "class-validator";
+} from 'class-validator';
 
-import { MediaPlatform } from "@prisma/client";
+import { MediaPlatform } from '@prisma/client';
 
 export class CreateMediaDto {
   @IsString()
