@@ -1,5 +1,5 @@
 import axios from "axios";
-import { getToken, removeToken } from "@/lib/auth";
+import { getToken, logout, removeToken } from "@/lib/auth";
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
@@ -23,5 +23,18 @@ api.interceptors.request.use((config) => {
 
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const status = error?.response?.status;
+
+    if (status === 401 && getToken()) {
+      logout();
+    }
+
+    return Promise.reject(error);
+  },
+);
 
 export default api;

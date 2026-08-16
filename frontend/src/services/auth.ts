@@ -5,14 +5,16 @@ export interface LoginDto {
   password: string;
 }
 
+export interface AuthUser {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+}
+
 export interface LoginResponse {
   access_token: string;
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    role: string;
-  };
+  user: AuthUser;
 }
 
 export async function login(
@@ -24,4 +26,29 @@ export async function login(
   );
 
   return response.data.data;
+}
+
+export async function getMe(): Promise<AuthUser> {
+  const response = await api.get("/auth/me");
+
+  return response.data.data;
+}
+
+export async function forgotPassword(email: string): Promise<void> {
+  await api.post("/auth/forgot-password", { email });
+}
+
+export async function resetPassword(
+  token: string,
+  newPassword: string,
+): Promise<void> {
+  await api.post("/auth/reset-password", { token, newPassword });
+}
+
+export async function verifyEmail(token: string): Promise<void> {
+  await api.post("/auth/verify-email", { token });
+}
+
+export async function resendVerification(email: string): Promise<void> {
+  await api.post("/auth/resend-verification", { email });
 }

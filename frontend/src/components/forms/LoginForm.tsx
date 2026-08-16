@@ -2,13 +2,15 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import axios from "axios";
 
 import Card from "@/components/ui/Card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 import { login } from "@/services/auth";
-import { saveToken } from "@/lib/auth";
+import { saveToken, saveUser } from "@/lib/auth";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -40,18 +42,20 @@ export default function LoginForm() {
       });
 
       saveToken(data.access_token);
+      saveUser(data.user);
 
-      localStorage.setItem(
-        "user",
-        JSON.stringify(data.user),
-      );
+      const nextParam = new URLSearchParams(
+        window.location.search,
+      ).get("next");
 
-      router.push("/dashboard");
-    } catch (err: any) {
-      setError(
-        err?.response?.data?.message ||
-          "Login failed",
-      );
+      router.push(nextParam || "/dashboard");
+    } catch (err: unknown) {
+      const message = axios.isAxiosError(err)
+        ? (err.response?.data as { message?: string } | undefined)
+            ?.message
+        : undefined;
+
+      setError(message || "Login failed");
     } finally {
       setLoading(false);
     }
@@ -90,6 +94,15 @@ export default function LoginForm() {
             setPassword(e.target.value)
           }
         />
+
+        <div className="flex justify-end">
+          <Link
+            href="/forgot-password"
+            className="text-sm font-medium text-indigo-600 hover:underline"
+          >
+            Forgot password?
+          </Link>
+        </div>
 
         {error && (
           <p className="text-sm text-red-600">
