@@ -1,9 +1,8 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
+import { useEffect, useState } from "react";
+
+import ImageUpload from "@/components/media/ImageUpload";
 
 import {
   type CreateEventDto,
@@ -80,6 +79,48 @@ function formatDateTimeLocal(
   return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
+function buildForm(
+  mode: "create" | "edit",
+  initialData?: Event | null,
+): CreateEventDto {
+  if (mode === "edit" && initialData) {
+    return {
+      title: initialData.title,
+      slug: initialData.slug,
+      eventSeriesId:
+        initialData.eventSeriesId ?? "",
+      shortDescription:
+        initialData.shortDescription ?? "",
+      description:
+        initialData.description ?? "",
+      coverImage:
+        initialData.coverImage ?? "",
+      category:
+        initialData.category ?? "",
+      client:
+        initialData.client ?? "",
+      organizer:
+        initialData.organizer ?? "",
+      location:
+        initialData.location ?? "",
+      eventDate:
+        formatDateTimeLocal(
+          initialData.eventDate,
+        ),
+      eventUrl:
+        initialData.eventUrl ?? "",
+      featured:
+        initialData.featured,
+      isActive:
+        initialData.isActive,
+      displayOrder:
+        initialData.displayOrder,
+    };
+  }
+
+  return { ...INITIAL_FORM };
+}
+
 export default function EventModal({
   open,
   mode,
@@ -89,8 +130,8 @@ export default function EventModal({
   onSubmit,
 }: EventModalProps) {
   const [form, setForm] =
-    useState<CreateEventDto>(
-      INITIAL_FORM,
+    useState<CreateEventDto>(() =>
+      buildForm(mode, initialData),
     );
 
   const [eventSeries, setEventSeries] =
@@ -99,17 +140,32 @@ export default function EventModal({
   const [seriesLoading, setSeriesLoading] =
     useState(false);
 
+  const [prevOpen, setPrevOpen] =
+    useState(open);
+
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+
+    if (open) {
+      setSeriesLoading(true);
+      setForm(
+        buildForm(mode, initialData),
+      );
+    }
+  }
+
   useEffect(() => {
     if (!open) {
       return;
     }
 
-    async function loadEventSeries() {
-      try {
-        setSeriesLoading(true);
+    let cancelled = false;
 
-        const data =
-          await getEventSeries();
+    getEventSeries()
+      .then((data) => {
+        if (cancelled) {
+          return;
+        }
 
         setEventSeries(
           data.filter(
@@ -117,92 +173,29 @@ export default function EventModal({
               series.isActive,
           ),
         );
-      } catch (error) {
+      })
+      .catch((error) => {
+        if (cancelled) {
+          return;
+        }
+
         console.error(
           "Failed to load event series:",
           error,
         );
-      } finally {
+      })
+      .finally(() => {
+        if (cancelled) {
+          return;
+        }
+
         setSeriesLoading(false);
-      }
-    }
+      });
 
-    void loadEventSeries();
+    return () => {
+      cancelled = true;
+    };
   }, [open]);
-
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-
-    if (
-      mode === "edit" &&
-      initialData
-    ) {
-      setForm({
-        title: initialData.title,
-        slug: initialData.slug,
-
-        eventSeriesId:
-          initialData.eventSeriesId ??
-          "",
-
-        shortDescription:
-          initialData.shortDescription ??
-          "",
-
-        description:
-          initialData.description ??
-          "",
-
-        coverImage:
-          initialData.coverImage ??
-          "",
-
-        category:
-          initialData.category ??
-          "",
-
-        client:
-          initialData.client ??
-          "",
-
-        organizer:
-          initialData.organizer ??
-          "",
-
-        location:
-          initialData.location ??
-          "",
-
-        eventDate:
-          formatDateTimeLocal(
-            initialData.eventDate,
-          ),
-
-        eventUrl:
-          initialData.eventUrl ??
-          "",
-
-        featured:
-          initialData.featured,
-
-        isActive:
-          initialData.isActive,
-
-        displayOrder:
-          initialData.displayOrder,
-      });
-    } else {
-      setForm({
-        ...INITIAL_FORM,
-      });
-    }
-  }, [
-    open,
-    mode,
-    initialData,
-  ]);
 
   if (!open) {
     return null;
@@ -269,15 +262,15 @@ export default function EventModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-2xl bg-white shadow-xl">
-        <div className="border-b p-6">
-          <h2 className="text-xl font-semibold text-slate-900">
+      <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-2xl bg-white shadow-xl dark:border dark:border-border dark:bg-card">
+        <div className="border-b border-slate-200 p-6 dark:border-border">
+          <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
             {mode === "create"
               ? "Create Event"
               : "Edit Event"}
           </h2>
 
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Add an event to the Stream Nepal
             portfolio.
           </p>
@@ -291,7 +284,7 @@ export default function EventModal({
 
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="mb-1 block text-sm font-medium">
+              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Event Title
               </label>
 
@@ -301,12 +294,12 @@ export default function EventModal({
                 value={form.title}
                 onChange={handleChange}
                 placeholder="PUBG Mobile Championship"
-                className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition focus:border-blue-500 dark:border-border dark:bg-muted dark:text-white dark:focus:border-blue-400"
               />
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium">
+              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Slug
               </label>
 
@@ -316,19 +309,19 @@ export default function EventModal({
                 value={form.slug}
                 onChange={handleChange}
                 placeholder="pubg-mobile-championship"
-                className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition focus:border-blue-500 dark:border-border dark:bg-muted dark:text-white dark:focus:border-blue-400"
               />
             </div>
           </div>
 
           {/* EVENT SERIES */}
 
-          <div className="rounded-xl border bg-slate-50 p-4">
-            <label className="mb-1 block text-sm font-medium text-slate-900">
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-border dark:bg-muted/60">
+            <label className="mb-1 block text-sm font-medium text-slate-900 dark:text-white">
               Event Series
             </label>
 
-            <p className="mb-3 text-xs text-slate-500">
+            <p className="mb-3 text-xs text-slate-500 dark:text-slate-400">
               Group this event with previous or
               future editions of the same event.
             </p>
@@ -340,7 +333,7 @@ export default function EventModal({
               }
               onChange={handleChange}
               disabled={seriesLoading}
-              className="w-full rounded-xl border bg-white px-3 py-2 outline-none focus:border-blue-500 disabled:cursor-not-allowed disabled:bg-slate-100"
+              className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition focus:border-blue-500 disabled:cursor-not-allowed disabled:bg-slate-100 dark:border-border dark:bg-muted dark:text-white dark:focus:border-blue-400 dark:disabled:bg-muted"
             >
               <option value="">
                 {seriesLoading
@@ -363,7 +356,7 @@ export default function EventModal({
             {eventSeries.length ===
               0 &&
               !seriesLoading && (
-                <p className="mt-2 text-xs text-amber-600">
+                <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
                   No active event series found.
                   You can create one from the
                   Event Series section.
@@ -374,7 +367,7 @@ export default function EventModal({
           {/* DESCRIPTION */}
 
           <div>
-            <label className="mb-1 block text-sm font-medium">
+            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Short Description
             </label>
 
@@ -386,12 +379,12 @@ export default function EventModal({
               }
               onChange={handleChange}
               placeholder="A short description of the event"
-              className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
+              className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition focus:border-blue-500 dark:border-border dark:bg-muted dark:text-white dark:focus:border-blue-400"
             />
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium">
+            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Description
             </label>
 
@@ -403,7 +396,7 @@ export default function EventModal({
               }
               onChange={handleChange}
               placeholder="Detailed event description"
-              className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
+              className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition focus:border-blue-500 dark:border-border dark:bg-muted dark:text-white dark:focus:border-blue-400"
             />
           </div>
 
@@ -411,7 +404,7 @@ export default function EventModal({
 
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="mb-1 block text-sm font-medium">
+              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Category
               </label>
 
@@ -422,12 +415,12 @@ export default function EventModal({
                 }
                 onChange={handleChange}
                 placeholder="Esports / Broadcast / Event"
-                className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition focus:border-blue-500 dark:border-border dark:bg-muted dark:text-white dark:focus:border-blue-400"
               />
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium">
+              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Client
               </label>
 
@@ -438,12 +431,12 @@ export default function EventModal({
                 }
                 onChange={handleChange}
                 placeholder="Client or organization"
-                className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition focus:border-blue-500 dark:border-border dark:bg-muted dark:text-white dark:focus:border-blue-400"
               />
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium">
+              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Organizer
               </label>
 
@@ -454,12 +447,12 @@ export default function EventModal({
                 }
                 onChange={handleChange}
                 placeholder="Stream Nepal"
-                className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition focus:border-blue-500 dark:border-border dark:bg-muted dark:text-white dark:focus:border-blue-400"
               />
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium">
+              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Location
               </label>
 
@@ -470,7 +463,7 @@ export default function EventModal({
                 }
                 onChange={handleChange}
                 placeholder="Biratnagar, Nepal"
-                className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition focus:border-blue-500 dark:border-border dark:bg-muted dark:text-white dark:focus:border-blue-400"
               />
             </div>
           </div>
@@ -479,7 +472,7 @@ export default function EventModal({
 
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="mb-1 block text-sm font-medium">
+              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Event Date
               </label>
 
@@ -491,12 +484,12 @@ export default function EventModal({
                   form.eventDate
                 }
                 onChange={handleChange}
-                className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition focus:border-blue-500 dark:border-border dark:bg-muted dark:text-white dark:focus:border-blue-400"
               />
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium">
+              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Display Order
               </label>
 
@@ -509,7 +502,7 @@ export default function EventModal({
                   0
                 }
                 onChange={handleChange}
-                className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition focus:border-blue-500 dark:border-border dark:bg-muted dark:text-white dark:focus:border-blue-400"
               />
             </div>
           </div>
@@ -517,24 +510,27 @@ export default function EventModal({
           {/* IMAGES / URL */}
 
           <div>
-            <label className="mb-1 block text-sm font-medium">
-              Cover Image URL
+            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+              Cover Image
             </label>
 
-            <input
-              type="url"
-              name="coverImage"
+            <ImageUpload
               value={
                 form.coverImage ?? ""
               }
-              onChange={handleChange}
-              placeholder="https://..."
-              className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
+              folder="events"
+              onChange={(result) =>
+                setForm((current) => ({
+                  ...current,
+                  coverImage:
+                    result?.url ?? "",
+                }))
+              }
             />
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium">
+            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Event URL
             </label>
 
@@ -546,14 +542,14 @@ export default function EventModal({
               }
               onChange={handleChange}
               placeholder="https://..."
-              className="w-full rounded-xl border px-3 py-2 outline-none focus:border-blue-500"
+              className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition focus:border-blue-500 dark:border-border dark:bg-muted dark:text-white dark:focus:border-blue-400"
             />
           </div>
 
           {/* SETTINGS */}
 
           <div className="grid gap-4 md:grid-cols-2">
-            <label className="flex items-center gap-3 rounded-xl border p-4">
+            <label className="flex items-center gap-3 rounded-xl border border-slate-300 p-4 dark:border-slate-700">
               <input
                 type="checkbox"
                 name="featured"
@@ -565,18 +561,18 @@ export default function EventModal({
               />
 
               <div>
-                <p className="text-sm font-medium">
+                <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
                   Featured Event
                 </p>
 
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   Highlight this event on the
                   public website.
                 </p>
               </div>
             </label>
 
-            <label className="flex items-center gap-3 rounded-xl border p-4">
+            <label className="flex items-center gap-3 rounded-xl border border-slate-300 p-4 dark:border-slate-700">
               <input
                 type="checkbox"
                 name="isActive"
@@ -588,11 +584,11 @@ export default function EventModal({
               />
 
               <div>
-                <p className="text-sm font-medium">
+                <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
                   Active
                 </p>
 
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   Make this event visible publicly.
                 </p>
               </div>
@@ -601,12 +597,12 @@ export default function EventModal({
 
           {/* ACTIONS */}
 
-          <div className="flex justify-end gap-3 border-t pt-5">
+          <div className="flex justify-end gap-3 border-t border-slate-200 pt-5 dark:border-border">
             <button
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="rounded-xl border px-5 py-2 hover:bg-slate-50 disabled:opacity-50"
+              className="rounded-xl border border-slate-300 px-5 py-2 text-slate-700 transition hover:bg-slate-50 disabled:opacity-50 dark:border-border dark:text-slate-300 dark:hover:bg-muted"
             >
               Cancel
             </button>
@@ -617,7 +613,7 @@ export default function EventModal({
                 loading ||
                 seriesLoading
               }
-              className="rounded-xl bg-blue-600 px-5 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
+              className="rounded-xl bg-blue-600 px-5 py-2 text-white hover:bg-blue-700 disabled:opacity-50 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90"
             >
               {loading
                 ? "Saving..."

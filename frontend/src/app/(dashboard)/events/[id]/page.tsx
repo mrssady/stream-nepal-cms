@@ -7,6 +7,7 @@ import { useParams } from "next/navigation";
 import {
   ArrowLeft,
   CalendarDays,
+  Handshake,
   Image as ImageIcon,
   MapPin,
   Play,
@@ -16,12 +17,14 @@ import {
   getEventById,
   type Event,
   type EventPhoto,
+  type EventSponsor,
   type EventTimeline as EventTimelineItem,
   type EventVideo,
 } from "@/services/event";
 
 import {
   getEventPhotos,
+  getEventSponsors,
   getEventTimeline,
   getEventVideos,
 } from "@/services/event-content";
@@ -30,12 +33,16 @@ import EventOverview from "@/components/events/detail/EventOverview";
 import EventPhotos from "@/components/events/detail/EventPhotos";
 import EventVideos from "@/components/events/detail/EventVideos";
 import EventTimeline from "@/components/events/detail/EventTimeline";
+import EventSponsors from "@/components/events/detail/EventSponsors";
+
+import { resolveMediaUrl } from "@/lib/media";
 
 type Tab =
   | "overview"
   | "photos"
   | "videos"
-  | "timeline";
+  | "timeline"
+  | "sponsors";
 
 function formatDate(value: string) {
   return new Date(value).toLocaleDateString(
@@ -65,6 +72,9 @@ export default function EventDetailPage() {
   const [timeline, setTimeline] =
     useState<EventTimelineItem[]>([]);
 
+  const [sponsors, setSponsors] =
+    useState<EventSponsor[]>([]);
+
   const [activeTab, setActiveTab] =
     useState<Tab>("overview");
 
@@ -72,45 +82,49 @@ export default function EventDetailPage() {
     useState(true);
 
   useEffect(() => {
-    async function loadEvent() {
-      try {
-        setLoading(true);
+    if (!eventId) {
+      return;
+    }
 
-        const [
+    Promise.all([
+      getEventById(eventId),
+      getEventPhotos(eventId),
+      getEventVideos(eventId),
+      getEventTimeline(eventId),
+      getEventSponsors(eventId),
+    ])
+      .then(
+        ([
           eventData,
           photoData,
           videoData,
           timelineData,
-        ] = await Promise.all([
-          getEventById(eventId),
-          getEventPhotos(eventId),
-          getEventVideos(eventId),
-          getEventTimeline(eventId),
-        ]);
-
-        setEvent(eventData);
-        setPhotos(photoData);
-        setVideos(videoData);
-        setTimeline(timelineData);
-      } catch (error) {
+          sponsorData,
+        ]) => {
+          setEvent(eventData);
+          setPhotos(photoData);
+          setVideos(videoData);
+          setTimeline(timelineData);
+          setSponsors(sponsorData);
+        },
+      )
+      .catch((error) => {
         console.error(
           "Failed to load event:",
           error,
         );
-      } finally {
+      })
+      .finally(() => {
         setLoading(false);
-      }
-    }
-
-    if (eventId) {
-      void loadEvent();
-    }
+      });
   }, [eventId]);
 
   if (loading) {
     return (
       <div className="p-6">
-        Loading event...
+        <div className="rounded-xl border border-slate-200 bg-white p-12 text-center text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
+          Loading event...
+        </div>
       </div>
     );
   }
@@ -118,13 +132,13 @@ export default function EventDetailPage() {
   if (!event) {
     return (
       <div className="p-6">
-        <p className="text-red-600">
+        <p className="text-red-600 dark:text-red-400">
           Event not found.
         </p>
 
         <Link
           href="/events"
-          className="mt-4 inline-flex items-center gap-2 text-blue-600"
+          className="mt-4 inline-flex items-center gap-2 text-blue-600 dark:text-blue-400"
         >
           <ArrowLeft size={16} />
           Back to Events
@@ -140,17 +154,17 @@ export default function EventDetailPage() {
       <div>
         <Link
           href="/events"
-          className="mb-4 inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900"
+          className="mb-4 inline-flex items-center gap-2 text-sm text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
         >
           <ArrowLeft size={16} />
           Back to Events
         </Link>
 
-        <div className="overflow-hidden rounded-2xl border bg-white">
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
           {event.coverImage && (
             <div className="h-64 overflow-hidden">
               <img
-                src={event.coverImage}
+                src={resolveMediaUrl(event.coverImage)}
                 alt={event.title}
                 className="h-full w-full object-cover"
               />
@@ -164,30 +178,30 @@ export default function EventDetailPage() {
                   {event.eventSeries && (
                     <Link
                       href={`/event-series/${event.eventSeries.id}`}
-                      className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100"
+                      className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 transition hover:bg-blue-100 dark:bg-blue-500/10 dark:text-blue-400 dark:hover:bg-blue-500/20"
                     >
                       {event.eventSeries.title}
                     </Link>
                   )}
 
                   {event.category && (
-                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
+                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">
                       {event.category}
                     </span>
                   )}
                 </div>
 
-                <h1 className="text-3xl font-bold text-slate-900">
+                <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
                   {event.title}
                 </h1>
 
                 {event.shortDescription && (
-                  <p className="mt-2 max-w-3xl text-slate-500">
+                  <p className="mt-2 max-w-3xl text-slate-500 dark:text-slate-400">
                     {event.shortDescription}
                   </p>
                 )}
 
-                <div className="mt-4 flex flex-wrap gap-4 text-sm text-slate-500">
+                <div className="mt-4 flex flex-wrap gap-4 text-sm text-slate-500 dark:text-slate-400">
                   <span className="flex items-center gap-2">
                     <CalendarDays size={16} />
                     {formatDate(
@@ -205,48 +219,63 @@ export default function EventDetailPage() {
               </div>
 
               <div className="flex shrink-0 gap-3">
-                <div className="rounded-xl border px-4 py-3 text-center">
+                <div className="rounded-xl border border-slate-200 px-4 py-3 text-center dark:border-slate-700">
                   <ImageIcon
                     size={18}
-                    className="mx-auto mb-1 text-slate-400"
+                    className="mx-auto mb-1 text-slate-400 dark:text-slate-500"
                   />
 
                   <div className="text-xl font-bold">
                     {photos.length}
                   </div>
 
-                  <div className="text-xs text-slate-500">
+                  <div className="text-xs text-slate-500 dark:text-slate-400">
                     Photos
                   </div>
                 </div>
 
-                <div className="rounded-xl border px-4 py-3 text-center">
+                <div className="rounded-xl border border-slate-200 px-4 py-3 text-center dark:border-slate-700">
                   <Play
                     size={18}
-                    className="mx-auto mb-1 text-slate-400"
+                    className="mx-auto mb-1 text-slate-400 dark:text-slate-500"
                   />
 
                   <div className="text-xl font-bold">
                     {videos.length}
                   </div>
 
-                  <div className="text-xs text-slate-500">
+                  <div className="text-xs text-slate-500 dark:text-slate-400">
                     Videos
                   </div>
                 </div>
 
-                <div className="rounded-xl border px-4 py-3 text-center">
+                <div className="rounded-xl border border-slate-200 px-4 py-3 text-center dark:border-slate-700">
                   <CalendarDays
                     size={18}
-                    className="mx-auto mb-1 text-slate-400"
+                    className="mx-auto mb-1 text-slate-400 dark:text-slate-500"
                   />
 
                   <div className="text-xl font-bold">
                     {timeline.length}
                   </div>
 
-                  <div className="text-xs text-slate-500">
+                  <div className="text-xs text-slate-500 dark:text-slate-400">
                     Timeline
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-slate-200 px-4 py-3 text-center dark:border-slate-700">
+                  <Handshake
+                    size={18}
+                    className="mx-auto mb-1 text-slate-400 dark:text-slate-500"
+                  />
+
+                  <div className="text-xl font-bold">
+                    {sponsors.length}
+                  </div>
+
+                  <div className="text-xs text-slate-500 dark:text-slate-400">
+                    Sponsors
                   </div>
                 </div>
               </div>
@@ -257,12 +286,13 @@ export default function EventDetailPage() {
 
       {/* TABS */}
 
-      <div className="flex overflow-x-auto rounded-xl border bg-white p-1">
+      <div className="flex overflow-x-auto rounded-xl border border-slate-200 bg-white p-1 dark:border-slate-800 dark:bg-slate-900">
         {[
           ["overview", "Overview"],
           ["photos", "Photos"],
           ["videos", "Videos"],
           ["timeline", "Timeline"],
+          ["sponsors", "Sponsors"],
         ].map(([value, label]) => (
           <button
             key={value}
@@ -272,8 +302,8 @@ export default function EventDetailPage() {
             }
             className={`rounded-lg px-5 py-2 text-sm font-medium ${
               activeTab === value
-                ? "bg-slate-900 text-white"
-                : "text-slate-600 hover:bg-slate-100"
+                ? "bg-slate-900 text-white dark:bg-blue-600"
+                : "text-slate-600 transition hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
             }`}
           >
             {label}
@@ -308,6 +338,14 @@ export default function EventDetailPage() {
           eventId={eventId}
           timeline={timeline}
           onChange={setTimeline}
+        />
+      )}
+
+      {activeTab === "sponsors" && (
+        <EventSponsors
+          eventId={eventId}
+          sponsors={sponsors}
+          onChange={setSponsors}
         />
       )}
     </div>

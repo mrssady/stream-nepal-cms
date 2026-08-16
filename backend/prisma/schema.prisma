@@ -25,6 +25,7 @@ model Organization {
   eventSeries     EventSeries[]
   websiteSettings WebsiteSetting[]
   media           Media[]
+  sponsors        Sponsor[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -45,8 +46,36 @@ model User {
   organizationId String?
   organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
+  emailVerifiedAt DateTime?
+
+  tokens UserToken[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// ============================================================
+// USER TOKENS (EMAIL VERIFICATION / PASSWORD RESET)
+// ============================================================
+
+enum UserTokenType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+}
+
+model UserToken {
+  id        String        @id @default(cuid())
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String
+  type      UserTokenType
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime      @default(now())
+
+  @@index([userId])
+  @@index([type])
+  @@index([expiresAt])
 }
 
 enum Role {
@@ -241,6 +270,7 @@ model Event {
   photos   EventPhoto[]
   videos   EventVideo[]
   timeline EventTimeline[]
+  sponsors EventSponsor[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -250,6 +280,33 @@ model Event {
   @@index([eventSeriesId])
   @@index([eventDate])
   @@index([isActive])
+  @@index([featured])
+}
+
+// ============================================================
+// EVENT SPONSORS
+// ============================================================
+
+model EventSponsor {
+  id String @id @default(cuid())
+
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  sponsorId String
+  sponsor   Sponsor  @relation(fields: [sponsorId], references: [id], onDelete: Cascade)
+
+  tier SponsorTier @default(PARTNER)
+
+  featured     Boolean @default(false)
+  displayOrder Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([eventId, sponsorId])
+  @@index([eventId])
+  @@index([sponsorId])
+  @@index([tier])
   @@index([featured])
 }
 
@@ -624,6 +681,46 @@ model Media {
 }
 
 // ============================================================
+// SPONSORS
+// ============================================================
+
+enum SponsorTier {
+  TITLE
+  GOLD
+  SILVER
+  BRONZE
+  MEDIA_PARTNER
+  PARTNER
+}
+
+model Sponsor {
+  id String @id @default(cuid())
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  name        String
+  logo        String?
+  website     String?
+  description String?
+  tier        SponsorTier @default(PARTNER)
+
+  featured     Boolean @default(false)
+  isActive     Boolean @default(true)
+  displayOrder Int     @default(0)
+
+  events EventSponsor[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([organizationId])
+  @@index([tier])
+  @@index([isActive])
+  @@index([featured])
+}
+
+// ============================================================
 // WEBSITE SETTINGS
 // ============================================================
 
@@ -665,4 +762,35 @@ model WebsiteSetting {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// ============================================================
+// ACTIVITY LOG / AUDIT TRAIL
+// ============================================================
+
+enum ActivityAction {
+  CREATE
+  UPDATE
+  DELETE
+}
+
+model ActivityLog {
+  id String @id @default(cuid())
+
+  actorId   String?
+  actorName String?
+
+  action   ActivityAction
+  resource String
+
+  resourceId String?
+
+  summary String
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([resource])
+  @@index([actorId])
 }

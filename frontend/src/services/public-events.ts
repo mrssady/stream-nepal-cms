@@ -44,6 +44,20 @@ export interface PublicEventTimeline {
   featured: boolean;
 }
 
+export interface PublicEventSponsor {
+  id: string;
+  tier: string;
+  featured: boolean;
+  displayOrder: number;
+  sponsor: {
+    id: string;
+    name: string;
+    logo: string | null;
+    website: string | null;
+    description: string | null;
+  };
+}
+
 export interface PublicEvent {
   id: string;
   title: string;
@@ -72,6 +86,7 @@ export interface PublicEvent {
   photos: PublicEventPhoto[];
   videos: PublicEventVideo[];
   timeline: PublicEventTimeline[];
+  sponsors: PublicEventSponsor[];
 
   createdAt: string;
   updatedAt: string;

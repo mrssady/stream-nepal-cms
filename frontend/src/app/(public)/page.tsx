@@ -2,79 +2,30 @@ import Link from "next/link";
 import {
   ArrowRight,
   ArrowUpRight,
+  Clapperboard,
   Play,
   Radio,
+  Rocket,
+  Search,
   Trophy,
   Video,
-  Zap,
 } from "lucide-react";
 
 import {
-  getPublicTournaments,
-  type PublicTournament,
+  getPublicSponsors,
+  type PublicSponsor,
 } from "@/services/public";
 
-function formatDate(value?: string | null) {
-  if (!value) {
-    return null;
-  }
-
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date(value));
-}
-
-function formatStatus(status?: string | null) {
-  if (!status) {
-    return null;
-  }
-
-  return status
-    .replace(/_/g, " ")
-    .toLowerCase()
-    .replace(/\b\w/g, (letter) => letter.toUpperCase());
-}
-
-function getStatusStyle(status?: string | null) {
-  const normalized = status?.toLowerCase();
-
-  if (
-    normalized === "live" ||
-    normalized === "ongoing" ||
-    normalized === "in_progress"
-  ) {
-    return "bg-red-500/10 text-red-500 border-red-500/20";
-  }
-
-  if (
-    normalized === "upcoming" ||
-    normalized === "scheduled"
-  ) {
-    return "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20";
-  }
-
-  return "bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20";
-}
+import { resolveMediaUrl } from "@/lib/media";
 
 export default async function HomePage() {
-  let tournaments: PublicTournament[] = [];
+  let sponsors: PublicSponsor[] = [];
 
   try {
-    tournaments = await getPublicTournaments();
+    sponsors = await getPublicSponsors();
   } catch {
-    tournaments = [];
+    sponsors = [];
   }
-
-  const featuredTournaments = tournaments
-    .filter((tournament) => tournament.featured)
-    .slice(0, 3);
-
-  const displayedTournaments =
-    featuredTournaments.length > 0
-      ? featuredTournaments
-      : tournaments.slice(0, 3);
 
   return (
     <main className="overflow-hidden bg-white text-slate-950 dark:bg-[#05070d] dark:text-white">
@@ -280,70 +231,63 @@ export default async function HomePage() {
       </section>
 
       {/* =========================================================
-          SERVICES
+          HOW WE WORK
       ========================================================= */}
       <section className="border-b border-slate-200 bg-white py-24 dark:border-white/10 dark:bg-[#05070d]">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="grid gap-12 lg:grid-cols-[.8fr_1.2fr]">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.25em] text-blue-600 dark:text-blue-400">
-                What we do
+                How we work
               </p>
 
               <h2 className="mt-4 text-4xl font-black tracking-tight sm:text-5xl">
-                Production that
+                From first call
                 <span className="block text-slate-400 dark:text-slate-500">
-                  feels bigger.
+                  to final broadcast.
                 </span>
               </h2>
 
               <p className="mt-6 max-w-md leading-7 text-slate-600 dark:text-slate-400">
-                From esports tournaments to live events, we combine
-                production, technology and creative execution into one
-                reliable experience.
+                Every production follows the same proven path:
+                we listen, we build, we deliver on the big day.
               </p>
 
               <Link
                 href="/services"
                 className="mt-8 inline-flex items-center gap-2 text-sm font-bold text-blue-600 dark:text-blue-400"
               >
-                Explore services
+                See the full service list
                 <ArrowUpRight size={16} />
               </Link>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-3">
               {[
                 {
                   number: "01",
-                  icon: Radio,
-                  title: "Live Broadcasting",
-                  text: "Professional multi-camera production, streaming and broadcast management.",
+                  icon: Search,
+                  title: "Discover",
+                  text: "We understand your event, audience and goals before a single camera is placed.",
                 },
                 {
                   number: "02",
-                  icon: Trophy,
-                  title: "Esports Production",
-                  text: "Tournament operations, observer systems, overlays and competitive broadcasts.",
+                  icon: Clapperboard,
+                  title: "Produce",
+                  text: "Cameras, graphics, audio and operators are built into one reliable workflow.",
                 },
                 {
                   number: "03",
-                  icon: Video,
-                  title: "Event Production",
-                  text: "Visual production and live coverage designed around your audience.",
+                  icon: Rocket,
+                  title: "Deliver",
+                  text: "We operate the broadcast live and hand you highlights after the show.",
                 },
-                {
-                  number: "04",
-                  icon: Zap,
-                  title: "Event Technology",
-                  text: "Scoreboards, graphics, live data and digital systems that keep events moving.",
-                },
-              ].map((service) => {
-                const Icon = service.icon;
+              ].map((step) => {
+                const Icon = step.icon;
 
                 return (
                   <div
-                    key={service.number}
+                    key={step.number}
                     className="group rounded-2xl border border-slate-200 bg-slate-50 p-7 transition hover:-translate-y-1 hover:border-blue-500/30 hover:bg-white hover:shadow-xl dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06]"
                   >
                     <div className="flex items-start justify-between">
@@ -352,16 +296,16 @@ export default async function HomePage() {
                       </div>
 
                       <span className="text-xs font-bold text-slate-400">
-                        {service.number}
+                        {step.number}
                       </span>
                     </div>
 
                     <h3 className="mt-7 text-xl font-bold">
-                      {service.title}
+                      {step.title}
                     </h3>
 
                     <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-400">
-                      {service.text}
+                      {step.text}
                     </p>
                   </div>
                 );
@@ -477,182 +421,6 @@ export default async function HomePage() {
       </section>
 
       {/* =========================================================
-          TOURNAMENTS
-      ========================================================= */}
-      <section className="border-y border-slate-200 bg-white py-24 dark:border-white/10 dark:bg-[#05070d]">
-        <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="h-2 w-2 animate-pulse rounded-full bg-blue-500" />
-
-                <p className="text-xs font-bold uppercase tracking-[0.25em] text-blue-600 dark:text-blue-400">
-                  Tournament hub
-                </p>
-              </div>
-
-              <h2 className="mt-4 text-4xl font-black tracking-tight sm:text-5xl">
-                The competition starts here.
-              </h2>
-            </div>
-
-            <Link
-              href="/tournaments"
-              className="inline-flex items-center gap-2 text-sm font-bold text-blue-600 dark:text-blue-400"
-            >
-              Explore tournaments
-              <ArrowRight size={16} />
-            </Link>
-          </div>
-
-          {!displayedTournaments.length ? (
-            <div className="mt-12 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-6 py-16 text-center dark:border-white/10 dark:bg-white/[0.03]">
-              <Trophy
-                size={28}
-                className="mx-auto text-slate-400"
-              />
-
-              <h3 className="mt-4 text-xl font-bold">
-                Tournament updates coming soon
-              </h3>
-
-              <p className="mx-auto mt-2 max-w-md text-sm text-slate-600 dark:text-slate-400">
-                Follow Stream Nepal for upcoming esports competitions,
-                broadcasts and tournament announcements.
-              </p>
-            </div>
-          ) : (
-            <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {displayedTournaments.map((tournament) => (
-                <article
-                  key={tournament.id}
-                  className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl dark:border-white/10 dark:bg-white/[0.03]"
-                >
-                  <div className="relative aspect-video overflow-hidden bg-slate-100 dark:bg-slate-900">
-                    {tournament.banner ? (
-                      <img
-                        src={tournament.banner}
-                        alt={tournament.name}
-                        className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
-                      />
-                    ) : tournament.logo ? (
-                      <div className="flex h-full items-center justify-center p-10">
-                        <img
-                          src={tournament.logo}
-                          alt={tournament.name}
-                          className="max-h-full max-w-full object-contain"
-                        />
-                      </div>
-                    ) : (
-                      <div className="flex h-full items-center justify-center bg-gradient-to-br from-blue-600/10 to-cyan-500/10">
-                        <Trophy
-                          size={42}
-                          className="text-blue-500/40"
-                        />
-                      </div>
-                    )}
-
-                    {tournament.status && (
-                      <span
-                        className={`absolute left-4 top-4 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-wide backdrop-blur ${getStatusStyle(
-                          tournament.status,
-                        )}`}
-                      >
-                        {formatStatus(tournament.status)}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="p-6">
-                    <div className="flex flex-wrap gap-2">
-                      {tournament.game && (
-                        <span className="rounded-full bg-blue-500/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-blue-600 dark:text-blue-400">
-                          {tournament.game}
-                        </span>
-                      )}
-
-                      {tournament.featured && (
-                        <span className="rounded-full bg-slate-950 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-white dark:bg-white dark:text-slate-950">
-                          Featured
-                        </span>
-                      )}
-                    </div>
-
-                    <h3 className="mt-4 text-xl font-black tracking-tight">
-                      {tournament.name}
-                    </h3>
-
-                    {tournament.description && (
-                      <p className="mt-3 line-clamp-2 text-sm leading-6 text-slate-600 dark:text-slate-400">
-                        {tournament.description}
-                      </p>
-                    )}
-
-                    <div className="mt-5 flex items-center justify-between border-t border-slate-200 pt-4 dark:border-white/10">
-                      {tournament.tournamentStart ? (
-                        <div>
-                          <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
-                            Starts
-                          </p>
-
-                          <p className="mt-1 text-sm font-semibold">
-                            {formatDate(
-                              tournament.tournamentStart,
-                            )}
-                          </p>
-                        </div>
-                      ) : (
-                        <div />
-                      )}
-
-                      {tournament.prizePool && (
-                        <div className="text-right">
-                          <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
-                            Prize Pool
-                          </p>
-
-                          <p className="mt-1 text-sm font-bold text-blue-600 dark:text-blue-400">
-                            {tournament.prizePool}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="mt-5 flex flex-wrap gap-3">
-                      {tournament.streamUrl && (
-                        <a
-                          href={tournament.streamUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-blue-500"
-                        >
-                          <Play
-                            size={13}
-                            fill="currentColor"
-                          />
-                          Watch Stream
-                        </a>
-                      )}
-
-                      {tournament.slug && (
-                        <Link
-                          href={`/tournaments/${tournament.slug}`}
-                          className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2.5 text-xs font-bold transition hover:bg-slate-50 dark:border-white/10 dark:hover:bg-white/5"
-                        >
-                          Details
-                          <ArrowRight size={13} />
-                        </Link>
-                      )}
-                    </div>
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* =========================================================
           WHY STREAM NEPAL
       ========================================================= */}
       <section className="bg-slate-50 py-24 dark:bg-[#080b12]">
@@ -671,7 +439,7 @@ export default async function HomePage() {
               </h2>
 
               <p className="mt-6 max-w-lg leading-7 text-slate-600 dark:text-slate-400">
-                We don't just put an event online. We build the production
+                We don&apos;t just put an event online. We build the production
                 system behind it — from cameras and graphics to live
                 data, observers and audience experience.
               </p>
@@ -719,7 +487,7 @@ export default async function HomePage() {
           </p>
 
           <h2 className="mt-5 text-4xl font-black tracking-tight sm:text-6xl">
-            Don't just take our word for it.
+            Don&apos;t just take our word for it.
           </h2>
 
           <p className="mx-auto mt-5 max-w-2xl leading-7 text-slate-400">
@@ -750,6 +518,67 @@ export default async function HomePage() {
       </section>
 
       {/* =========================================================
+          SPONSORS & PARTNERS
+      ========================================================= */}
+      {sponsors.length > 0 && (
+        <section className="border-t border-slate-200 bg-white py-20 dark:border-white/10 dark:bg-[#05070d]">
+          <div className="mx-auto max-w-7xl px-6 lg:px-8">
+            <div className="text-center">
+              <p className="text-xs font-bold uppercase tracking-[0.3em] text-blue-600 dark:text-blue-400">
+                Sponsors & partners
+              </p>
+
+              <h2 className="mt-4 text-3xl font-black tracking-tight sm:text-4xl">
+                Backed by teams who believe in the game.
+              </h2>
+            </div>
+
+            <div className="mt-12 grid grid-cols-2 items-stretch gap-4 sm:grid-cols-3 lg:grid-cols-4">
+              {sponsors.map((sponsor) => (
+                <div
+                  key={sponsor.id}
+                  className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-8 text-center transition hover:border-blue-500/30 hover:bg-white dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06]"
+                >
+                  {sponsor.logo ? (
+                    <img
+                      src={resolveMediaUrl(sponsor.logo)}
+                      alt={sponsor.name}
+                      className="max-h-16 max-w-full object-contain"
+                    />
+                  ) : (
+                    <span className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+                      {sponsor.name}
+                    </span>
+                  )}
+
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                    {sponsor.tier
+                      .replace(/_/g, " ")
+                      .toLowerCase()
+                      .replace(/\b\w/g, (letter) =>
+                        letter.toUpperCase(),
+                      )}
+                  </p>
+
+                  {sponsor.website && (
+                    <a
+                      href={sponsor.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-auto inline-flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400"
+                    >
+                      Visit Website
+                      <ArrowUpRight size={13} />
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* =========================================================
           CONTACT CTA
       ========================================================= */}
       <section
@@ -763,12 +592,12 @@ export default async function HomePage() {
             </p>
 
             <h2 className="mx-auto mt-5 max-w-3xl text-4xl font-black tracking-tight sm:text-6xl">
-              Let's build something people remember.
+              Let&apos;s build something people remember.
             </h2>
 
             <p className="mx-auto mt-6 max-w-2xl leading-7 text-slate-600 dark:text-slate-400">
               Tell us about your event, tournament or production and
-              let's figure out how Stream Nepal can bring it to life.
+              let&apos;s figure out how Stream Nepal can bring it to life.
             </p>
 
             <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">

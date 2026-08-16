@@ -10,10 +10,10 @@ import {
 } from '@nestjs/common';
 import { ActivityAction } from '@prisma/client';
 
-import { EventsService } from './events.service';
+import { SponsorsService } from './sponsors.service';
 
-import { CreateEventDto } from './dto/create-event.dto';
-import { UpdateEventDto } from './dto/update-event.dto';
+import { CreateSponsorDto } from './dto/create-sponsor.dto';
+import { UpdateSponsorDto } from './dto/update-sponsor.dto';
 
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -23,11 +23,11 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Role } from '../../common/enums/role.enum';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 
-@Controller('events')
+@Controller('sponsors')
 @UseGuards(JwtAuthGuard, RolesGuard)
-export class EventsController {
+export class SponsorsController {
   constructor(
-    private readonly eventsService: EventsService,
+    private readonly sponsorsService: SponsorsService,
     private readonly activityLogs: ActivityLogsService,
   ) {}
 
@@ -35,32 +35,32 @@ export class EventsController {
   @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER)
   async create(
     @Body()
-    createEventDto: CreateEventDto,
+    createSponsorDto: CreateSponsorDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    const event = await this.eventsService.create(createEventDto);
+    const sponsor = await this.sponsorsService.create(createSponsorDto);
 
     await this.activityLogs.record(
       user,
       ActivityAction.CREATE,
-      'event',
-      event.id,
-      `Created event "${event.title}"`,
+      'sponsor',
+      sponsor.id,
+      `Created sponsor "${sponsor.name}"`,
     );
 
-    return event;
+    return sponsor;
   }
 
   @Get()
   @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER, Role.STAFF)
   findAll() {
-    return this.eventsService.findAll();
+    return this.sponsorsService.findAll();
   }
 
   @Get(':id')
   @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER, Role.STAFF)
   findOne(@Param('id') id: string) {
-    return this.eventsService.findOne(id);
+    return this.sponsorsService.findOne(id);
   }
 
   @Patch(':id')
@@ -68,20 +68,20 @@ export class EventsController {
   async update(
     @Param('id') id: string,
     @Body()
-    updateEventDto: UpdateEventDto,
+    updateSponsorDto: UpdateSponsorDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    const event = await this.eventsService.update(id, updateEventDto);
+    const sponsor = await this.sponsorsService.update(id, updateSponsorDto);
 
     await this.activityLogs.record(
       user,
       ActivityAction.UPDATE,
-      'event',
-      event.id,
-      `Updated event "${event.title}"`,
+      'sponsor',
+      sponsor.id,
+      `Updated sponsor "${sponsor.name}"`,
     );
 
-    return event;
+    return sponsor;
   }
 
   @Delete(':id')
@@ -90,16 +90,17 @@ export class EventsController {
     @Param('id') id: string,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    const event = await this.eventsService.remove(id);
+    const existing = await this.sponsorsService.findOne(id);
+    const sponsor = await this.sponsorsService.remove(id);
 
     await this.activityLogs.record(
       user,
       ActivityAction.DELETE,
-      'event',
-      event.id,
-      `Deleted event "${event.title}"`,
+      'sponsor',
+      sponsor.id,
+      `Deleted sponsor "${existing.name}"`,
     );
 
-    return event;
+    return sponsor;
   }
 }

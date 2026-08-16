@@ -2,6 +2,8 @@ import api from "./api";
 
 import type {
   EventPhoto,
+  EventSponsor,
+  EventSponsorTier,
   EventTimeline,
   EventVideo,
 } from "./event";
@@ -74,6 +76,20 @@ export interface UpdateEventTimelineDto {
   displayOrder?: number;
   isActive?: boolean;
   featured?: boolean;
+}
+
+export interface CreateEventSponsorDto {
+  sponsorId: string;
+  tier?: EventSponsorTier;
+  featured?: boolean;
+  displayOrder?: number;
+}
+
+export interface UpdateEventSponsorDto {
+  sponsorId?: string;
+  tier?: EventSponsorTier;
+  featured?: boolean;
+  displayOrder?: number;
 }
 
 /* PHOTOS */
@@ -211,5 +227,51 @@ export async function deleteEventTimeline(
 ): Promise<void> {
   await api.delete(
     `/events/${eventId}/timeline/${id}`,
+  );
+}
+
+/* SPONSORS */
+
+export async function getEventSponsors(
+  eventId: string,
+): Promise<EventSponsor[]> {
+  const response = await api.get(
+    `/events/${eventId}/sponsors`,
+  );
+
+  return response.data.data;
+}
+
+export async function createEventSponsor(
+  eventId: string,
+  data: CreateEventSponsorDto,
+): Promise<EventSponsor> {
+  const response = await api.post(
+    `/events/${eventId}/sponsors`,
+    data,
+  );
+
+  return response.data.data;
+}
+
+export async function updateEventSponsor(
+  eventId: string,
+  id: string,
+  data: UpdateEventSponsorDto,
+): Promise<EventSponsor> {
+  const response = await api.patch(
+    `/events/${eventId}/sponsors/${id}`,
+    data,
+  );
+
+  return response.data.data;
+}
+
+export async function deleteEventSponsor(
+  eventId: string,
+  id: string,
+): Promise<void> {
+  await api.delete(
+    `/events/${eventId}/sponsors/${id}`,
   );
 }
