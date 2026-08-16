@@ -10,9 +10,7 @@ import { Role } from '../../common/enums/role.enum';
 @Controller('dashboard')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class DashboardController {
-  constructor(
-    private readonly dashboardService: DashboardService,
-  ) {}
+  constructor(private readonly dashboardService: DashboardService) {}
 
   @Get('stats')
   @Roles(Role.OWNER, Role.ADMIN)
@@ -20,8 +18,8 @@ export class DashboardController {
     return this.dashboardService.getStats();
   }
   @Get('activity')
-@Roles(Role.OWNER, Role.ADMIN)
-getRecentActivity() {
-  return this.dashboardService.getRecentActivity();
-}
+  @Roles(Role.OWNER, Role.ADMIN)
+  getRecentActivity() {
+    return this.dashboardService.getRecentActivity();
+  }
 }

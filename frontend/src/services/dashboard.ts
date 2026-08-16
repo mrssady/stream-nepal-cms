@@ -1,5 +1,16 @@
 import api from "./api";
 
+export interface DistributionEntry {
+  label: string;
+  count: number;
+}
+
+export interface TrendPoint {
+  date?: string;
+  label?: string;
+  count: number;
+}
+
 export interface DashboardStats {
   totalUsers: number;
   owners: number;
@@ -16,6 +27,27 @@ export interface DashboardStats {
   liveEvents: number;
   upcomingEvents: number;
   completedEvents: number;
+
+  totalProjects: number;
+  totalServices: number;
+  totalMedia: number;
+  totalSponsors: number;
+  totalTeamMembers: number;
+  totalEventSeries: number;
+  totalPortfolioEvents: number;
+  activePortfolioEvents: number;
+  featuredPortfolioEvents: number;
+
+  userRoleDistribution: DistributionEntry[];
+  eventCategoryDistribution: DistributionEntry[];
+  projectCategoryDistribution: DistributionEntry[];
+  sponsorTierDistribution: DistributionEntry[];
+  mediaPlatformDistribution: DistributionEntry[];
+  tournamentStatusDistribution: DistributionEntry[];
+
+  activityTrend: TrendPoint[];
+  registrationsTrend: TrendPoint[];
+  portfolioEventsTrend: TrendPoint[];
 }
 
 export async function getDashboardStats(): Promise<DashboardStats> {
@@ -23,15 +55,37 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 
   return response.data.data;
 }
+export type ActivityAction =
+  | "CREATE"
+  | "UPDATE"
+  | "DELETE";
+
+export type ActivityResource =
+  | "event"
+  | "event-photo"
+  | "event-video"
+  | "event-timeline"
+  | "event-sponsor"
+  | "media"
+  | "user"
+  | "project"
+  | "sponsor"
+  | "event-series"
+  | "service"
+  | "settings"
+  | "tournament"
+  | "registration"
+  | "team";
+
 export interface DashboardActivity {
   id: string;
-  type:
-    | "user"
-    | "tournament"
-    | "registration"
-    | "team";
+  type: ActivityResource;
+  action: ActivityAction;
   title: string;
   description: string;
+  actorName: string | null;
+  actorId: string | null;
+  resourceId: string | null;
   createdAt: string;
 }
 
