@@ -14,34 +14,23 @@ export class TournamentsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(createTournamentDto: CreateTournamentDto) {
-    const existingTournament =
-      await this.prisma.tournament.findUnique({
-        where: {
-          slug: createTournamentDto.slug,
-        },
-      });
+    const existingTournament = await this.prisma.tournament.findUnique({
+      where: {
+        slug: createTournamentDto.slug,
+      },
+    });
 
     if (existingTournament) {
-      throw new ConflictException(
-        'Tournament slug already exists',
-      );
+      throw new ConflictException('Tournament slug already exists');
     }
 
     return this.prisma.tournament.create({
       data: {
         ...createTournamentDto,
-        registrationOpen: new Date(
-          createTournamentDto.registrationOpen,
-        ),
-        registrationClose: new Date(
-          createTournamentDto.registrationClose,
-        ),
-        tournamentStart: new Date(
-          createTournamentDto.tournamentStart,
-        ),
-        tournamentEnd: new Date(
-          createTournamentDto.tournamentEnd,
-        ),
+        registrationOpen: new Date(createTournamentDto.registrationOpen),
+        registrationClose: new Date(createTournamentDto.registrationClose),
+        tournamentStart: new Date(createTournamentDto.tournamentStart),
+        tournamentEnd: new Date(createTournamentDto.tournamentEnd),
       },
     });
   }
@@ -55,43 +44,31 @@ export class TournamentsService {
   }
 
   async findOne(id: string) {
-    const tournament =
-      await this.prisma.tournament.findUnique({
-        where: {
-          id,
-        },
-      });
+    const tournament = await this.prisma.tournament.findUnique({
+      where: {
+        id,
+      },
+    });
 
     if (!tournament) {
-      throw new NotFoundException(
-        'Tournament not found',
-      );
+      throw new NotFoundException('Tournament not found');
     }
 
     return tournament;
   }
 
-  async update(
-    id: string,
-    updateTournamentDto: UpdateTournamentDto,
-  ) {
+  async update(id: string, updateTournamentDto: UpdateTournamentDto) {
     await this.findOne(id);
 
     if (updateTournamentDto.slug) {
-      const existingTournament =
-        await this.prisma.tournament.findUnique({
-          where: {
-            slug: updateTournamentDto.slug,
-          },
-        });
+      const existingTournament = await this.prisma.tournament.findUnique({
+        where: {
+          slug: updateTournamentDto.slug,
+        },
+      });
 
-      if (
-        existingTournament &&
-        existingTournament.id !== id
-      ) {
-        throw new ConflictException(
-          'Tournament slug already exists',
-        );
+      if (existingTournament && existingTournament.id !== id) {
+        throw new ConflictException('Tournament slug already exists');
       }
     }
 
@@ -100,27 +77,19 @@ export class TournamentsService {
     };
 
     if (updateTournamentDto.registrationOpen) {
-      data.registrationOpen = new Date(
-        updateTournamentDto.registrationOpen,
-      );
+      data.registrationOpen = new Date(updateTournamentDto.registrationOpen);
     }
 
     if (updateTournamentDto.registrationClose) {
-      data.registrationClose = new Date(
-        updateTournamentDto.registrationClose,
-      );
+      data.registrationClose = new Date(updateTournamentDto.registrationClose);
     }
 
     if (updateTournamentDto.tournamentStart) {
-      data.tournamentStart = new Date(
-        updateTournamentDto.tournamentStart,
-      );
+      data.tournamentStart = new Date(updateTournamentDto.tournamentStart);
     }
 
     if (updateTournamentDto.tournamentEnd) {
-      data.tournamentEnd = new Date(
-        updateTournamentDto.tournamentEnd,
-      );
+      data.tournamentEnd = new Date(updateTournamentDto.tournamentEnd);
     }
 
     return this.prisma.tournament.update({
@@ -147,13 +116,13 @@ export class TournamentsService {
       },
       orderBy: [
         {
-          featured: "desc",
+          featured: 'desc',
         },
         {
-          tournamentStart: "asc",
+          tournamentStart: 'asc',
         },
         {
-          createdAt: "desc",
+          createdAt: 'desc',
         },
       ],
     });

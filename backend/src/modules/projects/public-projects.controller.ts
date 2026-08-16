@@ -1,28 +1,18 @@
-import {
-  Controller,
-  Get,
-  Param,
-} from "@nestjs/common";
+import { Controller, Get, Param } from '@nestjs/common';
 
-import { ProjectsService } from "./projects.service";
+import { ProjectsService } from './projects.service';
 
-@Controller("public/projects")
+@Controller('public/projects')
 export class PublicProjectsController {
-  constructor(
-    private readonly projectsService: ProjectsService,
-  ) {}
+  constructor(private readonly projectsService: ProjectsService) {}
 
   @Get()
   findAll() {
     return this.projectsService.findPublic();
   }
 
-  @Get(":slug")
-  findOne(
-    @Param("slug") slug: string,
-  ) {
-    return this.projectsService.findPublicOne(
-      slug,
-    );
+  @Get(':slug')
+  findOne(@Param('slug') slug: string) {
+    return this.projectsService.findPublicOne(slug);
   }
 }

@@ -4,7 +4,7 @@ import { PrismaModule } from '../../prisma/prisma.module';
 
 import { TournamentsController } from './tournaments.controller';
 import { TournamentsService } from './tournaments.service';
-import { PublicTournamentsController } from "./public-tournaments.controller";
+import { PublicTournamentsController } from './public-tournaments.controller';
 
 @Module({
   imports: [PrismaModule],

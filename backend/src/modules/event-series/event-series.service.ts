@@ -2,54 +2,43 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
-} from "@nestjs/common";
+} from '@nestjs/common';
 
-import { PrismaService } from "../../prisma/prisma.service";
+import { PrismaService } from '../../prisma/prisma.service';
 
-import { CreateEventSeriesDto } from "./dto/create-event-series.dto";
-import { UpdateEventSeriesDto } from "./dto/update-event-series.dto";
+import { CreateEventSeriesDto } from './dto/create-event-series.dto';
+import { UpdateEventSeriesDto } from './dto/update-event-series.dto';
 
 @Injectable()
 export class EventSeriesService {
-  constructor(
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   private async getOrganization() {
-    const organization =
-      await this.prisma.organization.findFirst({
-        orderBy: {
-          createdAt: "asc",
-        },
-      });
+    const organization = await this.prisma.organization.findFirst({
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
 
     if (!organization) {
-      throw new NotFoundException(
-        "Organization not found",
-      );
+      throw new NotFoundException('Organization not found');
     }
 
     return organization;
   }
 
-  async create(
-    createEventSeriesDto: CreateEventSeriesDto,
-  ) {
-    const organization =
-      await this.getOrganization();
+  async create(createEventSeriesDto: CreateEventSeriesDto) {
+    const organization = await this.getOrganization();
 
-    const existingSeries =
-      await this.prisma.eventSeries.findFirst({
-        where: {
-          organizationId: organization.id,
-          slug: createEventSeriesDto.slug,
-        },
-      });
+    const existingSeries = await this.prisma.eventSeries.findFirst({
+      where: {
+        organizationId: organization.id,
+        slug: createEventSeriesDto.slug,
+      },
+    });
 
     if (existingSeries) {
-      throw new ConflictException(
-        "Event series slug already exists",
-      );
+      throw new ConflictException('Event series slug already exists');
     }
 
     return this.prisma.eventSeries.create({
@@ -57,16 +46,11 @@ export class EventSeriesService {
         organizationId: organization.id,
         title: createEventSeriesDto.title,
         slug: createEventSeriesDto.slug,
-        description:
-          createEventSeriesDto.description,
-        coverImage:
-          createEventSeriesDto.coverImage,
-        isActive:
-          createEventSeriesDto.isActive ?? true,
-        featured:
-          createEventSeriesDto.featured ?? false,
-        displayOrder:
-          createEventSeriesDto.displayOrder ?? 0,
+        description: createEventSeriesDto.description,
+        coverImage: createEventSeriesDto.coverImage,
+        isActive: createEventSeriesDto.isActive ?? true,
+        featured: createEventSeriesDto.featured ?? false,
+        displayOrder: createEventSeriesDto.displayOrder ?? 0,
       },
       include: {
         _count: {
@@ -79,8 +63,7 @@ export class EventSeriesService {
   }
 
   async findAll() {
-    const organization =
-      await this.getOrganization();
+    const organization = await this.getOrganization();
 
     return this.prisma.eventSeries.findMany({
       where: {
@@ -95,90 +78,76 @@ export class EventSeriesService {
       },
       orderBy: [
         {
-          displayOrder: "asc",
+          displayOrder: 'asc',
         },
         {
-          createdAt: "desc",
+          createdAt: 'desc',
         },
       ],
     });
   }
 
   async findOne(id: string) {
-    const organization =
-      await this.getOrganization();
+    const organization = await this.getOrganization();
 
-    const series =
-      await this.prisma.eventSeries.findFirst({
-        where: {
-          id,
-          organizationId: organization.id,
-        },
-        include: {
-          events: {
-            orderBy: [
-              {
-                eventDate: "desc",
-              },
-              {
-                displayOrder: "asc",
-              },
-            ],
-          },
-          _count: {
-            select: {
-              events: true,
+    const series = await this.prisma.eventSeries.findFirst({
+      where: {
+        id,
+        organizationId: organization.id,
+      },
+      include: {
+        events: {
+          orderBy: [
+            {
+              eventDate: 'desc',
             },
+            {
+              displayOrder: 'asc',
+            },
+          ],
+        },
+        _count: {
+          select: {
+            events: true,
           },
         },
-      });
+      },
+    });
 
     if (!series) {
-      throw new NotFoundException(
-        "Event series not found",
-      );
+      throw new NotFoundException('Event series not found');
     }
 
     return series;
   }
 
-  async update(
-    id: string,
-    updateEventSeriesDto: UpdateEventSeriesDto,
-  ) {
-    const organization =
-      await this.getOrganization();
+  async update(id: string, updateEventSeriesDto: UpdateEventSeriesDto) {
+    const organization = await this.getOrganization();
 
-    const existing =
-      await this.prisma.eventSeries.findFirst({
-        where: {
-          id,
-          organizationId: organization.id,
-        },
-      });
+    const existing = await this.prisma.eventSeries.findFirst({
+      where: {
+        id,
+        organizationId: organization.id,
+      },
+    });
 
     if (!existing) {
-      throw new NotFoundException(
-        "Event series not found",
-      );
+      throw new NotFoundException('Event series not found');
     }
 
     if (updateEventSeriesDto.slug) {
-      const duplicate =
-        await this.prisma.eventSeries.findFirst({
-          where: {
-            organizationId: organization.id,
-            slug: updateEventSeriesDto.slug,
-            NOT: {
-              id,
-            },
+      const duplicate = await this.prisma.eventSeries.findFirst({
+        where: {
+          organizationId: organization.id,
+          slug: updateEventSeriesDto.slug,
+          NOT: {
+            id,
           },
-        });
+        },
+      });
 
       if (duplicate) {
-        throw new ConflictException(
-          "Event series slug already exists",
-        );
+        throw new ConflictException('Event series slug already exists');
       }
     }
 
@@ -198,21 +167,17 @@ export class EventSeriesService {
   }
 
   async remove(id: string) {
-    const organization =
-      await this.getOrganization();
+    const organization = await this.getOrganization();
 
-    const existing =
-      await this.prisma.eventSeries.findFirst({
-        where: {
-          id,
-          organizationId: organization.id,
-        },
-      });
+    const existing = await this.prisma.eventSeries.findFirst({
+      where: {
+        id,
+        organizationId: organization.id,
+      },
+    });
 
     if (!existing) {
-      throw new NotFoundException(
-        "Event series not found",
-      );
+      throw new NotFoundException('Event series not found');
     }
 
     return this.prisma.eventSeries.delete({
@@ -223,8 +188,7 @@ export class EventSeriesService {
   }
 
   async findPublic() {
-    const organization =
-      await this.getOrganization();
+    const organization = await this.getOrganization();
 
     return this.prisma.eventSeries.findMany({
       where: {
@@ -238,10 +202,10 @@ export class EventSeriesService {
           },
           orderBy: [
             {
-              eventDate: "desc",
+              eventDate: 'desc',
             },
             {
-              displayOrder: "asc",
+              displayOrder: 'asc',
             },
           ],
         },
@@ -253,13 +217,13 @@ export class EventSeriesService {
       },
       orderBy: [
         {
-          featured: "desc",
+          featured: 'desc',
         },
         {
-          displayOrder: "asc",
+          displayOrder: 'asc',
         },
         {
-          createdAt: "desc",
+          createdAt: 'desc',
         },
       ],
     });

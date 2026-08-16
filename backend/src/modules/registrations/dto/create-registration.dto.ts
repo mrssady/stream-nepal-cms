@@ -7,10 +7,7 @@ import {
   Min,
 } from 'class-validator';
 
-import {
-  PaymentStatus,
-  RegistrationStatus,
-} from '@prisma/client';
+import { PaymentStatus, RegistrationStatus } from '@prisma/client';
 
 export class CreateRegistrationDto {
   @IsString()

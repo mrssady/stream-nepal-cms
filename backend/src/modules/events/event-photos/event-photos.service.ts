@@ -1,64 +1,46 @@
-import {
-  Injectable,
-  NotFoundException,
-} from "@nestjs/common";
+import { Injectable, NotFoundException } from '@nestjs/common';
 
-import { PrismaService } from "../../../prisma/prisma.service";
+import { PrismaService } from '../../../prisma/prisma.service';
 
-import { CreateEventPhotoDto } from "./create-event-photo.dto";
-import { UpdateEventPhotoDto } from "./dto/update-event-photo.dto";
+import { CreateEventPhotoDto } from './create-event-photo.dto';
+import { UpdateEventPhotoDto } from './dto/update-event-photo.dto';
 
 @Injectable()
 export class EventPhotosService {
-  constructor(
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   private async getOrganization() {
-    const organization =
-      await this.prisma.organization.findFirst({
-        orderBy: {
-          createdAt: "asc",
-        },
-      });
+    const organization = await this.prisma.organization.findFirst({
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
 
     if (!organization) {
-      throw new NotFoundException(
-        "Organization not found",
-      );
+      throw new NotFoundException('Organization not found');
     }
 
     return organization;
   }
 
-  private async getEvent(
-    eventId: string,
-  ) {
-    const organization =
-      await this.getOrganization();
+  private async getEvent(eventId: string) {
+    const organization = await this.getOrganization();
 
-    const event =
-      await this.prisma.event.findFirst({
-        where: {
-          id: eventId,
-          organizationId:
-            organization.id,
-        },
-      });
+    const event = await this.prisma.event.findFirst({
+      where: {
+        id: eventId,
+        organizationId: organization.id,
+      },
+    });
 
     if (!event) {
-      throw new NotFoundException(
-        "Event not found",
-      );
+      throw new NotFoundException('Event not found');
     }
 
     return event;
   }
 
-  async create(
-    eventId: string,
-    dto: CreateEventPhotoDto,
-  ) {
+  async create(eventId: string, dto: CreateEventPhotoDto) {
     await this.getEvent(eventId);
 
     return this.prisma.eventPhoto.create({
@@ -69,15 +51,11 @@ export class EventPhotosService {
         description: dto.description,
 
         imageUrl: dto.imageUrl,
-        thumbnailUrl:
-          dto.thumbnailUrl,
+        thumbnailUrl: dto.thumbnailUrl,
 
-        featured:
-          dto.featured ?? false,
-        isActive:
-          dto.isActive ?? true,
-        displayOrder:
-          dto.displayOrder ?? 0,
+        featured: dto.featured ?? false,
+        isActive: dto.isActive ?? true,
+        displayOrder: dto.displayOrder ?? 0,
       },
     });
   }
@@ -91,47 +69,34 @@ export class EventPhotosService {
       },
       orderBy: [
         {
-          displayOrder: "asc",
+          displayOrder: 'asc',
         },
         {
-          createdAt: "desc",
+          createdAt: 'desc',
         },
       ],
     });
   }
 
-  async findOne(
-    eventId: string,
-    id: string,
-  ) {
+  async findOne(eventId: string, id: string) {
     await this.getEvent(eventId);
 
-    const photo =
-      await this.prisma.eventPhoto.findFirst({
-        where: {
-          id,
-          eventId,
-        },
-      });
+    const photo = await this.prisma.eventPhoto.findFirst({
+      where: {
+        id,
+        eventId,
+      },
+    });
 
     if (!photo) {
-      throw new NotFoundException(
-        "Event photo not found",
-      );
+      throw new NotFoundException('Event photo not found');
     }
 
     return photo;
   }
 
-  async update(
-    eventId: string,
-    id: string,
-    dto: UpdateEventPhotoDto,
-  ) {
-    await this.findOne(
-      eventId,
-      id,
-    );
+  async update(eventId: string, id: string, dto: UpdateEventPhotoDto) {
+    await this.findOne(eventId, id);
 
     return this.prisma.eventPhoto.update({
       where: {
@@ -141,14 +106,8 @@ export class EventPhotosService {
     });
   }
 
-  async remove(
-    eventId: string,
-    id: string,
-  ) {
-    await this.findOne(
-      eventId,
-      id,
-    );
+  async remove(eventId: string, id: string) {
+    await this.findOne(eventId, id);
 
     return this.prisma.eventPhoto.delete({
       where: {

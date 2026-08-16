@@ -95,10 +95,7 @@ export class MatchesService {
     return match;
   }
 
-  async update(
-    id: string,
-    updateMatchDto: UpdateMatchDto,
-  ) {
+  async update(id: string, updateMatchDto: UpdateMatchDto) {
     await this.findOne(id);
 
     const data: any = {
@@ -106,9 +103,7 @@ export class MatchesService {
     };
 
     if (updateMatchDto.scheduledAt) {
-      data.scheduledAt = new Date(
-        updateMatchDto.scheduledAt,
-      );
+      data.scheduledAt = new Date(updateMatchDto.scheduledAt);
     }
 
     return this.prisma.match.update({

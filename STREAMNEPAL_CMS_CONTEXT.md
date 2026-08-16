@@ -88,6 +88,11 @@ Authentication Module
 - Login
 - JWT Strategy
 - JWT Guard
+- Forgot Password (email reset link)
+- Reset Password (expiring one-time token)
+- Verify Email (expiring one-time token)
+- Resend Verification
+- Mail Module (SMTP / console fallback)
 
 Users Module
 
@@ -103,6 +108,62 @@ Role Guard
 - ADMIN
 
 Prisma Connected
+
+Services Module
+
+- CRUD
+- Public API
+
+Projects Module
+
+- CRUD
+- Public API
+
+Events Module
+
+- CRUD
+- Event Photos
+- Event Videos
+- Event Timeline
+- Public API
+
+Event Series Module
+
+- CRUD
+
+Tournaments Module
+
+- CRUD
+- Public API
+- Registrations
+- Tournament Teams
+- Matches
+- Players
+
+Media / Gallery Module
+
+- CRUD
+
+Team Members Module
+
+- CRUD
+
+Website Settings Module
+
+- CRUD
+- Public API
+
+Sponsors Module
+
+- CRUD
+- Public API
+- Tiers (TITLE / GOLD / SILVER / BRONZE / MEDIA_PARTNER / PARTNER)
+
+Event Sponsors
+
+- Link sponsors to events (event-scoped tier / featured / order)
+- API: events/:eventId/sponsors
+- Included in public event API
 
 ---
 
@@ -128,6 +189,37 @@ API Service
 
 Authentication Service
 
+Services Page (CRUD)
+
+Projects Page (CRUD)
+
+Events Page (CRUD + Detail)
+
+- Event Detail tabs: Overview / Photos / Videos / Timeline / Sponsors
+- Event Sponsors tab links existing sponsors to the event with a per-event tier
+
+Event Series Page (CRUD)
+
+Gallery Page (CRUD)
+
+Settings Page (CRUD)
+
+Sponsors Page (CRUD)
+
+Sponsors Service
+
+Sponsors Hook
+
+Public Website
+
+- Home Page
+- Services Page
+- Tournaments Page
+- Portfolio Events (+ detail)
+- Portfolio Projects (+ detail)
+- Sponsors Section (home page)
+- Event Sponsors Section (public event detail page)
+
 ---
 
 # Current Status
@@ -136,34 +228,49 @@ Working
 
 ✅ Login
 
+✅ Forgot / Reset Password
+
+✅ Email Verification (verify / resend)
+
 ✅ Dashboard
 
 ✅ Users API
 
 ✅ Users Listing
 
+✅ Services CRUD
+
+✅ Projects CRUD
+
+✅ Events CRUD + Showcase
+
+✅ Event Series CRUD
+
+✅ Gallery CRUD
+
+✅ Settings CRUD
+
+✅ Sponsors CRUD + Public Display
+
+✅ Public Website + Portfolio
+
 Current Screen
 
-Users Page displays data successfully.
+Sponsors dashboard page displays and manages sponsors successfully.
+
+Public website home page shows the sponsors section.
 
 ---
 
 # Next Tasks
 
-1. Create User Modal
-2. Edit User
-3. Delete User
-4. Search Users
-5. Pagination
-6. Roles Management
-7. Teams Module
-8. Players Module
-9. Events Module
-10. Registrations Module
-11. Settings Module
-12. Gallery Module
-13. Sponsors Module
-14. Public Website
+1. Players Dashboard Page (backend exists)
+2. Team Members Dashboard Page (backend exists)
+3. Tournaments Admin Page (registrations/matches)
+4. Search + Pagination polish
+5. Roles Management
+6. Media upload integration (Cloudinary / local uploads)
+7. Organization switching
 
 ---
 
@@ -212,7 +319,11 @@ Completed
 
 - Authentication
 - Users Listing
+- Core CRUD Modules
+- Public Website + Portfolio
+- Sponsors CRUD + Public Display
+- Route Cleanup
 
 Next Commit
 
-Create User Feature
+Sponsors feature

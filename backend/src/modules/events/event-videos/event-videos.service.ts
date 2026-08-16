@@ -1,64 +1,46 @@
-import {
-  Injectable,
-  NotFoundException,
-} from "@nestjs/common";
+import { Injectable, NotFoundException } from '@nestjs/common';
 
-import { PrismaService } from "../../../prisma/prisma.service";
+import { PrismaService } from '../../../prisma/prisma.service';
 
-import { CreateEventVideoDto } from "./dto/create-event-video.dto";
-import { UpdateEventVideoDto } from "./dto/update-event-video.dto";
+import { CreateEventVideoDto } from './dto/create-event-video.dto';
+import { UpdateEventVideoDto } from './dto/update-event-video.dto';
 
 @Injectable()
 export class EventVideosService {
-  constructor(
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   private async getOrganization() {
-    const organization =
-      await this.prisma.organization.findFirst({
-        orderBy: {
-          createdAt: "asc",
-        },
-      });
+    const organization = await this.prisma.organization.findFirst({
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
 
     if (!organization) {
-      throw new NotFoundException(
-        "Organization not found",
-      );
+      throw new NotFoundException('Organization not found');
     }
 
     return organization;
   }
 
-  private async getEvent(
-    eventId: string,
-  ) {
-    const organization =
-      await this.getOrganization();
+  private async getEvent(eventId: string) {
+    const organization = await this.getOrganization();
 
-    const event =
-      await this.prisma.event.findFirst({
-        where: {
-          id: eventId,
-          organizationId:
-            organization.id,
-        },
-      });
+    const event = await this.prisma.event.findFirst({
+      where: {
+        id: eventId,
+        organizationId: organization.id,
+      },
+    });
 
     if (!event) {
-      throw new NotFoundException(
-        "Event not found",
-      );
+      throw new NotFoundException('Event not found');
     }
 
     return event;
   }
 
-  async create(
-    eventId: string,
-    dto: CreateEventVideoDto,
-  ) {
+  async create(eventId: string, dto: CreateEventVideoDto) {
     await this.getEvent(eventId);
 
     return this.prisma.eventVideo.create({
@@ -71,15 +53,11 @@ export class EventVideosService {
         platform: dto.platform,
 
         videoUrl: dto.videoUrl,
-        thumbnailUrl:
-          dto.thumbnailUrl,
+        thumbnailUrl: dto.thumbnailUrl,
 
-        featured:
-          dto.featured ?? false,
-        isActive:
-          dto.isActive ?? true,
-        displayOrder:
-          dto.displayOrder ?? 0,
+        featured: dto.featured ?? false,
+        isActive: dto.isActive ?? true,
+        displayOrder: dto.displayOrder ?? 0,
       },
     });
   }
@@ -93,47 +71,34 @@ export class EventVideosService {
       },
       orderBy: [
         {
-          displayOrder: "asc",
+          displayOrder: 'asc',
         },
         {
-          createdAt: "desc",
+          createdAt: 'desc',
         },
       ],
     });
   }
 
-  async findOne(
-    eventId: string,
-    id: string,
-  ) {
+  async findOne(eventId: string, id: string) {
     await this.getEvent(eventId);
 
-    const video =
-      await this.prisma.eventVideo.findFirst({
-        where: {
-          id,
-          eventId,
-        },
-      });
+    const video = await this.prisma.eventVideo.findFirst({
+      where: {
+        id,
+        eventId,
+      },
+    });
 
     if (!video) {
-      throw new NotFoundException(
-        "Event video not found",
-      );
+      throw new NotFoundException('Event video not found');
     }
 
     return video;
   }
 
-  async update(
-    eventId: string,
-    id: string,
-    dto: UpdateEventVideoDto,
-  ) {
-    await this.findOne(
-      eventId,
-      id,
-    );
+  async update(eventId: string, id: string, dto: UpdateEventVideoDto) {
+    await this.findOne(eventId, id);
 
     return this.prisma.eventVideo.update({
       where: {
@@ -143,14 +108,8 @@ export class EventVideosService {
     });
   }
 
-  async remove(
-    eventId: string,
-    id: string,
-  ) {
-    await this.findOne(
-      eventId,
-      id,
-    );
+  async remove(eventId: string, id: string) {
+    await this.findOne(eventId, id);
 
     return this.prisma.eventVideo.delete({
       where: {

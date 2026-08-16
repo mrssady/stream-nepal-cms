@@ -1,7 +1,4 @@
-import {
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 
 export class UpdateSettingDto {
   @IsOptional()
@@ -29,8 +26,8 @@ export class UpdateSettingDto {
   phone?: string;
 
   @IsOptional()
-@IsString()
-alternatePhone?: string;
+  @IsString()
+  alternatePhone?: string;
 
   @IsOptional()
   @IsString()

@@ -9,10 +9,7 @@ import {
   Min,
 } from 'class-validator';
 
-import {
-  TournamentGame,
-  TournamentStatus,
-} from '@prisma/client';
+import { TournamentGame, TournamentStatus } from '@prisma/client';
 
 export class CreateTournamentDto {
   @IsString()

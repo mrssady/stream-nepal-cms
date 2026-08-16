@@ -1,12 +1,10 @@
-import { Controller, Get } from "@nestjs/common";
+import { Controller, Get } from '@nestjs/common';
 
-import { TournamentsService } from "./tournaments.service";
+import { TournamentsService } from './tournaments.service';
 
-@Controller("public/tournaments")
+@Controller('public/tournaments')
 export class PublicTournamentsController {
-  constructor(
-    private readonly tournamentsService: TournamentsService,
-  ) {}
+  constructor(private readonly tournamentsService: TournamentsService) {}
 
   @Get()
   findAll() {

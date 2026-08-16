@@ -24,13 +24,12 @@ export class RegistrationsService {
       throw new NotFoundException('Tournament not found');
     }
 
-    const existingRegistration =
-      await this.prisma.registration.findFirst({
-        where: {
-          tournamentId: createRegistrationDto.tournamentId,
-          teamName: createRegistrationDto.teamName,
-        },
-      });
+    const existingRegistration = await this.prisma.registration.findFirst({
+      where: {
+        tournamentId: createRegistrationDto.tournamentId,
+        teamName: createRegistrationDto.teamName,
+      },
+    });
 
     if (existingRegistration) {
       throw new ConflictException(
@@ -58,43 +57,34 @@ export class RegistrationsService {
   }
 
   async findOne(id: string) {
-    const registration =
-      await this.prisma.registration.findUnique({
-        where: {
-          id,
-        },
-        include: {
-          tournament: true,
-        },
-      });
+    const registration = await this.prisma.registration.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        tournament: true,
+      },
+    });
 
     if (!registration) {
-      throw new NotFoundException(
-        'Registration not found',
-      );
+      throw new NotFoundException('Registration not found');
     }
 
     return registration;
   }
 
-  async update(
-    id: string,
-    updateRegistrationDto: UpdateRegistrationDto,
-  ) {
+  async update(id: string, updateRegistrationDto: UpdateRegistrationDto) {
     await this.findOne(id);
 
     if (updateRegistrationDto.tournamentId) {
-      const tournament =
-        await this.prisma.tournament.findUnique({
-          where: {
-            id: updateRegistrationDto.tournamentId,
-          },
-        });
+      const tournament = await this.prisma.tournament.findUnique({
+        where: {
+          id: updateRegistrationDto.tournamentId,
+        },
+      });
 
       if (!tournament) {
-        throw new NotFoundException(
-          'Tournament not found',
-        );
+        throw new NotFoundException('Tournament not found');
       }
     }
 

@@ -7,103 +7,100 @@ import {
   Patch,
   Post,
   UseGuards,
-} from "@nestjs/common";
+} from '@nestjs/common';
+import { ActivityAction } from '@prisma/client';
 
-import { EventVideosService } from "./event-videos.service";
+import { EventVideosService } from './event-videos.service';
 
-import { CreateEventVideoDto } from "./dto/create-event-video.dto";
-import { UpdateEventVideoDto } from "./dto/update-event-video.dto";
+import { CreateEventVideoDto } from './dto/create-event-video.dto';
+import { UpdateEventVideoDto } from './dto/update-event-video.dto';
 
-import { JwtAuthGuard } from "../../auth/jwt-auth.guard";
-import { RolesGuard } from "../../../common/guards/roles.guard";
-import { Roles } from "../../../common/decorators/roles.decorator";
-import { Role } from "../../../common/enums/role.enum";
+import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
+import { RolesGuard } from '../../../common/guards/roles.guard';
+import { Roles } from '../../../common/decorators/roles.decorator';
+import type { AuthenticatedUser } from '../../../common/decorators/current-user.decorator';
+import { CurrentUser } from '../../../common/decorators/current-user.decorator';
+import { Role } from '../../../common/enums/role.enum';
+import { ActivityLogsService } from '../../activity-logs/activity-logs.service';
 
-@Controller("events/:eventId/videos")
+@Controller('events/:eventId/videos')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class EventVideosController {
   constructor(
     private readonly service: EventVideosService,
+    private readonly activityLogs: ActivityLogsService,
   ) {}
 
   @Post()
-  @Roles(
-    Role.OWNER,
-    Role.ADMIN,
-    Role.MANAGER,
-  )
-  create(
-    @Param("eventId") eventId: string,
+  @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER)
+  async create(
+    @Param('eventId') eventId: string,
     @Body() dto: CreateEventVideoDto,
+    @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.service.create(
-      eventId,
-      dto,
+    const video = await this.service.create(eventId, dto);
+
+    await this.activityLogs.record(
+      user,
+      ActivityAction.CREATE,
+      'event-video',
+      video.id,
+      `Added video "${video.title ?? 'Untitled'}" to an event`,
     );
+
+    return video;
   }
 
   @Get()
-  @Roles(
-    Role.OWNER,
-    Role.ADMIN,
-    Role.MANAGER,
-    Role.STAFF,
-  )
-  findAll(
-    @Param("eventId") eventId: string,
-  ) {
-    return this.service.findAll(
-      eventId,
-    );
+  @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER, Role.STAFF)
+  findAll(@Param('eventId') eventId: string) {
+    return this.service.findAll(eventId);
   }
 
-  @Get(":id")
-  @Roles(
-    Role.OWNER,
-    Role.ADMIN,
-    Role.MANAGER,
-    Role.STAFF,
-  )
-  findOne(
-    @Param("eventId") eventId: string,
-    @Param("id") id: string,
-  ) {
-    return this.service.findOne(
-      eventId,
-      id,
-    );
+  @Get(':id')
+  @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER, Role.STAFF)
+  findOne(@Param('eventId') eventId: string, @Param('id') id: string) {
+    return this.service.findOne(eventId, id);
   }
 
-  @Patch(":id")
-  @Roles(
-    Role.OWNER,
-    Role.ADMIN,
-    Role.MANAGER,
-  )
-  update(
-    @Param("eventId") eventId: string,
-    @Param("id") id: string,
+  @Patch(':id')
+  @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER)
+  async update(
+    @Param('eventId') eventId: string,
+    @Param('id') id: string,
     @Body() dto: UpdateEventVideoDto,
+    @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.service.update(
-      eventId,
-      id,
-      dto,
+    const video = await this.service.update(eventId, id, dto);
+
+    await this.activityLogs.record(
+      user,
+      ActivityAction.UPDATE,
+      'event-video',
+      video.id,
+      `Updated video "${video.title ?? 'Untitled'}"`,
     );
+
+    return video;
   }
 
-  @Delete(":id")
-  @Roles(
-    Role.OWNER,
-    Role.ADMIN,
-  )
-  remove(
-    @Param("eventId") eventId: string,
-    @Param("id") id: string,
+  @Delete(':id')
+  @Roles(Role.OWNER, Role.ADMIN)
+  async remove(
+    @Param('eventId') eventId: string,
+    @Param('id') id: string,
+    @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.service.remove(
-      eventId,
-      id,
+    const video = await this.service.remove(eventId, id);
+
+    await this.activityLogs.record(
+      user,
+      ActivityAction.DELETE,
+      'event-video',
+      video.id,
+      `Removed video "${video.title ?? 'Untitled'}" from an event`,
     );
+
+    return video;
   }
 }

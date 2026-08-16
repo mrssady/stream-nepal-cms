@@ -44,10 +44,7 @@ export class TeamController {
 
   @Patch(':id')
   @Roles(Role.OWNER, Role.ADMIN)
-  update(
-    @Param('id') id: string,
-    @Body() updateTeamDto: UpdateTeamDto,
-  ) {
+  update(@Param('id') id: string, @Body() updateTeamDto: UpdateTeamDto) {
     return this.teamService.update(id, updateTeamDto);
   }
 

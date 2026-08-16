@@ -13,29 +13,22 @@ import { UpdateTournamentTeamDto } from './dto/update-tournament-team.dto';
 export class TournamentTeamsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(
-    createTournamentTeamDto: CreateTournamentTeamDto,
-  ) {
-    const registration =
-      await this.prisma.registration.findUnique({
-        where: {
-          id: createTournamentTeamDto.registrationId,
-        },
-      });
+  async create(createTournamentTeamDto: CreateTournamentTeamDto) {
+    const registration = await this.prisma.registration.findUnique({
+      where: {
+        id: createTournamentTeamDto.registrationId,
+      },
+    });
 
     if (!registration) {
-      throw new NotFoundException(
-        'Registration not found',
-      );
+      throw new NotFoundException('Registration not found');
     }
 
-    const existingTeam =
-      await this.prisma.team.findUnique({
-        where: {
-          registrationId:
-            createTournamentTeamDto.registrationId,
-        },
-      });
+    const existingTeam = await this.prisma.team.findUnique({
+      where: {
+        registrationId: createTournamentTeamDto.registrationId,
+      },
+    });
 
     if (existingTeam) {
       throw new ConflictException(
@@ -73,32 +66,24 @@ export class TournamentTeamsService {
     });
 
     if (!team) {
-      throw new NotFoundException(
-        'Tournament team not found',
-      );
+      throw new NotFoundException('Tournament team not found');
     }
 
     return team;
   }
 
-  async update(
-    id: string,
-    updateTournamentTeamDto: UpdateTournamentTeamDto,
-  ) {
+  async update(id: string, updateTournamentTeamDto: UpdateTournamentTeamDto) {
     await this.findOne(id);
 
     if (updateTournamentTeamDto.registrationId) {
-      const registration =
-        await this.prisma.registration.findUnique({
-          where: {
-            id: updateTournamentTeamDto.registrationId,
-          },
-        });
+      const registration = await this.prisma.registration.findUnique({
+        where: {
+          id: updateTournamentTeamDto.registrationId,
+        },
+      });
 
       if (!registration) {
-        throw new NotFoundException(
-          'Registration not found',
-        );
+        throw new NotFoundException('Registration not found');
       }
     }
 

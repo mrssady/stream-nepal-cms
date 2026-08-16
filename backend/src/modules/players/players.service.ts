@@ -32,9 +32,7 @@ export class PlayersService {
     });
 
     if (existingPlayer) {
-      throw new ConflictException(
-        'Player already exists in this team',
-      );
+      throw new ConflictException('Player already exists in this team');
     }
 
     return this.prisma.player.create({
@@ -73,10 +71,7 @@ export class PlayersService {
     return player;
   }
 
-  async update(
-    id: string,
-    updatePlayerDto: UpdatePlayerDto,
-  ) {
+  async update(id: string, updatePlayerDto: UpdatePlayerDto) {
     await this.findOne(id);
 
     if (updatePlayerDto.teamId) {
@@ -87,9 +82,7 @@ export class PlayersService {
       });
 
       if (!team) {
-        throw new NotFoundException(
-          'Tournament team not found',
-        );
+        throw new NotFoundException('Tournament team not found');
       }
     }
 

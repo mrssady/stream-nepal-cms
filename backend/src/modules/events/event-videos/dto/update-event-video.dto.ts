@@ -6,9 +6,9 @@ import {
   IsString,
   IsUrl,
   Min,
-} from "class-validator";
+} from 'class-validator';
 
-import { EventVideoPlatform } from "@prisma/client";
+import { EventVideoPlatform } from '@prisma/client';
 
 export class UpdateEventVideoDto {
   @IsOptional()

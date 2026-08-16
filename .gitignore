@@ -18,6 +18,9 @@ pnpm-debug.log*
 .env
 .env.*
 
+# Uploads
+backend/uploads/
+
 # VS Code
 .vscode/
 

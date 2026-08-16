@@ -22,9 +22,7 @@ import { Role } from '../../common/enums/role.enum';
 @Controller('players')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class PlayersController {
-  constructor(
-    private readonly playersService: PlayersService,
-  ) {}
+  constructor(private readonly playersService: PlayersService) {}
 
   @Post()
   @Roles(Role.OWNER, Role.ADMIN)
@@ -46,10 +44,7 @@ export class PlayersController {
 
   @Patch(':id')
   @Roles(Role.OWNER, Role.ADMIN)
-  update(
-    @Param('id') id: string,
-    @Body() updatePlayerDto: UpdatePlayerDto,
-  ) {
+  update(@Param('id') id: string, @Body() updatePlayerDto: UpdatePlayerDto) {
     return this.playersService.update(id, updatePlayerDto);
   }
 

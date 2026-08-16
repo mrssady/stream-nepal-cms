@@ -6,7 +6,7 @@ import {
   IsString,
   IsUrl,
   Min,
-} from "class-validator";
+} from 'class-validator';
 
 export class UpdateEventTimelineDto {
   @IsOptional()

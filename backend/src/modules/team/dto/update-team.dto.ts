@@ -40,7 +40,7 @@ export class UpdateTeamDto {
 
   @IsOptional()
   @IsString()
- instagram?: string;
+  instagram?: string;
 
   @IsOptional()
   @IsString()

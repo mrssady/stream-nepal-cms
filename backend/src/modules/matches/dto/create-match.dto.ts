@@ -1,14 +1,6 @@
-import {
-  IsDateString,
-  IsEnum,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsDateString, IsEnum, IsOptional, IsString } from 'class-validator';
 
-import {
-  MatchStatus,
-  MatchType,
-} from '@prisma/client';
+import { MatchStatus, MatchType } from '@prisma/client';
 
 export class CreateMatchDto {
   @IsString()
