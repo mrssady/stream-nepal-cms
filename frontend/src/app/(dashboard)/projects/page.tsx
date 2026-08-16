@@ -20,6 +20,8 @@ import type {
 
 import ImageUpload from "@/components/media/ImageUpload";
 
+import Pagination from "@/components/common/Pagination";
+
 import { resolveMediaUrl } from "@/lib/media";
 
 type FilterType =
@@ -27,6 +29,8 @@ type FilterType =
   | "featured"
   | "active"
   | "inactive";
+
+const ITEMS_PER_PAGE = 9;
 
 const emptyForm: CreateProjectDto = {
   title: "",
@@ -86,6 +90,9 @@ export default function ProjectsPage() {
 
   const [search, setSearch] =
     useState("");
+
+  const [page, setPage] =
+    useState(1);
 
   const [loading, setLoading] =
     useState(true);
@@ -192,6 +199,30 @@ export default function ProjectsPage() {
         !project.isActive,
     ).length,
   };
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(
+      filteredProjects.length /
+        ITEMS_PER_PAGE,
+    ),
+  );
+
+  const currentPage = Math.min(
+    page,
+    totalPages,
+  );
+
+  const paginatedProjects = useMemo(() => {
+    const start =
+      (currentPage - 1) *
+      ITEMS_PER_PAGE;
+
+    return filteredProjects.slice(
+      start,
+      start + ITEMS_PER_PAGE,
+    );
+  }, [filteredProjects, currentPage]);
 
   function resetForm() {
     setForm({
@@ -544,11 +575,12 @@ export default function ProjectsPage() {
 
               <input
                 value={search}
-                onChange={(event) =>
+                onChange={(event) => {
                   setSearch(
                     event.target.value,
-                  )
-                }
+                  );
+                  setPage(1);
+                }}
                 placeholder="Search projects, clients, categories..."
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-50 dark:border-slate-700 dark:bg-muted dark:text-white dark:placeholder:text-slate-500 dark:focus:border-blue-400 dark:focus:bg-slate-900 dark:focus:ring-2 dark:focus:ring-blue-500/10"
               />
@@ -559,9 +591,10 @@ export default function ProjectsPage() {
                 active={
                   filter === "all"
                 }
-                onClick={() =>
-                  setFilter("all")
-                }
+                onClick={() => {
+                  setFilter("all");
+                  setPage(1);
+                }}
               >
                 All
               </FilterButton>
@@ -570,11 +603,12 @@ export default function ProjectsPage() {
                 active={
                   filter === "featured"
                 }
-                onClick={() =>
+                onClick={() => {
                   setFilter(
                     "featured",
-                  )
-                }
+                  );
+                  setPage(1);
+                }}
               >
                 Featured
               </FilterButton>
@@ -583,9 +617,10 @@ export default function ProjectsPage() {
                 active={
                   filter === "active"
                 }
-                onClick={() =>
-                  setFilter("active")
-                }
+                onClick={() => {
+                  setFilter("active");
+                  setPage(1);
+                }}
               >
                 Active
               </FilterButton>
@@ -594,11 +629,12 @@ export default function ProjectsPage() {
                 active={
                   filter === "inactive"
                 }
-                onClick={() =>
+                onClick={() => {
                   setFilter(
                     "inactive",
-                  )
-                }
+                  );
+                  setPage(1);
+                }}
               >
                 Inactive
               </FilterButton>
@@ -663,7 +699,7 @@ export default function ProjectsPage() {
           </section>
         ) : (
           <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {filteredProjects.map(
+            {paginatedProjects.map(
               (project) => (
                 <ProjectCard
                   key={project.id}
@@ -690,6 +726,15 @@ export default function ProjectsPage() {
             )}
           </section>
         )}
+
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={filteredProjects.length}
+          itemsPerPage={ITEMS_PER_PAGE}
+          onPageChange={setPage}
+        />
+
       {/* MODAL */}
 
       {modalOpen && (

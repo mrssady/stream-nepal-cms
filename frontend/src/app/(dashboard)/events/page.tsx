@@ -200,6 +200,8 @@ export default function EventsPage() {
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
+            totalItems={filteredEvents.length}
+            itemsPerPage={ITEMS_PER_PAGE}
             onPageChange={setPage}
           />
         </>

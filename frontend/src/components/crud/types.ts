@@ -19,6 +19,7 @@ export interface CrudPageProps<T> {
 
   currentPage: number;
   totalPages: number;
+  itemsPerPage: number;
   onPageChange: (page: number) => void;
 
   createButton: React.ReactNode;

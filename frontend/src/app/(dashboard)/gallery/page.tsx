@@ -12,6 +12,10 @@ import { useMedia } from "@/hooks/useMedia";
 
 import ImageUpload from "@/components/media/ImageUpload";
 
+import SearchBar from "@/components/common/SearchBar";
+
+import Pagination from "@/components/common/Pagination";
+
 import { resolveMediaUrl } from "@/lib/media";
 
 import {
@@ -276,17 +280,13 @@ export default function GalleryPage() {
       {/* Filters */}
 
       <div className="flex flex-col gap-3 md:flex-row">
-        <input
-          type="text"
+        <SearchBar
           value={search}
-          onChange={(event) => {
-            setSearch(
-              event.target.value,
-            );
+          onChange={(value) => {
+            setSearch(value);
             setPage(1);
           }}
           placeholder="Search media..."
-          className="h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-border dark:bg-muted dark:text-white dark:placeholder:text-slate-500 dark:focus:border-blue-400 dark:focus:ring-blue-500/10 md:max-w-md"
         />
 
         <select
@@ -494,57 +494,13 @@ export default function GalleryPage() {
 
           {/* Pagination */}
 
-          <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-5 py-3 dark:border-border dark:bg-card">
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Showing{" "}
-              {(currentPage - 1) *
-                ITEMS_PER_PAGE +
-                1}{" "}
-              to{" "}
-              {Math.min(
-                currentPage *
-                  ITEMS_PER_PAGE,
-                filteredMedia.length,
-              )}{" "}
-              of{" "}
-              {filteredMedia.length}
-            </p>
-
-            <div className="flex gap-2">
-              <button
-                type="button"
-                disabled={
-                  currentPage === 1
-                }
-                onClick={() =>
-                  setPage(
-                    (value) =>
-                      value - 1,
-                  )
-                }
-                className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-border dark:text-slate-300 dark:hover:bg-muted"
-              >
-                Previous
-              </button>
-
-              <button
-                type="button"
-                disabled={
-                  currentPage ===
-                  totalPages
-                }
-                onClick={() =>
-                  setPage(
-                    (value) =>
-                      value + 1,
-                  )
-                }
-                className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-border dark:text-slate-300 dark:hover:bg-muted"
-              >
-                Next
-              </button>
-            </div>
-          </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredMedia.length}
+            itemsPerPage={ITEMS_PER_PAGE}
+            onPageChange={setPage}
+          />
         </>
       )}
 

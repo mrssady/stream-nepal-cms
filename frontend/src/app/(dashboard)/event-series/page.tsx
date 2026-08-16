@@ -23,7 +23,13 @@ import type {
 
 import EventSeriesModal from "@/components/event-series/EventSeriesModal";
 
+import SearchBar from "@/components/common/SearchBar";
+
+import Pagination from "@/components/common/Pagination";
+
 import { resolveMediaUrl } from "@/lib/media";
+
+const ITEMS_PER_PAGE = 9;
 
 export default function EventSeriesPage() {
   const {
@@ -36,6 +42,9 @@ export default function EventSeriesPage() {
 
   const [search, setSearch] =
     useState("");
+
+  const [page, setPage] =
+    useState(1);
 
   const [modalOpen, setModalOpen] =
     useState(false);
@@ -78,6 +87,30 @@ export default function EventSeriesPage() {
           .includes(query),
     );
   }, [series, search]);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(
+      filteredSeries.length /
+        ITEMS_PER_PAGE,
+    ),
+  );
+
+  const currentPage = Math.min(
+    page,
+    totalPages,
+  );
+
+  const paginatedSeries = useMemo(() => {
+    const start =
+      (currentPage - 1) *
+      ITEMS_PER_PAGE;
+
+    return filteredSeries.slice(
+      start,
+      start + ITEMS_PER_PAGE,
+    );
+  }, [filteredSeries, currentPage]);
 
   function openCreate() {
     setSelectedSeries(null);
@@ -188,16 +221,14 @@ export default function EventSeriesPage() {
         </button>
       </div>
 
-      <div>
-        <input
-          value={search}
-          onChange={(event) =>
-            setSearch(event.target.value)
-          }
-          placeholder="Search event series..."
-          className="w-full max-w-md rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 dark:border-border dark:bg-muted dark:text-white dark:placeholder:text-slate-500 dark:focus:border-blue-400"
-        />
-      </div>
+      <SearchBar
+        value={search}
+        onChange={(value) => {
+          setSearch(value);
+          setPage(1);
+        }}
+        placeholder="Search event series..."
+      />
 
       {loading ? (
         <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center text-slate-500 dark:border-border dark:bg-card dark:text-slate-400">
@@ -207,24 +238,30 @@ export default function EventSeriesPage() {
         0 ? (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-16 text-center dark:border-border dark:bg-card">
           <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
-            No Event Series Found
+            {series.length === 0
+              ? "No Event Series Yet"
+              : "No Matching Event Series"}
           </h2>
 
           <p className="mt-2 text-slate-500 dark:text-slate-400">
-            Create your first event series.
+            {series.length === 0
+              ? "Create your first event series."
+              : "Try changing your search."}
           </p>
 
-          <button
-            type="button"
-            onClick={openCreate}
-            className="mt-6 rounded-xl bg-blue-600 px-5 py-3 text-white hover:bg-blue-700 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90"
-          >
-            Create Series
-          </button>
+          {series.length === 0 && (
+            <button
+              type="button"
+              onClick={openCreate}
+              className="mt-6 rounded-xl bg-blue-600 px-5 py-3 text-white hover:bg-blue-700 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90"
+            >
+              Create Series
+            </button>
+          )}
         </div>
       ) : (
         <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {filteredSeries.map(
+          {paginatedSeries.map(
             (item) => (
               <article
                 key={item.id}
@@ -320,6 +357,14 @@ export default function EventSeriesPage() {
           )}
         </div>
       )}
+
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={filteredSeries.length}
+        itemsPerPage={ITEMS_PER_PAGE}
+        onPageChange={setPage}
+      />
 
       <EventSeriesModal
         open={modalOpen}

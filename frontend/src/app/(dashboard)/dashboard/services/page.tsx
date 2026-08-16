@@ -10,11 +10,14 @@ import {
 import {
   Pencil,
   Plus,
-  Search,
   Trash2,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+
+import SearchBar from "@/components/common/SearchBar";
+
+import Pagination from "@/components/common/Pagination";
 
 import {
   Dialog,
@@ -432,19 +435,11 @@ export default function ServicesPage() {
         </Button>
       </div>
 
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-
-        <input
-          type="text"
-          value={search}
-          onChange={(event) =>
-            handleSearch(event.target.value)
-          }
-          placeholder="Search services..."
-          className="h-10 w-full rounded-lg border bg-background pl-9 pr-4 text-sm outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
-        />
-      </div>
+      <SearchBar
+        value={search}
+        onChange={handleSearch}
+        placeholder="Search services..."
+      />
 
       {filteredServices.length === 0 ? (
         <div className="rounded-xl border p-10 text-center">
@@ -461,6 +456,7 @@ export default function ServicesPage() {
           </p>
         </div>
       ) : (
+        <>
         <div className="overflow-hidden rounded-xl border">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -596,55 +592,16 @@ export default function ServicesPage() {
               </tbody>
             </table>
           </div>
-
-          <div className="flex items-center justify-between border-t px-5 py-3">
-            <p className="text-xs text-muted-foreground">
-              Showing{" "}
-              {filteredServices.length === 0
-                ? 0
-                : (currentPage - 1) *
-                    ITEMS_PER_PAGE +
-                  1}{" "}
-              to{" "}
-              {Math.min(
-                currentPage *
-                  ITEMS_PER_PAGE,
-                filteredServices.length,
-              )}{" "}
-              of {filteredServices.length}
-            </p>
-
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={currentPage === 1}
-                onClick={() =>
-                  setPage(
-                    (value) => value - 1,
-                  )
-                }
-              >
-                Previous
-              </Button>
-
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={
-                  currentPage === totalPages
-                }
-                onClick={() =>
-                  setPage(
-                    (value) => value + 1,
-                  )
-                }
-              >
-                Next
-              </Button>
-            </div>
-          </div>
         </div>
+
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={filteredServices.length}
+          itemsPerPage={ITEMS_PER_PAGE}
+          onPageChange={setPage}
+        />
+        </>
       )}
 
       <Dialog

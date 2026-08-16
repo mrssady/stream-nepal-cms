@@ -20,6 +20,7 @@ export default function CrudPage<
   setSearch,
   currentPage,
   totalPages,
+  itemsPerPage,
   onPageChange,
   createButton,
   modal,
@@ -70,6 +71,8 @@ export default function CrudPage<
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
+              totalItems={data.length}
+              itemsPerPage={itemsPerPage}
               onPageChange={onPageChange}
             />
           </>

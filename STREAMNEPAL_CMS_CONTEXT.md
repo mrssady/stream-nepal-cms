@@ -210,6 +210,12 @@ Sponsors Service
 
 Sponsors Hook
 
+Search + Pagination polish
+
+- Shared SearchBar component (search icon, consistent styling)
+- Shared Pagination component (results summary, ellipsis window)
+- Search + pagination on all dashboard pages (Events, Users, Services, Sponsors, Gallery, Event Series, Projects)
+
 Public Website
 
 - Home Page
@@ -254,11 +260,13 @@ Working
 
 ✅ Public Website + Portfolio
 
+✅ Search + Pagination polish (all dashboard pages)
+
 Current Screen
 
-Sponsors dashboard page displays and manages sponsors successfully.
+All dashboard pages now use the shared SearchBar and Pagination components.
 
-Public website home page shows the sponsors section.
+Search resets pagination to page 1, empty states distinguish no results from no data.
 
 ---
 
@@ -267,10 +275,9 @@ Public website home page shows the sponsors section.
 1. Players Dashboard Page (backend exists)
 2. Team Members Dashboard Page (backend exists)
 3. Tournaments Admin Page (registrations/matches)
-4. Search + Pagination polish
-5. Roles Management
-6. Media upload integration (Cloudinary / local uploads)
-7. Organization switching
+4. Roles Management
+5. Media upload integration (Cloudinary / local uploads)
+6. Organization switching
 
 ---
 
@@ -323,7 +330,8 @@ Completed
 - Public Website + Portfolio
 - Sponsors CRUD + Public Display
 - Route Cleanup
+- Search + Pagination polish
 
 Next Commit
 
-Sponsors feature
+Search + Pagination polish
