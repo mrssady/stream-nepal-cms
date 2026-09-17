@@ -9,6 +9,7 @@ import {
   GalleryVerticalEnd,
   Handshake,
   LayoutDashboard,
+  Radio,
   Settings,
   Trophy,
   Users,
@@ -36,6 +37,11 @@ const mainMenu = [
     name: "Dashboard",
     href: "/dashboard",
     icon: LayoutDashboard,
+  },
+  {
+    name: "Live",
+    href: "/live",
+    icon: Radio,
   },
   {
     name: "Users",

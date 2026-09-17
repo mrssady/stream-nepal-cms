@@ -351,31 +351,29 @@ export class LiveMatchEventsService {
     matchId: string,
     actor?: AuthenticatedUser,
   ): Promise<{ event: MatchEventRecord; state: MatchState }> {
-    return this.stateService.runExclusive(matchId, async () => {
-      const match = await this.stateService.findMatch(matchId);
+    const match = await this.stateService.findMatch(matchId);
 
-      if (match.lockedAt) {
-        throw new ConflictException('Live match is locked');
-      }
+    if (match.lockedAt) {
+      throw new ConflictException('Live match is locked');
+    }
 
-      const payload = await this.buildRoster(matchId);
+    const payload = await this.buildRoster(matchId);
 
-      if (payload.teams.length === 0) {
-        throw new BadRequestException(
-          'No approved tournament teams found to build the roster',
-        );
-      }
-
-      return this.append(
-        matchId,
-        {
-          kind: MatchEventKind.MATCH_READY,
-          source: MatchEventSource.SYSTEM,
-          payload,
-        },
-        actor,
+    if (payload.teams.length === 0) {
+      throw new BadRequestException(
+        'No approved tournament teams found to build the roster',
       );
-    });
+    }
+
+    return this.append(
+      matchId,
+      {
+        kind: MatchEventKind.MATCH_READY,
+        source: MatchEventSource.SYSTEM,
+        payload,
+      },
+      actor,
+    );
   }
 
   async undo(

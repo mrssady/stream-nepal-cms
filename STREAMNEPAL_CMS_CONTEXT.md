@@ -247,6 +247,16 @@ Public Website
 - Sponsors Section (home page)
 - Event Sponsors Section (public event detail page)
 
+Live Match Frontend (Phase 1)
+
+- Live Matches Control Center (/live): list, status badges, create match, overlay URL copy
+- Live Match Control Panel (/live/[matchId]): scoreboard, manual kill input, placement / eliminate /
+  winner actions, manual kill correction, start / pause / resume / finish / cancel, lock / reopen,
+  undo last event, kill feed, event log, socket connection indicator
+- OBS Overlay (/live/overlay/[matchId]): public, chrome-free, live scoreboard + kill feed, LIVE badge
+- Realtime via useLiveMatch hook + socket.io-client singleton (namespace /live)
+- Sidebar "Live" entry added
+
 ---
 
 # Current Status
@@ -285,25 +295,25 @@ Working
 
 ✅ Live Match Engine (backend) - manual scoring, event sourcing, Socket.IO realtime, public snapshot
 
+✅ Live Match Frontend - control center, control panel, OBS overlay, realtime hook
+
 Current Screen
 
-Live Match Engine (backend) is complete and smoke-tested end to end:
-kills, dedupe, auto placements, winner, finish, undo, lock/reopen,
-public snapshot and Socket.IO realtime push all verified.
+Live Match Engine Phase 1 is complete end to end (backend + frontend):
+control center, control panel, OBS overlay, realtime push all verified.
+Fixed a re-entrant deadlock in POST /live-matches/:id/ready (ready now calls append directly).
 
 ---
 
 # Next Tasks
 
-1. Frontend: live-match types, services, hooks, socket client
-2. Frontend: Live Control Panel /live/[matchId]
-3. Frontend: OBS overlay /live/overlay/[matchId]
-4. Players Dashboard Page (backend exists)
-5. Team Members Dashboard Page (backend exists)
-6. Tournaments Admin Page (registrations/matches)
-7. Roles Management
-8. Media upload integration (Cloudinary / local uploads)
-9. Organization switching
+1. Players Dashboard Page (backend exists)
+2. Team Members Dashboard Page (backend exists)
+3. Tournaments Admin Page (registrations/matches)
+4. Roles Management
+5. Media upload integration (Cloudinary / local uploads)
+6. Organization switching
+7. OCR / auto-capture pipeline (blocked on observer footage)
 
 ---
 
@@ -358,7 +368,8 @@ Completed
 - Route Cleanup
 - Search + Pagination polish
 - Live Match Engine (backend) - Phase 1
+- Live Match Frontend (control center + control panel + OBS overlay) - Phase 1
 
 Next Commit
 
-Live Match Control Panel + Overlay (frontend)
+Players / Team Members dashboard pages
