@@ -340,6 +340,8 @@ Working
 
 ✅ OCR Profiles - backend CRUD + default seed + frontend management page (calibration-ready config)
 
+✅ OCR Spectator Layout - PUBG Mobile 1920x1080 ROI config model + scaling + structured ROI editor
+
 Current Screen
 
 Phase 2 (broadcast) is feature-complete for the manual + GFX + OCR-dry-run flow:
@@ -370,6 +372,27 @@ OCR Profiles (Phase 3 groundwork - profile management)
   - Create/edit forms (game, name, width, height, JSON config editor),
     set-default, delete
 - Config shape reserved for calibration: { resolution, rois[], preprocessing{} }
+
+OCR Spectator Layout (Phase 3 - PUBG Mobile 1920x1080 ROI foundation)
+
+- Spec: STREAM NEPAL PUBG Mobile spectator OCR layout (reference 1920x1080)
+- ocr/ocr-config.ts: typed OcrProfileConfig = { resolution, rois{name}, preprocessing }
+  - INITIAL_ROIS template: matchHeader, teamEliminations, observerPlayerList,
+    killFeed (disabled), minimap (CV/disabled), zoneInfo, currentTeam, playerStats
+  - each ROI: x/y/width/height/enabled/ocr/label/purpose/preprocessing
+  - normalizeOcrConfig(): coerces/clamps, merges template, drops malformed
+  - scaleRois(): scaleX = width/1920, scaleY = height/1080 (any resolution)
+- OcrProfilesService: normalizes config on create/update; getScaledRois(id, target)
+- New endpoint: GET /api/ocr-profiles/:id/rois?width=&height= (scaled layout)
+- Seed updated to the full spectator ROI layout for PUBG + Free Fire
+- Frontend ROI editor: structured table (X/Y/W/H, enabled, OCR, per-ROI
+  preprocessing: scale/grayscale/contrast/threshold/denoise) + reset-to-template
+  + live config JSON preview; replaces the raw-JSON-only editor
+- Kill feed ROI ships disabled per spec until confirmed on real footage
+- Minimap is CV-only (not OCR) and ignored for MVP
+- Next OCR phases: analysis core (detectors + temporal validation + fuzzy team
+  matching + duplicate protection) -> frame input + ROI debug overlay -> monitor
+  panel -> candidate -> manual review -> match events
 
 ---
 
@@ -441,9 +464,11 @@ Completed
 - Live Match Broadcast GFX (frontend) - panel zone controls + animations + preview, Phase 2 frontend
 - Live Match Zone OCR (backend + panel) - mock dry-run detector + panel controls, Phase 3 OCR scaffolding
 - OCR Profiles (backend + seed + frontend) - per-game calibration profile CRUD, Phase 3 OCR grounding
+- OCR Spectator Layout (config model + scaling + structured ROI editor) - PUBG Mobile 1920x1080 ROI foundation
 
 Next Commit
 
-Real video OCR calibration once observer footage is provided (ROI + tesseract/ffmpeg);
-wire OCR session start to select an OcrProfile;
-optional GFX extras (player death overlay, point pops)
+OCR analysis core (provider interface, ROI preprocessor, detectors, temporal
+validation, fuzzy team matching, duplicate protection, confidence tiers);
+then frame input + ROI debug overlay + monitor panel;
+real video OCR calibration once observer footage is provided (tesseract/ffmpeg)

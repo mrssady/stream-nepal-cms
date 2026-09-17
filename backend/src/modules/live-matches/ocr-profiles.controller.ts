@@ -57,6 +57,19 @@ export class OcrProfilesController {
     return this.ocrProfilesService.findAll(game);
   }
 
+  @Get(':id/rois')
+  @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER)
+  getScaledRois(
+    @Param('id') id: string,
+    @Query('width') width?: string,
+    @Query('height') height?: string,
+  ) {
+    return this.ocrProfilesService.getScaledRois(id, {
+      width: width ? Number(width) : undefined,
+      height: height ? Number(height) : undefined,
+    });
+  }
+
   @Get(':id')
   @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER)
   findOne(@Param('id') id: string) {

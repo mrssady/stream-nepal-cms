@@ -7,12 +7,31 @@ import { Prisma, TournamentGame } from '@prisma/client';
 
 import { PrismaService } from '../../prisma/prisma.service';
 
+import {
+  type OcrProfileConfig,
+  REFERENCE_RESOLUTION,
+  normalizeOcrConfig,
+  scaleRois,
+} from './ocr/ocr-config';
+
 import { CreateOcrProfileDto } from './dto/create-ocr-profile.dto';
 import { UpdateOcrProfileDto } from './dto/update-ocr-profile.dto';
 
 @Injectable()
 export class OcrProfilesService {
   constructor(private readonly prisma: PrismaService) {}
+
+  private normalizeConfig(
+    input: unknown,
+    resolution: { width: number; height: number },
+  ): OcrProfileConfig {
+    return normalizeOcrConfig(
+      input,
+      resolution.width > 0 && resolution.height > 0
+        ? resolution
+        : REFERENCE_RESOLUTION,
+    );
+  }
 
   async create(dto: CreateOcrProfileDto) {
     const existing = await this.prisma.ocrProfile.findUnique({
@@ -50,13 +69,18 @@ export class OcrProfilesService {
       });
     }
 
+    const normalized = this.normalizeConfig(dto.config, {
+      width: dto.width,
+      height: dto.height,
+    });
+
     return this.prisma.ocrProfile.create({
       data: {
         game: dto.game,
         name: dto.name,
         width: dto.width,
         height: dto.height,
-        config: dto.config,
+        config: normalized as unknown as Prisma.InputJsonValue,
         isDefault: makeDefault,
       },
     });
@@ -136,7 +160,10 @@ export class OcrProfilesService {
     }
 
     if (dto.config !== undefined) {
-      data.config = dto.config;
+      data.config = this.normalizeConfig(dto.config, {
+        width: dto.width ?? profile.width,
+        height: dto.height ?? profile.height,
+      }) as unknown as Prisma.InputJsonValue;
     }
 
     if (dto.isDefault !== undefined) {
@@ -206,6 +233,35 @@ export class OcrProfilesService {
     ]);
 
     return this.findOne(id);
+  }
+
+  async getScaledRois(
+    id: string,
+    target?: { width?: number; height?: number },
+  ) {
+    const profile = await this.findOne(id);
+
+    const config = this.normalizeConfig(profile.config, {
+      width: profile.width,
+      height: profile.height,
+    });
+
+    const resolution = {
+      width:
+        target && target.width && target.width > 0
+          ? target.width
+          : config.resolution.width,
+      height:
+        target && target.height && target.height > 0
+          ? target.height
+          : config.resolution.height,
+    };
+
+    return {
+      reference: config.resolution,
+      resolution,
+      rois: scaleRois(config, resolution),
+    };
   }
 
   async remove(id: string) {

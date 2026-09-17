@@ -3,6 +3,7 @@ import api from "./api";
 import {
   type CreateOcrProfileDto,
   type OcrProfile,
+  type ScaledRoisPayload,
   type UpdateOcrProfileDto,
 } from "@/types/ocr-profile";
 import { type TournamentGame } from "@/types/tournament";
@@ -43,6 +44,21 @@ export async function updateOcrProfile(
 
 export async function setDefaultOcrProfile(id: string): Promise<OcrProfile> {
   const response = await api.post(`/ocr-profiles/${id}/default`);
+
+  return response.data.data;
+}
+
+export async function getScaledRois(
+  id: string,
+  width?: number,
+  height?: number,
+): Promise<ScaledRoisPayload> {
+  const response = await api.get(`/ocr-profiles/${id}/rois`, {
+    params: {
+      width: width ?? undefined,
+      height: height ?? undefined,
+    },
+  });
 
   return response.data.data;
 }
