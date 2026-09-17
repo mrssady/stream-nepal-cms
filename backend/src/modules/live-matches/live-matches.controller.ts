@@ -235,4 +235,29 @@ export class LiveMatchesController {
       profileId,
     });
   }
+
+  @Get(':id/ocr/review')
+  @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER)
+  ocrReview(@Param('id') id: string) {
+    return this.ocrMonitor.review(id);
+  }
+
+  @Post(':id/ocr/review/:candidateId/approve')
+  @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER)
+  approveOcrCandidate(
+    @Param('id') id: string,
+    @Param('candidateId') candidateId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.ocrMonitor.approve(id, candidateId, user);
+  }
+
+  @Post(':id/ocr/review/:candidateId/reject')
+  @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER)
+  rejectOcrCandidate(
+    @Param('id') id: string,
+    @Param('candidateId') candidateId: string,
+  ) {
+    return this.ocrMonitor.reject(id, candidateId);
+  }
 }

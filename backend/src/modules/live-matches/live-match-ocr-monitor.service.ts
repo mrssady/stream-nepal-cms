@@ -1,10 +1,12 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   Logger,
   NotFoundException,
   OnModuleDestroy,
 } from '@nestjs/common';
+import { MatchEventSource } from '@prisma/client';
 
 import { OcrProfilesService } from './ocr-profiles.service';
 import { type OcrProfileConfig, REFERENCE_RESOLUTION } from './ocr/ocr-config';
@@ -13,12 +15,21 @@ import { OcrAnalysisEngine } from './ocr/ocr-engine';
 import { MockSpectatorProvider } from './ocr/mock-spectator-provider';
 import { buildMonitorScene } from './ocr/ocr-monitor-scene';
 import {
+  buildCandidate,
+  hasOpenCandidate,
+  type ReviewCandidate,
+} from './ocr/ocr-review';
+import {
   type AnalyzeResult,
   type FrameAnalysis,
   type OcrFrame,
 } from './ocr/ocr-types';
+import { LiveMatchEventsService } from './live-match-events.service';
 import { LiveMatchRealtimeGateway } from './live-match-realtime.gateway';
 import { LiveMatchStateService } from './live-match-state.service';
+import type { AuthenticatedUser } from '../../common/decorators/current-user.decorator';
+
+const MAX_CANDIDATES = 100;
 
 interface OcrMonitorSession {
   matchId: string;
@@ -57,6 +68,9 @@ export interface OcrMonitorStatus {
   detections: number;
   uncertainSignals: number;
   suggestedEvents: number;
+  pendingCandidates: number;
+  approvedCandidates: number;
+  rejectedCandidates: number;
   startedAt: string | null;
   stoppedAt: string | null;
   lastError: string | null;
@@ -67,11 +81,14 @@ export interface OcrMonitorStatus {
 export class LiveMatchOcrMonitorService implements OnModuleDestroy {
   private readonly logger = new Logger(LiveMatchOcrMonitorService.name);
   private readonly monitors = new Map<string, OcrMonitorSession>();
+  private readonly reviews = new Map<string, ReviewCandidate[]>();
+  private readonly approving = new Set<string>();
 
   constructor(
     private readonly stateService: LiveMatchStateService,
     private readonly profilesService: OcrProfilesService,
     private readonly gateway: LiveMatchRealtimeGateway,
+    private readonly eventsService: LiveMatchEventsService,
   ) {}
 
   async start(
@@ -196,6 +213,9 @@ export class LiveMatchOcrMonitorService implements OnModuleDestroy {
         detections: 0,
         uncertainSignals: 0,
         suggestedEvents: 0,
+        pendingCandidates: 0,
+        approvedCandidates: 0,
+        rejectedCandidates: 0,
         startedAt: null,
         stoppedAt: null,
         lastError: null,
@@ -303,6 +323,12 @@ export class LiveMatchOcrMonitorService implements OnModuleDestroy {
         if (detection.suggestedEvent) {
           session.suggestedEvents += 1;
         }
+
+        const candidate = buildCandidate(session.matchId, detection);
+
+        if (candidate) {
+          this.enqueue(session.matchId, candidate);
+        }
       }
 
       session.lastAnalysis = analysis;
@@ -323,6 +349,8 @@ export class LiveMatchOcrMonitorService implements OnModuleDestroy {
   }
 
   private toStatus(session: OcrMonitorSession): OcrMonitorStatus {
+    const counts = this.candidateCounts(session.matchId);
+
     return {
       running: session.running,
       matchId: session.matchId,
@@ -335,11 +363,173 @@ export class LiveMatchOcrMonitorService implements OnModuleDestroy {
       detections: session.detections,
       uncertainSignals: session.uncertainSignals,
       suggestedEvents: session.suggestedEvents,
+      pendingCandidates: counts.pending,
+      approvedCandidates: counts.approved,
+      rejectedCandidates: counts.rejected,
       startedAt: session.startedAt ?? null,
       stoppedAt: session.stoppedAt ?? null,
       lastError: session.lastError ?? null,
       lastAnalysis: session.lastAnalysis ?? null,
     };
+  }
+
+  private candidateCounts(matchId: string): {
+    pending: number;
+    approved: number;
+    rejected: number;
+  } {
+    const queue = this.reviews.get(matchId) ?? [];
+    let pending = 0;
+    let approved = 0;
+    let rejected = 0;
+
+    for (const candidate of queue) {
+      if (candidate.status === 'PENDING') {
+        pending++;
+      } else if (candidate.status === 'APPROVED') {
+        approved++;
+      } else {
+        rejected++;
+      }
+    }
+
+    return { pending, approved, rejected };
+  }
+
+  private enqueue(matchId: string, candidate: ReviewCandidate): void {
+    const queue = this.reviews.get(matchId) ?? [];
+
+    if (hasOpenCandidate(queue, candidate.fingerprint)) {
+      return;
+    }
+
+    queue.push(candidate);
+
+    if (queue.length > MAX_CANDIDATES) {
+      const decidedIndex = queue.findIndex((item) => item.status !== 'PENDING');
+
+      if (decidedIndex >= 0) {
+        queue.splice(decidedIndex, 1);
+      } else {
+        queue.shift();
+      }
+    }
+
+    this.reviews.set(matchId, queue);
+  }
+
+  // Review queue (spec 20/21): pending candidates from confirmed detections,
+  // newest first. Survives monitor stop so the operator can decide later.
+  review(matchId: string): {
+    matchId: string;
+    count: number;
+    candidates: ReviewCandidate[];
+  } {
+    const queue = this.reviews.get(matchId) ?? [];
+
+    return {
+      matchId,
+      count: queue.length,
+      candidates: [...queue].reverse(),
+    };
+  }
+
+  // Approving wires the candidate into the production scorer as a SYSTEM
+  // match event (spec 30). Only ZONE_TIMER / ZONE_STARTED can be wired, the
+  // match must be LIVE and unlocked, and zone progression cannot go backwards.
+  async approve(
+    matchId: string,
+    candidateId: string,
+    actor?: AuthenticatedUser,
+  ): Promise<{ candidate: ReviewCandidate; event: { id: string } }> {
+    const queue = this.reviews.get(matchId);
+    const candidate = queue?.find((item) => item.id === candidateId);
+
+    if (!candidate) {
+      throw new NotFoundException('OCR review candidate not found');
+    }
+
+    if (candidate.status !== 'PENDING') {
+      throw new ConflictException(
+        `Candidate is already ${candidate.status.toLowerCase()}`,
+      );
+    }
+
+    if (this.approving.has(candidateId)) {
+      throw new ConflictException('Candidate is already being approved');
+    }
+
+    this.approving.add(candidateId);
+
+    try {
+      const match = await this.stateService.findMatch(matchId);
+
+      if (match.lockedAt) {
+        throw new ConflictException('Live match is locked');
+      }
+
+      const state = await this.stateService.getState(matchId);
+
+      if (state.status !== 'LIVE') {
+        throw new BadRequestException(
+          'Match must be LIVE before OCR events can be wired',
+        );
+      }
+
+      if (candidate.kind === 'ZONE_STARTED') {
+        const candidatePhase = Number(candidate.payload.phase);
+        const currentPhase = state.zone.phase;
+
+        if (
+          Number.isInteger(candidatePhase) &&
+          currentPhase !== null &&
+          candidatePhase <= currentPhase
+        ) {
+          throw new BadRequestException(
+            'Stale ZONE_STARTED: candidate phase is not ahead of the current zone phase',
+          );
+        }
+      }
+
+      const result = await this.eventsService.append(
+        matchId,
+        {
+          kind: candidate.kind,
+          source: MatchEventSource.SYSTEM,
+          confidence: candidate.confidence,
+          payload: candidate.payload,
+        },
+        actor,
+      );
+
+      candidate.status = 'APPROVED';
+      candidate.decidedAt = Date.now();
+      candidate.emittedEventId = result.event.id;
+
+      return { candidate, event: { id: result.event.id } };
+    } finally {
+      this.approving.delete(candidateId);
+    }
+  }
+
+  reject(matchId: string, candidateId: string): { candidate: ReviewCandidate } {
+    const queue = this.reviews.get(matchId);
+    const candidate = queue?.find((item) => item.id === candidateId);
+
+    if (!candidate) {
+      throw new NotFoundException('OCR review candidate not found');
+    }
+
+    if (candidate.status !== 'PENDING') {
+      throw new ConflictException(
+        `Candidate is already ${candidate.status.toLowerCase()}`,
+      );
+    }
+
+    candidate.status = 'REJECTED';
+    candidate.decidedAt = Date.now();
+
+    return { candidate };
   }
 
   onModuleDestroy() {
@@ -350,6 +540,7 @@ export class LiveMatchOcrMonitorService implements OnModuleDestroy {
     }
 
     this.monitors.clear();
+    this.reviews.clear();
   }
 }
 
