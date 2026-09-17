@@ -50,6 +50,26 @@ export interface PlacementEntry {
   placement: number;
 }
 
+export interface ZoneState {
+  phase: number | null;
+  startedAt: string | null;
+  timerSeconds: number | null;
+  timerSetAt: string | null;
+}
+
+export interface EventDerived {
+  teamId?: string;
+  teamName?: string;
+  shortName?: string;
+  placement?: number | null;
+  placementPoints?: number;
+  isWinner?: boolean;
+  killerTeamId?: string | null;
+  victimTeamId?: string | null;
+  killerTeamShort?: string | null;
+  victimTeamShort?: string | null;
+}
+
 export interface MatchEventRecord {
   id: string;
   seq: number;
@@ -58,6 +78,7 @@ export interface MatchEventRecord {
   confidence?: number | null;
   payload: Record<string, unknown>;
   timestamp: string;
+  derived?: EventDerived;
 }
 
 export interface MatchState {
@@ -72,6 +93,8 @@ export interface MatchState {
   pausedAt: string | null;
   locked: boolean;
   winnerTeamId: string | null;
+  zone: ZoneState;
+  zoneCount: number;
   teams: Record<string, TeamStanding>;
   players: Record<string, PlayerSnapshot>;
   scoreboard: TeamStanding[];
@@ -95,6 +118,7 @@ export interface SnapshotPayload {
     killPoint: number;
     booyahBonus: number;
     placementPoints: Record<string, number>;
+    zoneCount: number;
   };
   state: MatchState;
   participantCount: number;

@@ -22,6 +22,7 @@ export class PublicLiveMatchesController {
       killPoint: 1,
       booyahBonus: 0,
       placementPoints: {} as Record<string, number>,
+      zoneCount: 8,
     };
 
     if (match.tournament.scoringRuleId) {
@@ -36,6 +37,7 @@ export class PublicLiveMatchesController {
           booyahBonus: scoringRule.booyahBonus,
           placementPoints:
             (scoringRule.placementPoints as Record<string, number>) ?? {},
+          zoneCount: scoringRule.zoneCount,
         };
       }
     } else {
@@ -53,6 +55,7 @@ export class PublicLiveMatchesController {
           booyahBonus: defaultRule.booyahBonus,
           placementPoints:
             (defaultRule.placementPoints as Record<string, number>) ?? {},
+          zoneCount: defaultRule.zoneCount,
         };
       }
     }

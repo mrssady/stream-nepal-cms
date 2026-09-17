@@ -679,6 +679,8 @@ enum MatchEventKind {
   PLACEMENT_CONFIRMED
   PLACEMENT_SET
   WINNER_DECLARED
+  ZONE_STARTED
+  ZONE_TIMER
   MANUAL_CORRECTION
   UNDO
   MATCH_LOCKED
@@ -698,6 +700,8 @@ model ScoringRule {
   placementPoints Json // { "1": 12, "2": 10, ... } indexed by placement
   booyahBonus     Int  @default(0)
   penaltyPoints   Int  @default(0)
+
+  zoneCount Int @default(8) // number of zone phases (PUBG Mobile = 8, Free Fire = 6)
 
   tiebreakers Json // ["points","killPoints","placementPoints","kills","bestPlacement"]
 

@@ -100,6 +100,7 @@ async function main() {
       },
       booyahBonus: 0,
       penaltyPoints: 0,
+      zoneCount: 8,
       tiebreakers: [
         "points",
         "killPoints",
@@ -171,6 +172,7 @@ async function main() {
       },
       booyahBonus: 2,
       penaltyPoints: 0,
+      zoneCount: 6,
       tiebreakers: [
         "points",
         "killPoints",

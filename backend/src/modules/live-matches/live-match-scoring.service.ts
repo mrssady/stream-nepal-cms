@@ -15,6 +15,7 @@ import {
   PlacementEntry,
   PlayerSnapshot,
   TeamStanding,
+  ZoneState,
 } from './types/match-state.interface';
 
 export interface RosterTeamPlayer {
@@ -139,6 +140,12 @@ export class LiveMatchScoringService {
     let winnerTeamId: string | null = null;
     let locked = false;
     let totalTeams = 0;
+    let zone: ZoneState = {
+      phase: null,
+      startedAt: null,
+      timerSeconds: null,
+      timerSetAt: null,
+    };
 
     const ensureTeam = (teamId: string, roster?: RosterTeam): TeamStanding => {
       if (!teams[teamId]) {
@@ -466,6 +473,34 @@ export class LiveMatchScoringService {
           locked = false;
           break;
         }
+        case MatchEventKind.ZONE_STARTED: {
+          const phase = this.num(payload.phase);
+
+          if (phase !== null && phase >= 1) {
+            zone = {
+              ...zone,
+              phase,
+              startedAt: new Date(event.timestamp).toISOString(),
+            };
+          }
+
+          break;
+        }
+        case MatchEventKind.ZONE_TIMER: {
+          const seconds = this.num(payload.seconds);
+          const phase = this.num(payload.phase);
+
+          if (seconds !== null && seconds >= 0) {
+            zone = {
+              ...zone,
+              phase: phase && phase >= 1 ? phase : zone.phase,
+              timerSeconds: seconds,
+              timerSetAt: new Date(event.timestamp).toISOString(),
+            };
+          }
+
+          break;
+        }
         default: {
           applyExecution(event);
           break;
@@ -521,6 +556,8 @@ export class LiveMatchScoringService {
       pausedAt,
       locked,
       winnerTeamId,
+      zone,
+      zoneCount: rule?.zoneCount ?? 8,
       teams,
       players,
       scoreboard,

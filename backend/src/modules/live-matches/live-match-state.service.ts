@@ -79,6 +79,11 @@ export class LiveMatchStateService {
     });
   }
 
+  async getRule(matchId: string): Promise<ScoringRule | null> {
+    const match = await this.findMatch(matchId);
+    return this.resolveRule(match.tournament);
+  }
+
   async compute(matchId: string): Promise<MatchState> {
     const match = await this.findMatch(matchId);
     const rule = await this.resolveRule(match.tournament);

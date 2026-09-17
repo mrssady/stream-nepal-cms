@@ -19,7 +19,11 @@ import { LiveMatchStateService } from './live-match-state.service';
 import { LiveMatchRealtimeGateway } from './live-match-realtime.gateway';
 import { AppendMatchEventDto } from './dto/append-match-event.dto';
 import { UndoLiveMatchDto } from './dto/undo-live-match.dto';
-import { MatchEventRecord, MatchState } from './types/match-state.interface';
+import {
+  EventDerived,
+  MatchEventRecord,
+  MatchState,
+} from './types/match-state.interface';
 
 const EVENT_UPPER_CASE = new Map<string, MatchEventKind>(
   Object.values(MatchEventKind).map((kind) => [kind.toUpperCase(), kind]),
@@ -132,6 +136,14 @@ export class LiveMatchEventsService {
         }
         break;
       }
+      case MatchEventKind.ZONE_STARTED: {
+        this.requirePayload(kind, payload, ['phase']);
+        break;
+      }
+      case MatchEventKind.ZONE_TIMER: {
+        this.requirePayload(kind, payload, ['seconds']);
+        break;
+      }
       case MatchEventKind.UNDO: {
         if (!payload.eventId && !payload.seq) {
           throw new BadRequestException(
@@ -144,6 +156,101 @@ export class LiveMatchEventsService {
         break;
       }
     }
+  }
+
+  private validateZonePayload(
+    kind: MatchEventKind,
+    payload: Record<string, unknown>,
+    zoneCount: number,
+  ): void {
+    const phase = payload.phase;
+
+    if (phase !== undefined) {
+      if (
+        typeof phase !== 'number' ||
+        !Number.isInteger(phase) ||
+        phase < 1 ||
+        phase > zoneCount
+      ) {
+        throw new BadRequestException(
+          `Zone "phase" must be an integer from 1 to ${zoneCount}`,
+        );
+      }
+    }
+
+    if (kind === MatchEventKind.ZONE_TIMER) {
+      const seconds = payload.seconds;
+
+      if (
+        typeof seconds !== 'number' ||
+        !Number.isInteger(seconds) ||
+        seconds < 0 ||
+        seconds > 600
+      ) {
+        throw new BadRequestException(
+          'Zone "seconds" must be an integer from 0 to 600',
+        );
+      }
+    }
+
+    if (kind === MatchEventKind.ZONE_STARTED && typeof phase !== 'number') {
+      throw new BadRequestException(
+        'ZONE_STARTED requires a numeric "phase" in payload',
+      );
+    }
+  }
+
+  private deriveContext(
+    kind: MatchEventKind,
+    payload: Record<string, unknown>,
+    state: MatchState,
+  ): EventDerived | undefined {
+    const teamId =
+      typeof payload.teamId === 'string'
+        ? payload.teamId
+        : typeof payload.targetTeamId === 'string'
+          ? payload.targetTeamId
+          : null;
+
+    if (teamId && state.teams[teamId]) {
+      const team = state.teams[teamId];
+
+      return {
+        teamId,
+        teamName: team.teamName,
+        shortName: team.shortName,
+        placement: team.placement,
+        placementPoints: team.placementPoints,
+        isWinner: team.isWinner,
+      };
+    }
+
+    if (kind === MatchEventKind.PLAYER_KILLED) {
+      const killerId =
+        typeof payload.killerId === 'string' ? payload.killerId : null;
+      const victimId =
+        typeof payload.victimId === 'string' ? payload.victimId : null;
+
+      const killerTeamId = killerId
+        ? (state.players[killerId]?.teamId ?? null)
+        : null;
+      const victimTeamId = victimId
+        ? (state.players[victimId]?.teamId ?? null)
+        : null;
+
+      return {
+        killerTeamId,
+        victimTeamId,
+        killerTeamShort: killerTeamId
+          ? (state.teams[killerTeamId]?.shortName ?? null)
+          : null,
+        victimTeamShort: victimTeamId
+          ? (state.teams[victimTeamId]?.shortName ?? null)
+          : null,
+      };
+    }
+
+    return undefined;
   }
 
   private autoFingerprint(
@@ -226,6 +333,14 @@ export class LiveMatchEventsService {
 
       this.validateKindPayload(kind, payload);
 
+      if (
+        kind === MatchEventKind.ZONE_STARTED ||
+        kind === MatchEventKind.ZONE_TIMER
+      ) {
+        const rule = await this.stateService.getRule(matchId);
+        this.validateZonePayload(kind, payload, rule?.zoneCount ?? 8);
+      }
+
       if (actor) {
         const user = await this.prisma.user.findUnique({
           where: { id: actor.id },
@@ -293,8 +408,12 @@ export class LiveMatchEventsService {
 
       const state = await this.stateService.recompute(matchId);
       const record = this.toRecord(event);
+      const enriched = this.deriveContext(kind, payload, state);
 
-      this.realtime.emitEvent(matchId, record);
+      this.realtime.emitEvent(
+        matchId,
+        enriched ? { ...record, derived: enriched } : record,
+      );
       this.realtime.notify(matchId);
 
       return { event: record, state };
