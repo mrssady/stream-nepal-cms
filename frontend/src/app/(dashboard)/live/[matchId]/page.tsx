@@ -1,6 +1,7 @@
 "use client";
 
 import { use, useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 
 import {
   Copy,
@@ -23,7 +24,7 @@ import {
   Zap,
 } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 import { useLiveMatch } from "@/hooks/useLiveMatch";
@@ -809,6 +810,17 @@ export default function LiveControlPage({
                     <Square className="size-4" />
                     Stop
                   </Button>
+
+                  <Link
+                    href="/live/ocr-profiles"
+                    className={buttonVariants({
+                      variant: "outline",
+                      size: "sm",
+                    })}
+                  >
+                    <ScanLine className="size-4" />
+                    Profiles
+                  </Link>
                 </div>
 
                 {ocr && (

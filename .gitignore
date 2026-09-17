@@ -33,3 +33,5 @@ coverage/
 
 # Turbopack
 .turbo/
+# OCR calibration footage (local only)
+backend/ocr-footage/

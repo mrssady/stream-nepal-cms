@@ -10,6 +10,7 @@ import {
   Handshake,
   LayoutDashboard,
   Radio,
+  ScanLine,
   Settings,
   Trophy,
   Users,
@@ -42,6 +43,11 @@ const mainMenu = [
     name: "Live",
     href: "/live",
     icon: Radio,
+  },
+  {
+    name: "OCR Profiles",
+    href: "/live/ocr-profiles",
+    icon: ScanLine,
   },
   {
     name: "Users",

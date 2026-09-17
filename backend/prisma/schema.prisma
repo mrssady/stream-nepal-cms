@@ -771,6 +771,31 @@ model MatchEvent {
 }
 
 // ============================================================
+// OCR / SCREEN ANALYSIS
+// ============================================================
+
+model OcrProfile {
+  id String @id @default(cuid())
+
+  game   TournamentGame
+  name   String
+  width  Int
+  height Int
+
+  // { resolution: { width, height }, rois: [...], preprocessing: { [key]: {...} } }
+  config Json
+
+  isDefault Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([game, name])
+  @@index([game])
+  @@index([isDefault])
+}
+
+// ============================================================
 // MEDIA / GALLERY
 // ============================================================
 

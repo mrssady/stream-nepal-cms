@@ -338,6 +338,8 @@ Working
 
 ✅ Live Match Zone OCR (backend + panel) - mock dry-run detector, OCR start/stop/status, auto ZONE_* emission
 
+✅ OCR Profiles - backend CRUD + default seed + frontend management page (calibration-ready config)
+
 Current Screen
 
 Phase 2 (broadcast) is feature-complete for the manual + GFX + OCR-dry-run flow:
@@ -353,6 +355,22 @@ ZONE_STARTED / ZONE_TIMER events; panel has Start/Stop + live status. Video OCR
 (real footage) is stubbed and returns 400 until an observer clip is provided to
 calibrate ROI + install OCR deps. Next: player death overlay / point-pop extras.
 
+OCR Profiles (Phase 3 groundwork - profile management)
+
+- Prisma model: OcrProfile (game / name / width / height / config JSON / isDefault)
+  + migration add_ocr_profiles, unique [game, name], index [game], [isDefault]
+- Backend CRUD: GET/POST /api/ocr-profiles, GET/PATCH/DELETE /:id, POST /:id/default
+  - OWNER/ADMIN manage; MANAGER read-only
+  - Auto-first-default on create; transactional set-default per game
+  - Guards: unique name per game, cannot delete the last default per game
+- Seed: default profiles for PUBG Mobile + Free Fire (1920x1080, resolution /
+  rois / preprocessing config stub)
+- Frontend: /live/ocr-profiles dashboard page (sidebar + control-panel link):
+  - Game filter, cards with resolution + ROI count + default badge
+  - Create/edit forms (game, name, width, height, JSON config editor),
+    set-default, delete
+- Config shape reserved for calibration: { resolution, rois[], preprocessing{} }
+
 ---
 
 # Next Tasks
@@ -363,7 +381,7 @@ calibrate ROI + install OCR deps. Next: player death overlay / point-pop extras.
 4. Roles Management
 5. Media upload integration (Cloudinary / local uploads)
 6. Organization switching
-7. OCR / auto-capture pipeline (mock dry-run shipped; real footage calibration pending)
+7. OCR / auto-capture pipeline (mock dry-run shipped; OCR profile management shipped; real footage calibration pending)
 
 ---
 
@@ -422,8 +440,10 @@ Completed
 - Live Match Zone Engine (backend) - zone phases/timers + enriched realtime, Phase 2 backend
 - Live Match Broadcast GFX (frontend) - panel zone controls + animations + preview, Phase 2 frontend
 - Live Match Zone OCR (backend + panel) - mock dry-run detector + panel controls, Phase 3 OCR scaffolding
+- OCR Profiles (backend + seed + frontend) - per-game calibration profile CRUD, Phase 3 OCR grounding
 
 Next Commit
 
 Real video OCR calibration once observer footage is provided (ROI + tesseract/ffmpeg);
+wire OCR session start to select an OcrProfile;
 optional GFX extras (player death overlay, point pops)

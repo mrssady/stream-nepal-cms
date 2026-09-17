@@ -223,6 +223,77 @@ async function main() {
   if (pubgRule && freeFireRule) {
     console.log("✅ Scoring rules upserted");
   }
+
+  // Default OCR profiles (zone HUD capture calibration foundations)
+  const pubgOcrProfile = await prisma.ocrProfile.upsert({
+    where: {
+      id: "ocr_pubg_default",
+    },
+    update: {
+      name: "PUBG Mobile Standard HUD",
+      game: TournamentGame.PUBG_MOBILE,
+      width: 1920,
+      height: 1080,
+      config: {
+        resolution: { width: 1920, height: 1080 },
+        rois: [],
+        preprocessing: {},
+      },
+      isDefault: true,
+    },
+    create: {
+      id: "ocr_pubg_default",
+      name: "PUBG Mobile Standard HUD",
+      game: TournamentGame.PUBG_MOBILE,
+      width: 1920,
+      height: 1080,
+      config: {
+        resolution: { width: 1920, height: 1080 },
+        rois: [],
+        preprocessing: {},
+      },
+      isDefault: true,
+    },
+  });
+
+  const freeFireOcrProfile = await prisma.ocrProfile.upsert({
+    where: {
+      id: "ocr_free_fire_default",
+    },
+    update: {
+      name: "Free Fire Standard HUD",
+      game: TournamentGame.FREE_FIRE,
+      width: 1920,
+      height: 1080,
+      config: {
+        resolution: { width: 1920, height: 1080 },
+        rois: [],
+        preprocessing: {},
+      },
+      isDefault: true,
+    },
+    create: {
+      id: "ocr_free_fire_default",
+      name: "Free Fire Standard HUD",
+      game: TournamentGame.FREE_FIRE,
+      width: 1920,
+      height: 1080,
+      config: {
+        resolution: { width: 1920, height: 1080 },
+        rois: [],
+        preprocessing: {},
+      },
+      isDefault: true,
+    },
+  });
+
+  console.log(
+    "✅ Default OCR profiles ready (PUBG + Free Fire)",
+  );
+
+  if (pubgOcrProfile && freeFireOcrProfile) {
+    console.log("✅ OCR profiles upserted");
+  }
 }
 
 main()
