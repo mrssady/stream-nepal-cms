@@ -23,6 +23,7 @@ import { LiveMatchesService } from './live-matches.service';
 import { LiveMatchEventsService } from './live-match-events.service';
 import { LiveMatchStateService } from './live-match-state.service';
 import { LiveMatchOcrService } from './live-match-ocr.service';
+import { LiveMatchOcrMonitorService } from './live-match-ocr-monitor.service';
 
 import { CreateLiveMatchDto } from './dto/create-live-match.dto';
 import { UpdateLiveMatchDto } from './dto/update-live-match.dto';
@@ -31,6 +32,7 @@ import { UndoLiveMatchDto } from './dto/undo-live-match.dto';
 import { ReasonDto } from './dto/reason.dto';
 import { StartZoneOcrDto } from './dto/start-zone-ocr.dto';
 import { AnalyzeOcrDto } from './dto/analyze-ocr.dto';
+import { StartOcrMonitorDto } from './dto/start-ocr-monitor.dto';
 
 @Controller('live-matches')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -40,6 +42,7 @@ export class LiveMatchesController {
     private readonly eventsService: LiveMatchEventsService,
     private readonly stateService: LiveMatchStateService,
     private readonly ocrService: LiveMatchOcrService,
+    private readonly ocrMonitor: LiveMatchOcrMonitorService,
     private readonly activityLogs: ActivityLogsService,
   ) {}
 
@@ -192,5 +195,44 @@ export class LiveMatchesController {
   @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER)
   analyzeOcr(@Param('id') id: string, @Body() dto: AnalyzeOcrDto) {
     return this.ocrService.analyze(id, dto);
+  }
+
+  @Post(':id/ocr/monitor/start')
+  @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER)
+  startOcrMonitor(@Param('id') id: string, @Body() dto: StartOcrMonitorDto) {
+    return this.ocrMonitor.start(id, dto);
+  }
+
+  @Post(':id/ocr/monitor/stop')
+  @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER)
+  stopOcrMonitor(@Param('id') id: string) {
+    return this.ocrMonitor.stop(id);
+  }
+
+  @Get(':id/ocr/monitor/status')
+  @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER)
+  ocrMonitorStatus(@Param('id') id: string) {
+    return this.ocrMonitor.status(id);
+  }
+
+  @Get(':id/ocr/monitor/latest')
+  @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER)
+  ocrMonitorLatest(@Param('id') id: string) {
+    return this.ocrMonitor.latest(id);
+  }
+
+  @Get(':id/ocr/overlay')
+  @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER)
+  ocrOverlay(
+    @Param('id') id: string,
+    @Query('width') width?: string,
+    @Query('height') height?: string,
+    @Query('profileId') profileId?: string,
+  ) {
+    return this.ocrMonitor.overlay(id, {
+      width: width ? Number(width) : undefined,
+      height: height ? Number(height) : undefined,
+      profileId,
+    });
   }
 }

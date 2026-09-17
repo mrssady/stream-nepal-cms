@@ -73,6 +73,10 @@ export class LiveMatchRealtimeGateway {
     this.server.to(this.room(matchId)).emit('match:event', event);
   }
 
+  emitAnalysis(matchId: string, payload: unknown): void {
+    this.server.to(this.room(matchId)).emit('match:ocr:analysis', payload);
+  }
+
   notify(matchId: string): void {
     const existing = this.pendingState.get(matchId);
 

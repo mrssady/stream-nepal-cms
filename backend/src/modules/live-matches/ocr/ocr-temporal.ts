@@ -1,4 +1,12 @@
 // Temporal validation (spec: never trust a single frame).
+//
+// Sliding-window rule over the last (confirmations * 2) values:
+//  - CONFIRMED: the last `confirmations` values are identical.
+//  - UNCERTAIN:  the window is full and a streak never formed (the value is
+//    alternating, e.g. 8,9,8,9) -> send to manual review.
+//  - PENDING:   not enough frames yet, or a recent change that is still
+//    settling in. A stat that changes once and then stabilizes re-confirms
+//    cleanly instead of being flagged.
 
 export type TemporalVerdict = 'CONFIRMED' | 'UNCERTAIN' | 'PENDING';
 
@@ -9,53 +17,48 @@ export interface TemporalResult {
 }
 
 export class TemporalTracker {
-  private readonly windows = new Map<
-    string,
-    { sequence: string[]; seen: number }
-  >();
+  private readonly windows = new Map<string, { sequence: string[] }>();
 
   constructor(private readonly confirmations: number = 3) {}
 
   push(windowKey: string, token: string): TemporalResult {
-    const entry = this.windows.get(windowKey) ?? {
-      sequence: [],
-      seen: 0,
-    };
+    const limit = this.confirmations * 2;
 
-    entry.seen += 1;
+    const entry = this.windows.get(windowKey) ?? { sequence: [] };
+
     entry.sequence.push(token);
 
-    if (entry.sequence.length > this.confirmations) {
-      entry.sequence = entry.sequence.slice(-this.confirmations);
+    if (entry.sequence.length > limit) {
+      entry.sequence = entry.sequence.slice(-limit);
     }
 
     this.windows.set(windowKey, entry);
 
+    const recent = entry.sequence.slice(-this.confirmations);
     const allEqual =
-      entry.sequence.length >= this.confirmations &&
-      entry.sequence.every((value) => value === token);
+      recent.length >= this.confirmations &&
+      recent.every((value) => value === token);
 
     if (allEqual) {
       return {
         verdict: 'CONFIRMED',
-        confirmations: entry.sequence.length,
-        framesSeen: entry.seen,
+        confirmations: recent.length,
+        framesSeen: entry.sequence.length,
       };
     }
 
-    // Values keep alternating / mixed (8,9,8,9) -> manual review.
-    if (entry.seen >= this.confirmations * 2) {
+    if (entry.sequence.length >= limit) {
       return {
         verdict: 'UNCERTAIN',
-        confirmations: entry.sequence.length,
-        framesSeen: entry.seen,
+        confirmations: recent.length,
+        framesSeen: entry.sequence.length,
       };
     }
 
     return {
       verdict: 'PENDING',
-      confirmations: entry.sequence.length,
-      framesSeen: entry.seen,
+      confirmations: recent.length,
+      framesSeen: entry.sequence.length,
     };
   }
 }

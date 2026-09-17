@@ -9,6 +9,7 @@ import {
   Flag,
   Lock,
   Minus,
+  MonitorCheck,
   Pause,
   Play,
   Plus,
@@ -820,6 +821,17 @@ export default function LiveControlPage({
                   >
                     <ScanLine className="size-4" />
                     Profiles
+                  </Link>
+
+                  <Link
+                    href={`/live/${matchId}/ocr`}
+                    className={buttonVariants({
+                      variant: "outline",
+                      size: "sm",
+                    })}
+                  >
+                    <MonitorCheck className="size-4" />
+                    Monitor
                   </Link>
                 </div>
 

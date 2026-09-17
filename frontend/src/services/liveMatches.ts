@@ -6,7 +6,11 @@ import {
   type LiveMatch,
   type MatchEventRecord,
   type MatchState,
+  type OcrMonitorLatest,
+  type OcrMonitorStatus,
+  type OcrOverlayPayload,
   type SnapshotPayload,
+  type StartOcrMonitorDto,
   type StartZoneOcrDto,
   type UndoLiveMatchDto,
   type UpdateLiveMatchDto,
@@ -138,6 +142,57 @@ export async function stopZoneOcr(id: string): Promise<ZoneOcrStatus> {
 
 export async function getZoneOcrStatus(id: string): Promise<ZoneOcrStatus> {
   const response = await api.get(`/live-matches/${id}/ocr/status`);
+
+  return response.data.data;
+}
+
+export async function startOcrMonitor(
+  id: string,
+  data: StartOcrMonitorDto,
+): Promise<OcrMonitorStatus> {
+  const response = await api.post(
+    `/live-matches/${id}/ocr/monitor/start`,
+    data,
+  );
+
+  return response.data.data;
+}
+
+export async function stopOcrMonitor(
+  id: string,
+): Promise<OcrMonitorStatus> {
+  const response = await api.post(`/live-matches/${id}/ocr/monitor/stop`);
+
+  return response.data.data;
+}
+
+export async function getOcrMonitorStatus(
+  id: string,
+): Promise<OcrMonitorStatus> {
+  const response = await api.get(`/live-matches/${id}/ocr/monitor/status`);
+
+  return response.data.data;
+}
+
+export async function getOcrMonitorLatest(
+  id: string,
+): Promise<OcrMonitorLatest> {
+  const response = await api.get(`/live-matches/${id}/ocr/monitor/latest`);
+
+  return response.data.data;
+}
+
+export async function getOcrOverlay(
+  id: string,
+  width?: number,
+  height?: number,
+): Promise<OcrOverlayPayload> {
+  const response = await api.get(`/live-matches/${id}/ocr/overlay`, {
+    params: {
+      ...(width ? { width } : {}),
+      ...(height ? { height } : {}),
+    },
+  });
 
   return response.data.data;
 }

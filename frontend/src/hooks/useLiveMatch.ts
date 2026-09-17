@@ -6,12 +6,14 @@ import { getLiveSocket } from "@/lib/socket";
 import {
   MatchEventRecord,
   MatchState,
+  OcrFrameAnalysis,
 } from "@/types/live-match";
 
 type LiveMatchHookResult = {
   state: MatchState | null;
   connected: boolean;
   lastEvent: MatchEventRecord | null;
+  ocrAnalysis: OcrFrameAnalysis | null;
 };
 
 export function useLiveMatch(
@@ -23,6 +25,8 @@ export function useLiveMatch(
   const [connected, setConnected] = useState(false);
   const [lastEvent, setLastEvent] =
     useState<MatchEventRecord | null>(null);
+  const [ocrAnalysis, setOcrAnalysis] =
+    useState<OcrFrameAnalysis | null>(null);
 
   useEffect(() => {
     if (!matchId) {
@@ -43,6 +47,10 @@ export function useLiveMatch(
       setLastEvent(event);
     };
 
+    const onOcrAnalysis = (analysis: OcrFrameAnalysis) => {
+      setOcrAnalysis(analysis);
+    };
+
     const onConnect = () => {
       setConnected(true);
       socket.emit("subscribe", matchId);
@@ -55,6 +63,7 @@ export function useLiveMatch(
     socket.on("match:init", onInit);
     socket.on("match:state", onState);
     socket.on("match:event", onEvent);
+    socket.on("match:ocr:analysis", onOcrAnalysis);
     socket.on("connect", onConnect);
     socket.on("disconnect", onDisconnect);
 
@@ -71,10 +80,11 @@ export function useLiveMatch(
       socket.off("match:init", onInit);
       socket.off("match:state", onState);
       socket.off("match:event", onEvent);
+      socket.off("match:ocr:analysis", onOcrAnalysis);
       socket.off("connect", onConnect);
       socket.off("disconnect", onDisconnect);
     };
   }, [matchId]);
 
-  return { state, connected, lastEvent };
+  return { state, connected, lastEvent, ocrAnalysis };
 }

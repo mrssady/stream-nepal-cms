@@ -11,6 +11,7 @@ import { LiveMatchStateService } from './live-match-state.service';
 import { LiveMatchScoringService } from './live-match-scoring.service';
 import { LiveMatchEventsService } from './live-match-events.service';
 import { LiveMatchOcrService } from './live-match-ocr.service';
+import { LiveMatchOcrMonitorService } from './live-match-ocr-monitor.service';
 import { OcrProfilesService } from './ocr-profiles.service';
 import { LiveMatchRealtimeGateway } from './live-match-realtime.gateway';
 
@@ -27,6 +28,7 @@ import { LiveMatchRealtimeGateway } from './live-match-realtime.gateway';
     LiveMatchScoringService,
     LiveMatchEventsService,
     LiveMatchOcrService,
+    LiveMatchOcrMonitorService,
     OcrProfilesService,
     LiveMatchRealtimeGateway,
   ],

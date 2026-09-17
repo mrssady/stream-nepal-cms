@@ -38,4 +38,18 @@ describe('TemporalTracker', () => {
     expect(tracker.push('b', 'X').verdict).toBe('PENDING');
     expect(tracker.push('b', 'X').verdict).toBe('CONFIRMED');
   });
+
+  it('flags a one-time change for review, then re-confirms the new value', () => {
+    const tracker = new TemporalTracker(3);
+
+    for (let i = 0; i < 10; i++) {
+      tracker.push('stat', '0');
+    }
+
+    // A stat change trips the review signal (spec: old 0 -> new 1 must be
+    // validated), then the new stable value re-confirms cleanly.
+    expect(tracker.push('stat', '1').verdict).toBe('UNCERTAIN');
+    expect(tracker.push('stat', '1').verdict).toBe('UNCERTAIN');
+    expect(tracker.push('stat', '1').verdict).toBe('CONFIRMED');
+  });
 });

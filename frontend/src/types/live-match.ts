@@ -224,3 +224,114 @@ export type ZoneOcrStatus = {
   stoppedAt: string | null;
   lastError: string | null;
 };
+
+export type OcrConfidenceTier = "HIGH" | "REVIEW" | "REJECT";
+
+export type OcrDetectionKind =
+  | "MATCH_HEADER"
+  | "TEAM_ELIMINATIONS"
+  | "OBSERVER_PLAYER_LIST"
+  | "ZONE_INFO"
+  | "CURRENT_TEAM"
+  | "PLAYER_STATS"
+  | "UNKNOWN";
+
+export type OcrSuggestedEvent = {
+  kind: string;
+  source: "SYSTEM";
+  confidence: number;
+  suggestedOnly: true;
+  payload: Record<string, unknown>;
+};
+
+export type OcrConfirmedDetection = {
+  roiKey: string;
+  kind: OcrDetectionKind;
+  value: Record<string, unknown>;
+  confidence: number;
+  tier: OcrConfidenceTier;
+  rawText: string;
+  timestamp: number;
+  fingerprint: string;
+  suggestedEvent?: OcrSuggestedEvent | null;
+};
+
+export type OcrUncertainReason =
+  | "ALTERNATING_READINGS"
+  | "AMBIGUOUS_TEAM"
+  | "REVIEW_CONFIDENCE";
+
+export type OcrUncertainSignal = {
+  roiKey: string;
+  kind: OcrDetectionKind;
+  reason: OcrUncertainReason;
+  candidates: Array<{ value: Record<string, unknown>; confidence: number }>;
+  timestamp: number;
+};
+
+export type OcrFrameAnalysis = {
+  frame: number;
+  detections: OcrConfirmedDetection[];
+  uncertain: OcrUncertainSignal[];
+  readingsProcessed: number;
+  at: number;
+};
+
+export type StartOcrMonitorDto = {
+  profileId?: string;
+  intervalMs?: number;
+  confirmations?: number;
+  dedupWindowMs?: number;
+  noise?: boolean;
+  progress?: boolean;
+  seed?: number;
+  confidenceBase?: number;
+};
+
+export type OcrMonitorStatus = {
+  running: boolean;
+  matchId: string;
+  profileId: string | null;
+  provider: string | null;
+  intervalMs: number | null;
+  frameCount: number;
+  tick: number;
+  readings: number;
+  detections: number;
+  uncertainSignals: number;
+  suggestedEvents: number;
+  startedAt: string | null;
+  stoppedAt: string | null;
+  lastError: string | null;
+  lastAnalysis: OcrFrameAnalysis | null;
+};
+
+export type OcrMonitorLatest = {
+  matchId: string;
+  running: boolean;
+  analysis: OcrFrameAnalysis | null;
+};
+
+export type OcrOverlayRoi = {
+  key: string;
+  label: string;
+  crop: { x: number; y: number; width: number; height: number };
+  pipeline: {
+    scale: number;
+    grayscale: boolean;
+    contrast: number;
+    threshold: number;
+    denoise: boolean;
+  };
+  enabled: boolean;
+  ocr: boolean;
+};
+
+export type OcrOverlayPayload = {
+  matchId: string;
+  profileId: string;
+  resolution: { width: number; height: number };
+  reference: { width: number; height: number };
+  rois: OcrOverlayRoi[];
+  activeOcr: number;
+};
