@@ -22,12 +22,14 @@ import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { LiveMatchesService } from './live-matches.service';
 import { LiveMatchEventsService } from './live-match-events.service';
 import { LiveMatchStateService } from './live-match-state.service';
+import { LiveMatchOcrService } from './live-match-ocr.service';
 
 import { CreateLiveMatchDto } from './dto/create-live-match.dto';
 import { UpdateLiveMatchDto } from './dto/update-live-match.dto';
 import { AppendMatchEventDto } from './dto/append-match-event.dto';
 import { UndoLiveMatchDto } from './dto/undo-live-match.dto';
 import { ReasonDto } from './dto/reason.dto';
+import { StartZoneOcrDto } from './dto/start-zone-ocr.dto';
 
 @Controller('live-matches')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -36,6 +38,7 @@ export class LiveMatchesController {
     private readonly liveMatchesService: LiveMatchesService,
     private readonly eventsService: LiveMatchEventsService,
     private readonly stateService: LiveMatchStateService,
+    private readonly ocrService: LiveMatchOcrService,
     private readonly activityLogs: ActivityLogsService,
   ) {}
 
@@ -164,5 +167,23 @@ export class LiveMatchesController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.eventsService.reopen(id, reasonDto.reason, user);
+  }
+
+  @Post(':id/ocr/start')
+  @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER)
+  startOcr(@Param('id') id: string, @Body() dto: StartZoneOcrDto) {
+    return this.ocrService.start(id, dto);
+  }
+
+  @Post(':id/ocr/stop')
+  @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER)
+  stopOcr(@Param('id') id: string) {
+    return this.ocrService.stop(id) ?? this.ocrService.status(id);
+  }
+
+  @Get(':id/ocr/status')
+  @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER)
+  ocrStatus(@Param('id') id: string) {
+    return this.ocrService.status(id);
   }
 }

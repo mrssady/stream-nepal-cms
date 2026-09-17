@@ -7,8 +7,10 @@ import {
   type MatchEventRecord,
   type MatchState,
   type SnapshotPayload,
+  type StartZoneOcrDto,
   type UndoLiveMatchDto,
   type UpdateLiveMatchDto,
+  type ZoneOcrStatus,
 } from "@/types/live-match";
 
 export async function getLiveMatches(
@@ -115,6 +117,27 @@ export async function reopenLiveMatch(
     `/live-matches/${id}/reopen`,
     reason ? { reason } : {},
   );
+
+  return response.data.data;
+}
+
+export async function startZoneOcr(
+  id: string,
+  data: StartZoneOcrDto,
+): Promise<ZoneOcrStatus> {
+  const response = await api.post(`/live-matches/${id}/ocr/start`, data);
+
+  return response.data.data;
+}
+
+export async function stopZoneOcr(id: string): Promise<ZoneOcrStatus> {
+  const response = await api.post(`/live-matches/${id}/ocr/stop`);
+
+  return response.data.data;
+}
+
+export async function getZoneOcrStatus(id: string): Promise<ZoneOcrStatus> {
+  const response = await api.get(`/live-matches/${id}/ocr/status`);
 
   return response.data.data;
 }

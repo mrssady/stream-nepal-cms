@@ -11,7 +11,9 @@ import {
   Pause,
   Play,
   Plus,
+  ScanLine,
   Skull,
+  Square,
   Timer,
   Trophy,
   Undo2,
@@ -29,9 +31,12 @@ import { useLiveMatch } from "@/hooks/useLiveMatch";
 import {
   appendMatchEvent,
   getLiveMatch,
+  getZoneOcrStatus,
   lockLiveMatch,
   readyLiveMatch,
   reopenLiveMatch,
+  startZoneOcr,
+  stopZoneOcr,
   undoLiveMatchEvent,
 } from "@/services/liveMatches";
 
@@ -39,6 +44,7 @@ import {
   LiveMatch,
   LiveMatchStatus,
   MatchState,
+  ZoneOcrStatus,
 } from "@/types/live-match";
 
 type Snapshot = {
@@ -96,6 +102,8 @@ export default function LiveControlPage({
     amount: "1",
   });
   const [zoneSeconds, setZoneSeconds] = useState("60");
+  const [ocr, setOcr] = useState<ZoneOcrStatus | null>(null);
+  const [ocrBusy, setOcrBusy] = useState(false);
 
   const socket = useLiveMatch(matchId || undefined);
 
@@ -119,6 +127,35 @@ export default function LiveControlPage({
   useEffect(() => {
     fetchSnapshot();
   }, [fetchSnapshot]);
+
+  const fetchOcrStatus = useCallback(async () => {
+    if (!matchId) {
+      return;
+    }
+
+    try {
+      const status = await getZoneOcrStatus(matchId);
+      setOcr(status);
+    } catch (err) {
+      console.error(err);
+    }
+  }, [matchId]);
+
+  useEffect(() => {
+    fetchOcrStatus();
+  }, [fetchOcrStatus]);
+
+  useEffect(() => {
+    if (!ocr?.running) {
+      return;
+    }
+
+    const timer = setInterval(() => {
+      void fetchOcrStatus();
+    }, 3000);
+
+    return () => clearInterval(timer);
+  }, [ocr?.running, fetchOcrStatus]);
 
   function report(value: {
     kind: "ok" | "err";
@@ -296,6 +333,47 @@ export default function LiveControlPage({
     } catch (err) {
       console.error(err);
       report({ kind: "err", text: "Could not copy URL" });
+    }
+  }
+
+  async function handleOcrStart() {
+    if (!matchId) {
+      return;
+    }
+
+    setOcrBusy(true);
+
+    try {
+      const status = await startZoneOcr(matchId, {
+        mode: "MOCK",
+        intervalMs: 1000,
+        seconds: 180,
+        noise: true,
+      });
+      setOcr(status);
+      report({ kind: "ok", text: "Mock zone OCR started (dry-run)" });
+    } catch (err) {
+      report({ kind: "err", text: errorMessage(err) });
+    } finally {
+      setOcrBusy(false);
+    }
+  }
+
+  async function handleOcrStop() {
+    if (!matchId) {
+      return;
+    }
+
+    setOcrBusy(true);
+
+    try {
+      const status = await stopZoneOcr(matchId);
+      setOcr(status);
+      report({ kind: "ok", text: "Zone OCR stopped" });
+    } catch (err) {
+      report({ kind: "err", text: errorMessage(err) });
+    } finally {
+      setOcrBusy(false);
     }
   }
 
@@ -695,6 +773,65 @@ export default function LiveControlPage({
                     </Button>
                   </div>
                 </div>
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  Zone timer OCR (auto)
+                </label>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant={ocr?.running ? "default" : "secondary"}>
+                    {ocr?.running ? "OCR running" : "OCR idle"}
+                  </Badge>
+
+                  {ocr?.mode && (
+                    <Badge variant="outline">{ocr.mode}</Badge>
+                  )}
+
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    disabled={
+                      ocrBusy || !controlsEnabled || Boolean(ocr?.running)
+                    }
+                    onClick={handleOcrStart}
+                  >
+                    <ScanLine className="size-4" />
+                    Start mock OCR
+                  </Button>
+
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={ocrBusy || !ocr?.running}
+                    onClick={handleOcrStop}
+                  >
+                    <Square className="size-4" />
+                    Stop
+                  </Button>
+                </div>
+
+                {ocr && (
+                  <p className="mt-2 text-[11px] text-muted-foreground">
+                    phase {ocr.phase ?? "—"}/{ocr.zoneCount ?? "—"} ·
+                    reading {ocr.lastRaw ?? "—"} · {ocr.readings} reads,{" "}
+                    {ocr.emissions} events · confidence{" "}
+                    {ocr.lastConfidence !== null
+                      ? `${Math.round(ocr.lastConfidence * 100)}%`
+                      : "—"}
+                  </p>
+                )}
+
+                {ocr?.lastError && (
+                  <p className="mt-1 text-[11px] text-destructive">
+                    {ocr.lastError}
+                  </p>
+                )}
+
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Video OCR (real footage) is not calibrated yet. Mock mode
+                  simulates a live HUD countdown to exercise the pipeline.
+                </p>
               </div>
 
               <div>

@@ -9,6 +9,7 @@ import { LiveMatchesService } from './live-matches.service';
 import { LiveMatchStateService } from './live-match-state.service';
 import { LiveMatchScoringService } from './live-match-scoring.service';
 import { LiveMatchEventsService } from './live-match-events.service';
+import { LiveMatchOcrService } from './live-match-ocr.service';
 import { LiveMatchRealtimeGateway } from './live-match-realtime.gateway';
 
 @Module({
@@ -19,8 +20,14 @@ import { LiveMatchRealtimeGateway } from './live-match-realtime.gateway';
     LiveMatchStateService,
     LiveMatchScoringService,
     LiveMatchEventsService,
+    LiveMatchOcrService,
     LiveMatchRealtimeGateway,
   ],
-  exports: [LiveMatchesService, LiveMatchStateService, LiveMatchEventsService],
+  exports: [
+    LiveMatchesService,
+    LiveMatchStateService,
+    LiveMatchEventsService,
+    LiveMatchOcrService,
+  ],
 })
 export class LiveMatchesModule {}

@@ -191,3 +191,36 @@ export type UndoLiveMatchDto = {
   eventId?: string;
   seq?: number;
 };
+
+export type ZoneOcrMode = "MOCK" | "VIDEO";
+
+export type StartZoneOcrDto = {
+  mode?: ZoneOcrMode;
+  intervalMs?: number;
+  seconds?: number;
+  initialPhase?: number;
+  minChangeSeconds?: number;
+  confirmations?: number;
+  resetJumpSeconds?: number;
+  minConfidence?: number;
+  noise?: boolean;
+  source?: string;
+};
+
+export type ZoneOcrStatus = {
+  running: boolean;
+  mode: ZoneOcrMode | null;
+  matchId: string;
+  phase: number | null;
+  zoneCount: number | null;
+  intervalMs?: number;
+  lastSeconds: number | null;
+  lastConfidence: number | null;
+  lastRaw: string | null;
+  lastReadAt: string | null;
+  readings: number;
+  emissions: number;
+  startedAt: string | null;
+  stoppedAt: string | null;
+  lastError: string | null;
+};
