@@ -342,6 +342,8 @@ Working
 
 ✅ OCR Spectator Layout - PUBG Mobile 1920x1080 ROI config model + scaling + structured ROI editor
 
+✅ OCR Analysis Core - provider interface, ROI preprocessor, detectors, normalization + fuzzy team matching, temporal validation, duplicate protection, confidence tiers, dry-run analyze endpoint (read-only, suggestedOnly events) + 36 unit tests
+
 Current Screen
 
 Phase 2 (broadcast) is feature-complete for the manual + GFX + OCR-dry-run flow:
@@ -390,9 +392,48 @@ OCR Spectator Layout (Phase 3 - PUBG Mobile 1920x1080 ROI foundation)
   + live config JSON preview; replaces the raw-JSON-only editor
 - Kill feed ROI ships disabled per spec until confirmed on real footage
 - Minimap is CV-only (not OCR) and ignored for MVP
-- Next OCR phases: analysis core (detectors + temporal validation + fuzzy team
-  matching + duplicate protection) -> frame input + ROI debug overlay -> monitor
-  panel -> candidate -> manual review -> match events
+- Next OCR phases: monitors/panel + real footage calibration (analysis core shipped - see below)
+
+OCR Analysis Core (Phase 4 - pure-logic engine, footage-independent)
+
+- ocr/ocr-types.ts: DetectionKind, RoiReading, OcrDetection, confidence tiers,
+  SuggestedEvent (always suggestedOnly), UncertainSignal, FrameAnalysis,
+  AnalyzeResult, OcrProvider interface
+- ocr/ocr-confidence.ts: tiers >=0.90 HIGH, 0.70-0.89 REVIEW, <0.70 REJECT
+- ocr/ocr-normalize.ts: text normalization (0->O, 1->I, 5->S, 8->B, @/@->A/S)
+  applied BEFORE stripping non-alphanumerics (so DR$ -> DRS); duration mm:ss
+  parser (not whole-string anchored); integer extraction; stable value token
+- ocr/ocr-fuzzy.ts: Levenshtein similarity + matchTeamTag (minScore 0.8,
+  ambiguity when a 2nd tag within 0.2 -> { ambiguous } for manual review)
+- ocr/ocr-preprocessor.ts: prepareRois() -> scaled CropBox + normalized
+  PreprocessPipeline per ROI (crop clamped to frame); ocr flag = enabled && ocr
+- ocr/ocr-temporal.ts: TemporalTracker - N consecutive identical tokens confirm;
+  >= 2N seen without confirmation -> UNCERTAIN (alternating readings)
+- ocr/ocr-dedup.ts: fingerprint = roiKey:kind:stableValueJSON + DedupCache window;
+  duplicate event protection (same visual event on many frames = one emission)
+- ocr/ocr-detectors.ts: per-ROI parsers (matchHeader, teamEliminations,
+  observerPlayerList, zoneInfo, currentTeam, playerStats); partial parses
+  down-weighted x0.8/0.85/0.9; minimap/unknown -> no detection
+- ocr/ocr-event-normalizer.ts: ZONE_INFO -> suggestedOnly ZONE_TIMER event;
+  everything else requires human validation (kill feed etc.) -> no suggestion
+- ocr/ocr-engine.ts: OcrAnalysisEngine.processFrame(config, provider, frame) ->
+  parse -> tier gate -> temporal -> dedup -> FrameAnalysis (frameNumber++
+  on each processFrame call); REVIEW-tier confirms also flag a
+  REVIEW_CONFIDENCE uncertain signal; AMBIGUOUS_TEAM/ALTERNATING_READINGS too
+- ocr/mock-spectator-provider.ts: deterministic (seed) spectator feed simulator
+  producing realistic readings for all enabled OCR ROIs. frameIndex advances
+  per readFrame -> timestamps spaced 1s apart to exercise temporal/dedup logic
+- OcrProfilesService.resolveDefaultForGame(game): default profile id for a game
+- DTO analyze-ocr.dto.ts + POST /api/live-matches/:id/ocr/analyze (OWNER/ADMIN/
+  MANAGER) - dry-run: loads default or given profile, runs engine for N frames
+  (default 5) against the match roster team tags, returns unique confirmed
+  detections + uncertain signals + suggestedOnly events. NEVER writes match
+  events or scores. Roles: read-only result, suggestedOnly flag on events
+- Unit tests: 36 passing across normalize/fuzzy/confidence/temporal/dedup/
+  detectors/preprocessor specs (pnpm jest); backend build + eslint clean
+- Verified via API: default profile -> 6 confirmed detections (matchHeader,
+  teamEliminations, observerPlayerList REVIEW, zoneInfo, currentTeam,
+  playerStats) + ZONE_TIMER suggestion (phase 1, 229s); noise mode kept stable
 
 ---
 
@@ -404,7 +445,8 @@ OCR Spectator Layout (Phase 3 - PUBG Mobile 1920x1080 ROI foundation)
 4. Roles Management
 5. Media upload integration (Cloudinary / local uploads)
 6. Organization switching
-7. OCR / auto-capture pipeline (mock dry-run shipped; OCR profile management shipped; real footage calibration pending)
+7. OCR / auto-capture pipeline (mock dry-run shipped; OCR profile management shipped; real footage calibration pending) - OCR analysis core shipped (Phase 4)
+8. OCR next: Phase 5 frame input + ROI debug overlay (spec 23) + OCR monitor/review panel (spec 22); Phase 6 candidate -> manual review -> match event wiring (spec 20,21,30); kill feed ROI confirmation on real footage
 
 ---
 
@@ -465,10 +507,12 @@ Completed
 - Live Match Zone OCR (backend + panel) - mock dry-run detector + panel controls, Phase 3 OCR scaffolding
 - OCR Profiles (backend + seed + frontend) - per-game calibration profile CRUD, Phase 3 OCR grounding
 - OCR Spectator Layout (config model + scaling + structured ROI editor) - PUBG Mobile 1920x1080 ROI foundation
+- OCR Analysis Core (backend) - provider interface, ROI preprocessor, detectors, normalization + fuzzy team matching, temporal validation, duplicate protection, confidence tiers, dry-run analyze endpoint + 36 unit tests
 
 Next Commit
 
-OCR analysis core (provider interface, ROI preprocessor, detectors, temporal
-validation, fuzzy team matching, duplicate protection, confidence tiers);
-then frame input + ROI debug overlay + monitor panel;
+Frame input + ROI debug overlay (session with frame capture) + OCR monitor/
+review panel (backend + frontend); then candidate -> manual review -> match
+event wiring; then real video OCR calibration once observer footage is
+provided (tesseract/ffmpeg).
 real video OCR calibration once observer footage is provided (tesseract/ffmpeg)

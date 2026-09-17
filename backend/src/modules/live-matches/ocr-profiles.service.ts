@@ -121,6 +121,26 @@ export class OcrProfilesService {
     return profile;
   }
 
+  async resolveDefaultForGame(game: TournamentGame) {
+    const profile = await this.prisma.ocrProfile.findFirst({
+      where: {
+        game,
+        isDefault: true,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!profile) {
+      throw new NotFoundException(
+        `No default OCR profile configured for ${game}`,
+      );
+    }
+
+    return profile.id;
+  }
+
   async update(id: string, dto: UpdateOcrProfileDto) {
     const profile = await this.findOne(id);
 

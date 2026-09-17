@@ -30,6 +30,7 @@ import { AppendMatchEventDto } from './dto/append-match-event.dto';
 import { UndoLiveMatchDto } from './dto/undo-live-match.dto';
 import { ReasonDto } from './dto/reason.dto';
 import { StartZoneOcrDto } from './dto/start-zone-ocr.dto';
+import { AnalyzeOcrDto } from './dto/analyze-ocr.dto';
 
 @Controller('live-matches')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -185,5 +186,11 @@ export class LiveMatchesController {
   @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER)
   ocrStatus(@Param('id') id: string) {
     return this.ocrService.status(id);
+  }
+
+  @Post(':id/ocr/analyze')
+  @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER)
+  analyzeOcr(@Param('id') id: string, @Body() dto: AnalyzeOcrDto) {
+    return this.ocrService.analyze(id, dto);
   }
 }

@@ -9,8 +9,14 @@ import {
 import { MatchEventKind, MatchEventSource } from '@prisma/client';
 
 import { StartZoneOcrDto, ZoneOcrMode } from './dto/start-zone-ocr.dto';
+import { AnalyzeOcrDto } from './dto/analyze-ocr.dto';
 import { LiveMatchEventsService } from './live-match-events.service';
 import { LiveMatchStateService } from './live-match-state.service';
+import { OcrProfilesService } from './ocr-profiles.service';
+import { type OcrProfileConfig } from './ocr/ocr-config';
+import { OcrAnalysisEngine } from './ocr/ocr-engine';
+import { MockSpectatorProvider } from './ocr/mock-spectator-provider';
+import { type AnalyzeResult, type OcrFrame } from './ocr/ocr-types';
 import { MockZoneDetector, ZoneTimerDetector } from './zone-ocr.detector';
 
 const DEFAULTS = {
@@ -61,7 +67,122 @@ export class LiveMatchOcrService implements OnModuleDestroy {
   constructor(
     private readonly stateService: LiveMatchStateService,
     private readonly eventsService: LiveMatchEventsService,
+    private readonly profilesService: OcrProfilesService,
   ) {}
+
+  // Dry-run analysis of the spectator OCR pipeline (spec 26-30). Never
+  // writes match events: it only reports detections, manual-review signals
+  // and candidate events so the operator can validate before wiring to the
+  // production scorer.
+  async analyze(matchId: string, dto: AnalyzeOcrDto): Promise<AnalyzeResult> {
+    const match = await this.stateService.findMatch(matchId);
+
+    const profileId =
+      dto.profileId ??
+      (await this.profilesService.resolveDefaultForGame(match.tournament.game));
+
+    const profile = await this.profilesService.findOne(profileId);
+
+    if (!profile) {
+      throw new NotFoundException('OCR profile not found');
+    }
+
+    const state = await this.stateService.getState(matchId);
+    const teamTags = Object.values(state.teams)
+      .map((team) => team.shortName)
+      .filter((tag: string | null): tag is string => Boolean(tag))
+      .slice(0, 25);
+
+    const engine = new OcrAnalysisEngine({
+      confirmations: dto.confirmations ?? 3,
+      dedupWindowMs: dto.dedupWindowMs ?? 1500,
+    });
+
+    const provider = new MockSpectatorProvider({
+      seed: dto.seed ?? 1337,
+      noiseProbability: dto.noise ? 0.1 : 0,
+      confidenceBase: dto.confidenceBase ?? 0.96,
+    });
+
+    const profileConfig = profile.config as unknown as OcrProfileConfig;
+
+    const iterations = Math.min(20, Math.max(1, dto.iterations ?? 5));
+    const frame: OcrFrame = {
+      width: 1920,
+      height: 1080,
+      source: 'MOCK',
+      data: {
+        remainingPlayers: 75,
+        observedTeamCount: 21,
+        teamEliminations: 2,
+        zoneTimerSeconds: 229,
+        zoneStage: 1,
+        observerTeamsValue: 5,
+        currentTeamTag: teamTags[0] ?? '777A',
+        playerEliminations: 0,
+        playerDamage: 325,
+        playerAssists: 1,
+        playerTags: teamTags.length > 0 ? teamTags : ['777A'],
+        noise: dto.noise,
+      },
+    };
+
+    let readings = 0;
+    const events: AnalyzeResult['suggestedEvents'] = [];
+    const uncertain: AnalyzeResult['uncertain'] = [];
+    const seenFingerprints = new Set<string>();
+    const seenUncertain = new Set<string>();
+    const seenEvents = new Set<string>();
+    const detections: AnalyzeResult['detections'] = [];
+
+    for (let index = 0; index < iterations; index++) {
+      const analysis = await engine.processFrame(
+        profileConfig,
+        provider,
+        frame,
+        { teamTags },
+      );
+
+      readings += analysis.readingsProcessed;
+
+      for (const signal of analysis.uncertain) {
+        const key = `${signal.roiKey}:${signal.kind}:${signal.reason}`;
+
+        if (!seenUncertain.has(key)) {
+          seenUncertain.add(key);
+          uncertain.push(signal);
+        }
+      }
+
+      for (const detection of analysis.detections) {
+        if (!seenFingerprints.has(detection.fingerprint)) {
+          seenFingerprints.add(detection.fingerprint);
+          detections.push(detection);
+        }
+
+        if (detection.suggestedEvent) {
+          const eventKey = `${detection.suggestedEvent.kind}:${JSON.stringify(
+            detection.suggestedEvent.payload,
+          )}`;
+
+          if (!seenEvents.has(eventKey)) {
+            seenEvents.add(eventKey);
+            events.push(detection.suggestedEvent);
+          }
+        }
+      }
+    }
+
+    return {
+      matchId,
+      profileId: profile.id,
+      frameCount: iterations,
+      readings,
+      detections,
+      uncertain,
+      suggestedEvents: events,
+    };
+  }
 
   async start(matchId: string, dto: StartZoneOcrDto) {
     const match = await this.stateService.findMatch(matchId);
