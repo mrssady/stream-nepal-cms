@@ -186,6 +186,22 @@ Live Match Engine (Phase 1 - Manual Scoring)
   - POST /live-matches, GET /live-matches?tournamentId=, GET/PATCH/DELETE /live-matches/:id
   - POST /live-matches/:id/{events,ready,undo,lock,reopen}, GET /:id/state
 
+Live Match Engine Zone System (Phase 2 - broadcast prep)
+
+- ScoringRule.zoneCount (default 8; seeded PUBG Mobile = 8, Free Fire = 6)
+- Generated + applied migration add_zone_phase_events
+- New MatchEventKind values: ZONE_STARTED (payload phase), ZONE_TIMER (payload seconds, optional phase)
+- MatchState.zone = { phase, startedAt, timerSeconds, timerSetAt } + MatchState.zoneCount (from rule)
+- Replay-safe: zone handled in pure computeState switch (UNDO naturally reverts it)
+- Validation: phase int 1..zoneCount (rule-derived), seconds int 0..600
+- Real-time `match:event` records now carry optional `derived` context for the client:
+  - TEAM_ELIMINATED / PLACEMENT_SET / PLACEMENT_CONFIRMED / WINNER_DECLARED /
+    MANUAL_CORRECTION -> { teamId, teamName, shortName, placement, placementPoints, isWinner }
+  - PLAYER_KILLED -> { killerTeamId, victimTeamId, killerTeamShort, victimTeamShort }
+- Derived is computed from the recomputed state at emit time only; stored payload is
+  untouched so scoring stays deterministic on replay
+- Public snapshot rule payload now includes zoneCount
+
 ---
 
 # Frontend Completed
@@ -297,11 +313,17 @@ Working
 
 ✅ Live Match Frontend - control center, control panel, OBS overlay, realtime hook
 
+✅ Live Match Zone Engine (backend) - zone phases + timers, enriched realtime records, migration + seed
+
 Current Screen
 
-Live Match Engine Phase 1 is complete end to end (backend + frontend):
-control center, control panel, OBS overlay, realtime push all verified.
-Fixed a re-entrant deadlock in POST /live-matches/:id/ready (ready now calls append directly).
+Phase 2 (broadcast) started. Backend zone system shipped:
+Zone events (ZONE_STARTED / ZONE_TIMER) drive MatchState.zone + zoneCount via the
+replay-safe engine, and real-time records are enriched with a `derived` context
+block (team names, placements, kill team shorts) computed at emit time.
+Zone APIs verified end to end via socket + API. Free Fire zoneCount = 6, PUBG = 8.
+Next: frontend GFX overlays + control panel zone controls (spin the published plan),
+then the OCR timer pipeline (blocked on observer footage).
 
 ---
 
@@ -369,7 +391,9 @@ Completed
 - Search + Pagination polish
 - Live Match Engine (backend) - Phase 1
 - Live Match Frontend (control center + control panel + OBS overlay) - Phase 1
+- Live Match Zone Engine (backend) - zone phases/timers + enriched realtime, Phase 2 backend
 
 Next Commit
 
-Players / Team Members dashboard pages
+Live broadcast GFX overlays + control panel zone controls (Phase 2 frontend),
+then the OCR timer pipeline (blocked on observer footage)
