@@ -273,6 +273,25 @@ Live Match Frontend (Phase 1)
 - Realtime via useLiveMatch hook + socket.io-client singleton (namespace /live)
 - Sidebar "Live" entry added
 
+Live Match Broadcast GFX (Phase 2 - frontend)
+
+- Control panel (/live/[matchId]) "Zone / Broadcast GFX" section:
+  - Current zone phase badge + per-phase buttons (1..zoneCount), "Next zone" shortcut
+  - Zone timer presets (1:00 / 1:30 / 2:00 / 3:00 / 5:00) + custom seconds -> ZONE_TIMER
+  - OBS overlay URL copy buttons + URL preview
+- GFX overlays under /live/overlay/gfx/[matchId]/gfx/<name> (public, socket driven):
+  - elimination - animated "TEAM ELIMINATED" card with shortName/team + ordinal placement +
+    points, auto-dismiss ~6.5s (triggers: TEAM_ELIMINATED / PLACEMENT_SET / PLACEMENT_CONFIRMED)
+  - winner - full-screen gold "BOOYAH! Winner" card, auto-dismiss ~12s (WINNER_DECLARED)
+  - killfeed - slide-in kill rows with team short codes, auto-expire rows (PLAYER_KILLED / state)
+  - zone - phase pips, big zone number + /zoneCount, live ticking countdown derived from
+    ZONE_TIMER setAt anchor, "New zone" flash on ZONE_STARTED
+  - preview - /live/overlay/gfx/preview: standalone demo to verify all animations in OBS
+    without a live match (replays elimination, winner, kills, zone flash + countdown)
+- Shared gfx.css keyframes (swipe-up / pop-in / slide-in-left / count flash / pulse ring) in
+  a scoped layout (live/overlay/gfx/layout.tsx); shared components in src/components/live/gfx/
+  (EliminationCard, WinnerCard, KillFeed, ZoneTimer, ZoneStartedFlash, useGfxMatch)
+
 ---
 
 # Current Status
@@ -315,15 +334,19 @@ Working
 
 ✅ Live Match Zone Engine (backend) - zone phases + timers, enriched realtime records, migration + seed
 
+✅ Live Match Broadcast GFX (frontend) - panel zone controls + elimination/winner/killfeed/zone overlays + preview
+
 Current Screen
 
-Phase 2 (broadcast) started. Backend zone system shipped:
+Phase 2 (broadcast) is feature-complete for the manual + GFX flow:
 Zone events (ZONE_STARTED / ZONE_TIMER) drive MatchState.zone + zoneCount via the
-replay-safe engine, and real-time records are enriched with a `derived` context
-block (team names, placements, kill team shorts) computed at emit time.
-Zone APIs verified end to end via socket + API. Free Fire zoneCount = 6, PUBG = 8.
-Next: frontend GFX overlays + control panel zone controls (spin the published plan),
-then the OCR timer pipeline (blocked on observer footage).
+replay-safe engine, real-time records carry a `derived` context block (team names,
+placements, kill team shorts), and the control panel now has zone phase/timer
+controls with one-click GFX overlay URLs for OBS. Four animated overlays
+(elimination, winner, killfeed, zone) plus a /gfx/preview playground are live.
+Zone APIs + all GFX routes verified. Free Fire zoneCount = 6, PUBG = 8.
+Next: OCR timer pipeline (blocked on observer footage), then optional player
+death overlay / point-pop extras.
 
 ---
 
@@ -392,8 +415,9 @@ Completed
 - Live Match Engine (backend) - Phase 1
 - Live Match Frontend (control center + control panel + OBS overlay) - Phase 1
 - Live Match Zone Engine (backend) - zone phases/timers + enriched realtime, Phase 2 backend
+- Live Match Broadcast GFX (frontend) - panel zone controls + animations + preview, Phase 2 frontend
 
 Next Commit
 
-Live broadcast GFX overlays + control panel zone controls (Phase 2 frontend),
-then the OCR timer pipeline (blocked on observer footage)
+OCR zone-timer pipeline (blocked on observer footage); optional GFX extras
+(player death overlay, point pops)
