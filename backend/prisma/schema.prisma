@@ -26,6 +26,7 @@ model Organization {
   websiteSettings WebsiteSetting[]
   media           Media[]
   sponsors        Sponsor[]
+  scoringRules    ScoringRule[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -467,6 +468,10 @@ model Tournament {
 
   registrations Registration[]
   matches       Match[]
+  liveMatches   LiveMatch[]
+
+  scoringRuleId String?
+  scoringRule   ScoringRule? @relation(fields: [scoringRuleId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -539,6 +544,8 @@ model Team {
 
   teamName String
   teamLogo String?
+  shortName String?
+  slotNumber Int @default(0)
 
   status TeamStatus @default(ACTIVE)
 
@@ -585,6 +592,7 @@ model Player {
 
   profileImage String?
   isActive     Boolean @default(true)
+  slotNumber   Int     @default(0)
 
   team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
@@ -638,6 +646,124 @@ model Match {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// ============================================================
+// LIVE MATCH SCORING (BATTLE ROYALE / EVENT-SOURCED)
+// ============================================================
+
+enum LiveMatchStatus {
+  SCHEDULED
+  READY
+  LIVE
+  PAUSED
+  FINISHED
+  CANCELLED
+}
+
+enum MatchEventSource {
+  MANUAL
+  SYSTEM
+}
+
+enum MatchEventKind {
+  MATCH_STARTED
+  MATCH_READY
+  MATCH_PAUSED
+  MATCH_RESUMED
+  MATCH_FINISHED
+  MATCH_CANCELLED
+  PLAYER_KILLED
+  PLAYER_ELIMINATED
+  TEAM_ELIMINATED
+  PLACEMENT_CONFIRMED
+  PLACEMENT_SET
+  WINNER_DECLARED
+  MANUAL_CORRECTION
+  UNDO
+  MATCH_LOCKED
+  MATCH_REOPENED
+}
+
+model ScoringRule {
+  id   String @id @default(cuid())
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  name String
+  game TournamentGame
+
+  killPoint       Int  @default(1)
+  placementPoints Json // { "1": 12, "2": 10, ... } indexed by placement
+  booyahBonus     Int  @default(0)
+  penaltyPoints   Int  @default(0)
+
+  tiebreakers Json // ["points","killPoints","placementPoints","kills","bestPlacement"]
+
+  isDefault Boolean @default(false)
+
+  tournaments Tournament[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([organizationId])
+  @@index([game])
+  @@index([isDefault])
+}
+
+model LiveMatch {
+  id   String   @id @default(cuid())
+  name String
+
+  tournamentId String
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+
+  matchNumber Int
+  round       String?
+
+  status LiveMatchStatus @default(SCHEDULED)
+
+  startedAt DateTime?
+  endedAt   DateTime?
+  lockedAt  DateTime?
+
+  eventSeq Int @default(0)
+
+  events MatchEvent[]
+
+  notes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tournamentId, matchNumber])
+  @@index([tournamentId])
+  @@index([status])
+}
+
+model MatchEvent {
+  id   String @id @default(cuid())
+
+  matchId String
+  match   LiveMatch @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  seq     Int
+  kind    MatchEventKind
+  source  MatchEventSource @default(MANUAL)
+
+  confidence Float?
+
+  payload    Json
+  fingerprint String? @unique
+
+  timestamp DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  @@unique([matchId, seq])
+  @@index([matchId, seq])
+  @@index([fingerprint])
 }
 
 // ============================================================

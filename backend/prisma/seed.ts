@@ -1,6 +1,7 @@
 import {
   PrismaClient,
   Role,
+  TournamentGame,
 } from "@prisma/client";
 import * as bcrypt from "bcryptjs";
 
@@ -68,6 +69,157 @@ async function main() {
     console.log(
       "✅ Existing owner assigned to Stream Nepal",
     );
+  }
+
+  // Default scoring rules (configurable per tournament)
+  const pubgRule = await prisma.scoringRule.upsert({
+    where: {
+      id: "rule_pubg_default",
+    },
+    update: {
+      name: "PUBG Mobile Standard",
+      game: TournamentGame.PUBG_MOBILE,
+      killPoint: 1,
+      placementPoints: {
+        "1": 12,
+        "2": 10,
+        "3": 8,
+        "4": 6,
+        "5": 5,
+        "6": 4,
+        "7": 3,
+        "8": 2,
+        "9": 1,
+        "10": 1,
+        "11": 1,
+        "12": 1,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+      },
+      booyahBonus: 0,
+      penaltyPoints: 0,
+      tiebreakers: [
+        "points",
+        "killPoints",
+        "placementPoints",
+        "kills",
+        "bestPlacement",
+      ],
+      isDefault: true,
+      organizationId: organization.id,
+    },
+    create: {
+      id: "rule_pubg_default",
+      name: "PUBG Mobile Standard",
+      game: TournamentGame.PUBG_MOBILE,
+      killPoint: 1,
+      placementPoints: {
+        "1": 12,
+        "2": 10,
+        "3": 8,
+        "4": 6,
+        "5": 5,
+        "6": 4,
+        "7": 3,
+        "8": 2,
+        "9": 1,
+        "10": 1,
+        "11": 1,
+        "12": 1,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+      },
+      booyahBonus: 0,
+      penaltyPoints: 0,
+      tiebreakers: [
+        "points",
+        "killPoints",
+        "placementPoints",
+        "kills",
+        "bestPlacement",
+      ],
+      isDefault: true,
+      organizationId: organization.id,
+    },
+  });
+
+  const freeFireRule = await prisma.scoringRule.upsert({
+    where: {
+      id: "rule_free_fire_default",
+    },
+    update: {
+      name: "Free Fire Standard",
+      game: TournamentGame.FREE_FIRE,
+      killPoint: 1,
+      placementPoints: {
+        "1": 10,
+        "2": 8,
+        "3": 6,
+        "4": 4,
+        "5": 3,
+        "6": 2,
+        "7": 1,
+        "8": 1,
+        "9": 1,
+        "10": 1,
+        "11": 1,
+        "12": 1,
+      },
+      booyahBonus: 2,
+      penaltyPoints: 0,
+      tiebreakers: [
+        "points",
+        "killPoints",
+        "placementPoints",
+        "kills",
+        "bestPlacement",
+      ],
+      isDefault: true,
+      organizationId: organization.id,
+    },
+    create: {
+      id: "rule_free_fire_default",
+      name: "Free Fire Standard",
+      game: TournamentGame.FREE_FIRE,
+      killPoint: 1,
+      placementPoints: {
+        "1": 10,
+        "2": 8,
+        "3": 6,
+        "4": 4,
+        "5": 3,
+        "6": 2,
+        "7": 1,
+        "8": 1,
+        "9": 1,
+        "10": 1,
+        "11": 1,
+        "12": 1,
+      },
+      booyahBonus: 2,
+      penaltyPoints: 0,
+      tiebreakers: [
+        "points",
+        "killPoints",
+        "placementPoints",
+        "kills",
+        "bestPlacement",
+      ],
+      isDefault: true,
+      organizationId: organization.id,
+    },
+  });
+
+  console.log(
+    "✅ Default scoring rules ready (PUBG + Free Fire)",
+  );
+
+  if (pubgRule && freeFireRule) {
+    console.log("✅ Scoring rules upserted");
   }
 }
 
