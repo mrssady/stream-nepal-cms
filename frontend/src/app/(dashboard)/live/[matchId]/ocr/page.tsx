@@ -3,7 +3,7 @@
 import { use, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
-import { ArrowLeft, ScanLine, Square, Play, Wifi, WifiOff } from "lucide-react";
+import { ArrowLeft, Check, ScanLine, Square, Play, Wifi, WifiOff, X } from "lucide-react";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,10 +11,13 @@ import { Badge } from "@/components/ui/badge";
 import { useLiveMatch } from "@/hooks/useLiveMatch";
 
 import {
+  approveOcrCandidate,
   getLiveMatch,
   getOcrMonitorLatest,
   getOcrMonitorStatus,
   getOcrOverlay,
+  getOcrReview,
+  rejectOcrCandidate,
   startOcrMonitor,
   stopOcrMonitor,
 } from "@/services/liveMatches";
@@ -25,6 +28,8 @@ import {
   OcrFrameAnalysis,
   OcrMonitorStatus,
   OcrOverlayPayload,
+  OcrReviewCandidate,
+  OcrReviewPayload,
   OcrUncertainSignal,
 } from "@/types/live-match";
 
@@ -82,6 +87,137 @@ function tierColor(tier: string): string {
   }
 }
 
+function ReviewQueue({
+  review,
+  busy,
+  onApprove,
+  onReject,
+}: {
+  review: OcrReviewPayload | null;
+  busy: string | null;
+  onApprove: (candidateId: string) => void;
+  onReject: (candidateId: string) => void;
+}) {
+  const candidates = review?.candidates ?? [];
+  const pending = candidates.filter(
+    (candidate) => candidate.status === "PENDING",
+  );
+  const decided = candidates.filter(
+    (candidate) => candidate.status !== "PENDING",
+  );
+
+  return (
+    <div className="rounded-lg border bg-card p-4">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          Review queue ({pending.length} pending)
+        </label>
+        <span className="text-[11px] text-muted-foreground">
+          Approving wires a live ZONE event · match must be LIVE
+        </span>
+      </div>
+
+      {candidates.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          No candidates yet. Run the monitor to collect suggested events.
+        </p>
+      ) : (
+        <div className="space-y-1.5">
+          {pending.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Nothing pending. All suggestions decided.
+            </p>
+          ) : (
+            pending.map((candidate) => (
+              <ReviewRow
+                key={candidate.id}
+                candidate={candidate}
+                busy={busy === candidate.id}
+                onApprove={() => onApprove(candidate.id)}
+                onReject={() => onReject(candidate.id)}
+              />
+            ))
+          )}
+
+          {decided.length > 0 && (
+            <>
+              <p className="pt-2 text-[11px] uppercase tracking-wider text-muted-foreground">
+                Decided
+              </p>
+              {decided.map((candidate) => (
+                <div
+                  key={candidate.id}
+                  className="flex items-center justify-between gap-3 rounded-md border px-3 py-2 opacity-70"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold">
+                      {candidate.reason}
+                    </p>
+                    <p className="truncate text-[11px] text-muted-foreground">
+                      {candidate.roiKey}
+                    </p>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <Badge
+                      variant={
+                        candidate.status === "APPROVED" ? "default" : "outline"
+                      }
+                    >
+                      {candidate.status === "APPROVED" &&
+                      candidate.emittedEventId
+                        ? `Wired · ${candidate.emittedEventId}`
+                        : candidate.status}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ReviewRow({
+  candidate,
+  busy,
+  onApprove,
+  onReject,
+}: {
+  candidate: OcrReviewCandidate;
+  busy: boolean;
+  onApprove: () => void;
+  onReject: () => void;
+}) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-sky-400/30 bg-sky-500/5 px-3 py-2">
+      <div className="min-w-0">
+        <p className="truncate text-sm font-semibold">{candidate.reason}</p>
+        <p className="truncate text-[11px] text-muted-foreground">
+          {candidate.roiKey} · “{candidate.rawText}” ·{" "}
+          {Math.round(candidate.confidence * 100)}%
+        </p>
+      </div>
+      <div className="flex shrink-0 items-center gap-1.5">
+        <Button size="sm" disabled={busy} onClick={onApprove}>
+          <Check className="size-4" />
+          Approve
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={busy}
+          onClick={onReject}
+        >
+          <X className="size-4" />
+          Reject
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export default function OcrMonitorPage({
   params,
 }: {
@@ -92,7 +228,9 @@ export default function OcrMonitorPage({
   const [match, setMatch] = useState<LiveMatch | null>(null);
   const [status, setStatus] = useState<OcrMonitorStatus | null>(null);
   const [overlay, setOverlay] = useState<OcrOverlayPayload | null>(null);
+  const [review, setReview] = useState<OcrReviewPayload | null>(null);
   const [busy, setBusy] = useState(false);
+  const [reviewBusy, setReviewBusy] = useState<string | null>(null);
   const [intervalMs, setIntervalMs] = useState(1000);
   const [confirmations, setConfirmations] = useState(3);
   const [noise, setNoise] = useState(false);
@@ -158,6 +296,19 @@ export default function OcrMonitorPage({
     }
   }, [matchId]);
 
+  const fetchReview = useCallback(async () => {
+    if (!matchId) {
+      return;
+    }
+
+    try {
+      const data = await getOcrReview(matchId);
+      setReview(data);
+    } catch (err) {
+      console.error(err);
+    }
+  }, [matchId]);
+
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchMatch();
@@ -168,7 +319,8 @@ export default function OcrMonitorPage({
     fetchStatus();
     fetchOverlay();
     fetchLatest();
-  }, [fetchStatus, fetchOverlay, fetchLatest]);
+    fetchReview();
+  }, [fetchStatus, fetchOverlay, fetchLatest, fetchReview]);
 
   useEffect(() => {
     if (!socket.ocrAnalysis) {
@@ -274,6 +426,42 @@ export default function OcrMonitorPage({
       console.error(err);
     } finally {
       setBusy(false);
+    }
+  };
+
+  const handleApprove = async (candidateId: string) => {
+    if (!matchId) {
+      return;
+    }
+
+    setReviewBusy(candidateId);
+
+    try {
+      await approveOcrCandidate(matchId, candidateId);
+      fetchStatus();
+      fetchReview();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setReviewBusy(null);
+    }
+  };
+
+  const handleReject = async (candidateId: string) => {
+    if (!matchId) {
+      return;
+    }
+
+    setReviewBusy(candidateId);
+
+    try {
+      await rejectOcrCandidate(matchId, candidateId);
+      fetchStatus();
+      fetchReview();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setReviewBusy(null);
     }
   };
 
@@ -546,6 +734,13 @@ export default function OcrMonitorPage({
           </div>
         </div>
       </div>
+
+      <ReviewQueue
+        review={review}
+        busy={reviewBusy}
+        onApprove={handleApprove}
+        onReject={handleReject}
+      />
     </div>
   );
 }

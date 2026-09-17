@@ -6,9 +6,12 @@ import {
   type LiveMatch,
   type MatchEventRecord,
   type MatchState,
+  type OcrApproveResult,
   type OcrMonitorLatest,
   type OcrMonitorStatus,
   type OcrOverlayPayload,
+  type OcrRejectResult,
+  type OcrReviewPayload,
   type SnapshotPayload,
   type StartOcrMonitorDto,
   type StartZoneOcrDto,
@@ -178,6 +181,34 @@ export async function getOcrMonitorLatest(
   id: string,
 ): Promise<OcrMonitorLatest> {
   const response = await api.get(`/live-matches/${id}/ocr/monitor/latest`);
+
+  return response.data.data;
+}
+
+export async function getOcrReview(id: string): Promise<OcrReviewPayload> {
+  const response = await api.get(`/live-matches/${id}/ocr/review`);
+
+  return response.data.data;
+}
+
+export async function approveOcrCandidate(
+  id: string,
+  candidateId: string,
+): Promise<OcrApproveResult> {
+  const response = await api.post(
+    `/live-matches/${id}/ocr/review/${candidateId}/approve`,
+  );
+
+  return response.data.data;
+}
+
+export async function rejectOcrCandidate(
+  id: string,
+  candidateId: string,
+): Promise<OcrRejectResult> {
+  const response = await api.post(
+    `/live-matches/${id}/ocr/review/${candidateId}/reject`,
+  );
 
   return response.data.data;
 }

@@ -335,3 +335,37 @@ export type OcrOverlayPayload = {
   rois: OcrOverlayRoi[];
   activeOcr: number;
 };
+
+export type OcrReviewCandidateStatus = "PENDING" | "APPROVED" | "REJECTED";
+
+export type OcrReviewCandidate = {
+  id: string;
+  matchId: string;
+  roiKey: string;
+  detectionKind: OcrDetectionKind;
+  kind: string;
+  payload: Record<string, unknown>;
+  confidence: number;
+  rawText: string;
+  reason: string;
+  status: OcrReviewCandidateStatus;
+  createdAt: number;
+  decidedAt: number | null;
+  emittedEventId: string | null;
+  fingerprint: string;
+};
+
+export type OcrReviewPayload = {
+  matchId: string;
+  count: number;
+  candidates: OcrReviewCandidate[];
+};
+
+export type OcrApproveResult = {
+  candidate: OcrReviewCandidate;
+  event: { id: string };
+};
+
+export type OcrRejectResult = {
+  candidate: OcrReviewCandidate;
+};

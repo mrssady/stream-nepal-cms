@@ -346,6 +346,8 @@ Working
 
 ✅ OCR Monitor + ROI Overlay - dry-run tick-loop monitor (start/stop/status/latest + live socket analysis), mock spectator scene w/ deterministic seeded PRNG, ROI debug overlay endpoint, live analysis panel with ROI readouts, suggested events + review flags (read-only; kill feed ROI ships disabled, minimap CV-only)
 
+✅ OCR Review + Wiring (backend) - in-memory per-match candidate queue from confirmed suggestions, GET /ocr/review + approve/reject endpoints; approve is LIVE+unlocked gated, ZONE_TIMER/ZONE_STARTED only, dedupes per fingerprint and wires via SYSTEM match event (spec 20/21/30) + 10 unit tests
+
 Current Screen
 
 Phase 2 (broadcast) is feature-complete for the manual + GFX + OCR-dry-run flow:
@@ -467,6 +469,32 @@ OCR Monitor + ROI Overlay (Phase 5 - frame input, debug, review panel)
   transitions, flat confirmations on stable scene; overlay 1280x720 ->
   activeOcr 6, 8 rois (kill feed + minimap excluded)
 
+OCR Review + Wiring (Phase 6 backend - candidate -> manual review -> event wiring)
+
+- ocr/ocr-review.ts: ReviewCandidate (id/matchId/roiKey/detectionKind/kind/
+  payload/confidence/rawText/reason/status/createdAt/decidedAt/
+  emittedEventId/fingerprint), WIREABLE_KINDS = {ZONE_TIMER, ZONE_STARTED},
+  buildCandidate(matchId, detection) from suggestedOnly events (seconds
+  clamped to integer), candidateFingerprint via valueToken (key-order
+  stable), hasOpenCandidate blocks dupes (PENDING or APPROVED)
+- live-match-ocr-monitor.service.ts: reviews Map<matchId, ReviewCandidate[]>
+  (survives monitor stop, capped at 100, oldest decided dropped), enqueue()
+  on tick for wireable suggestions; review()/approve()/reject() + status
+  counts pending/approved/rejected
+- approve(): guarded against double-approve (in-flight set), match must be
+  unlocked + status LIVE, ZONE_STARTED phase must be ahead of state.zone.phase
+  (no backwards zone progression - spec 30), then eventsService.append as
+  SYSTEM event with actor attribution + ocr:true payload; candidate marked
+  APPROVED with emittedEventId. reject(): local REJECTED mark
+- REST: GET /:id/ocr/review, POST /:id/ocr/review/:candidateId/approve,
+  POST /:id/ocr/review/:candidateId/reject (OWNER/ADMIN/MANAGER)
+- Unit tests: ocr-review.spec.ts (10 cases) -> 52 total backend tests
+- Verified via API: monitor ran 13 frames -> 3 pending ZONE_TIMER candidates;
+  approve(219s) wired ZONE_TIMER seq=2 src=SYSTEM conf=0.98 payload
+  {ocr:true,phase:1,seconds:219}+actor, dedupe held (one APPROVED per
+  fingerprint), reject(224s) stayed local, queue persisted after stop
+  (22 pending / 1 approved / 1 rejected)
+
 ---
 
 # Next Tasks
@@ -478,7 +506,7 @@ OCR Monitor + ROI Overlay (Phase 5 - frame input, debug, review panel)
 5. Media upload integration (Cloudinary / local uploads)
 6. Organization switching
 7. OCR / auto-capture pipeline (mock dry-run shipped; OCR profile management shipped; real footage calibration pending) - OCR analysis core shipped (Phase 4)
-8. OCR next: Phase 6 candidate -> manual review -> match event wiring (spec 20,21,30); kill feed ROI confirmation on real footage; then real video OCR calibration once observer footage provided
+8. OCR next: review panel UI (approve/reject pending candidates) on /live/[matchId]/ocr; kill feed ROI confirmation on real footage; then real video OCR calibration once observer footage provided
 
 ---
 
@@ -541,9 +569,10 @@ Completed
 - OCR Spectator Layout (config model + scaling + structured ROI editor) - PUBG Mobile 1920x1080 ROI foundation
 - OCR Analysis Core (backend) - provider interface, ROI preprocessor, detectors, normalization + fuzzy team matching, temporal validation, duplicate protection, confidence tiers, dry-run analyze endpoint + 36 unit tests
 - OCR Monitor + ROI Overlay (backend + frontend) - dry-run tick-loop monitor (start/stop/status/latest + match:ocr:analysis socket), mock spectator scene, ROI debug overlay endpoint + SVG layout, live analysis panel, /live/[matchId]/ocr route + 42 unit tests
+- OCR Review + Wiring (backend) - in-memory candidate queue, approve/reject endpoints, LIVE-gated ZONE_* wiring to SYSTEM match events + 10 unit tests
 
 Next Commit
 
-Candidate -> manual review -> match event wiring (spec 20,21,30); kill feed ROI
-confirmation on real footage; then real video OCR calibration once observer
-footage is provided (tesseract/ffmpeg).
+Review panel UI (approve/reject pending candidates) on /live/[matchId]/ocr; then
+kill feed ROI confirmation on real footage; then real video OCR calibration once
+observer footage is provided (tesseract/ffmpeg).
