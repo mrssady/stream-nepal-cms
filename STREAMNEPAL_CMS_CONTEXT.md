@@ -336,17 +336,22 @@ Working
 
 ✅ Live Match Broadcast GFX (frontend) - panel zone controls + elimination/winner/killfeed/zone overlays + preview
 
+✅ Live Match Zone OCR (backend + panel) - mock dry-run detector, OCR start/stop/status, auto ZONE_* emission
+
 Current Screen
 
-Phase 2 (broadcast) is feature-complete for the manual + GFX flow:
+Phase 2 (broadcast) is feature-complete for the manual + GFX + OCR-dry-run flow:
 Zone events (ZONE_STARTED / ZONE_TIMER) drive MatchState.zone + zoneCount via the
 replay-safe engine, real-time records carry a `derived` context block (team names,
 placements, kill team shorts), and the control panel now has zone phase/timer
 controls with one-click GFX overlay URLs for OBS. Four animated overlays
 (elimination, winner, killfeed, zone) plus a /gfx/preview playground are live.
 Zone APIs + all GFX routes verified. Free Fire zoneCount = 6, PUBG = 8.
-Next: OCR timer pipeline (blocked on observer footage), then optional player
-death overlay / point-pop extras.
+The OCR pipeline ships with a MOCK detector (dry-run) that simulates a HUD
+countdown, debounces noisy readings, detects zone resets and emits SYSTEM
+ZONE_STARTED / ZONE_TIMER events; panel has Start/Stop + live status. Video OCR
+(real footage) is stubbed and returns 400 until an observer clip is provided to
+calibrate ROI + install OCR deps. Next: player death overlay / point-pop extras.
 
 ---
 
@@ -358,7 +363,7 @@ death overlay / point-pop extras.
 4. Roles Management
 5. Media upload integration (Cloudinary / local uploads)
 6. Organization switching
-7. OCR / auto-capture pipeline (blocked on observer footage)
+7. OCR / auto-capture pipeline (mock dry-run shipped; real footage calibration pending)
 
 ---
 
@@ -416,8 +421,9 @@ Completed
 - Live Match Frontend (control center + control panel + OBS overlay) - Phase 1
 - Live Match Zone Engine (backend) - zone phases/timers + enriched realtime, Phase 2 backend
 - Live Match Broadcast GFX (frontend) - panel zone controls + animations + preview, Phase 2 frontend
+- Live Match Zone OCR (backend + panel) - mock dry-run detector + panel controls, Phase 3 OCR scaffolding
 
 Next Commit
 
-OCR zone-timer pipeline (blocked on observer footage); optional GFX extras
-(player death overlay, point pops)
+Real video OCR calibration once observer footage is provided (ROI + tesseract/ffmpeg);
+optional GFX extras (player death overlay, point pops)
