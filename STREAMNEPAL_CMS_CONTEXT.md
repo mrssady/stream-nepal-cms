@@ -344,6 +344,8 @@ Working
 
 ✅ OCR Analysis Core - provider interface, ROI preprocessor, detectors, normalization + fuzzy team matching, temporal validation, duplicate protection, confidence tiers, dry-run analyze endpoint (read-only, suggestedOnly events) + 36 unit tests
 
+✅ OCR Monitor + ROI Overlay - dry-run tick-loop monitor (start/stop/status/latest + live socket analysis), mock spectator scene w/ deterministic seeded PRNG, ROI debug overlay endpoint, live analysis panel with ROI readouts, suggested events + review flags (read-only; kill feed ROI ships disabled, minimap CV-only)
+
 Current Screen
 
 Phase 2 (broadcast) is feature-complete for the manual + GFX + OCR-dry-run flow:
@@ -435,6 +437,36 @@ OCR Analysis Core (Phase 4 - pure-logic engine, footage-independent)
   teamEliminations, observerPlayerList REVIEW, zoneInfo, currentTeam,
   playerStats) + ZONE_TIMER suggestion (phase 1, 229s); noise mode kept stable
 
+OCR Monitor + ROI Overlay (Phase 5 - frame input, debug, review panel)
+
+- ocr/ocr-monitor-scene.ts: PURE buildMonitorScene(tick, teamTags) - live-scene
+  progression for the dry-run; values step every 6 ticks via
+  cycle = floor(tick/6) % 24 (remainingPlayers 75-cycle min 10, zoneTimer
+  229-cycle*5 min 1s, team/player eliminations cycle patterns, damage
+  325+cycle*11, assists min(9,cycle), currentTeamTag rotates fallback['777A'])
+  + spec (42 tests total now)
+- ocr/ocr-temporal.ts REWRITTEN: sliding window of confirmations*2; CONFIRMED
+  when last N identical, UNCERTAIN when window full without a streak (real
+  alternation), PENDING otherwise; one-time stat changes (old 0 -> new 1)
+  flag UNCERTAIN for review then re-confirm (spec 30); regression test added
+- dto/start-ocr-monitor.dto.ts: intervalMs(100-10000, dft 1000), confirmations
+  (1-8, dft 3), dedupWindowMs, noise, progress, seed, confidenceBase
+- live-match-ocr-monitor.service.ts: per-match monitor session (engine +
+  provider + interval), tick() -> scene -> processFrame -> gateway broadcast
+  match:ocr:analysis; accumulate counters; stop/status/latest + GET
+  /:id/ocr/overlay (width/height or profile resolution, reference
+  1920x1080) -> PreparedRoi[] + activeOcr; onModuleDestroy clears intervals
+- REST: POST /:id/ocr/monitor/start, POST /:id/ocr/monitor/stop,
+  GET /:id/ocr/monitor/status, GET /:id/ocr/monitor/latest,
+  GET /:id/ocr/overlay (OWNER/ADMIN/MANAGER; read-only, suggestedOnly)
+- Frontend /live/[matchId]/ocr: monitor controls (interval/confirmations/
+  progress/noise), status stats, SVG ROI overlay colored by enabled/ocr +
+  detection tier, last confirmed readouts per ROI, suggested events list,
+  needs-review signals; useLiveMatch now surfaces match:ocr:analysis frames
+- Verified via API: monitor 16 frames -> 96 readings, review flags on
+  transitions, flat confirmations on stable scene; overlay 1280x720 ->
+  activeOcr 6, 8 rois (kill feed + minimap excluded)
+
 ---
 
 # Next Tasks
@@ -446,7 +478,7 @@ OCR Analysis Core (Phase 4 - pure-logic engine, footage-independent)
 5. Media upload integration (Cloudinary / local uploads)
 6. Organization switching
 7. OCR / auto-capture pipeline (mock dry-run shipped; OCR profile management shipped; real footage calibration pending) - OCR analysis core shipped (Phase 4)
-8. OCR next: Phase 5 frame input + ROI debug overlay (spec 23) + OCR monitor/review panel (spec 22); Phase 6 candidate -> manual review -> match event wiring (spec 20,21,30); kill feed ROI confirmation on real footage
+8. OCR next: Phase 6 candidate -> manual review -> match event wiring (spec 20,21,30); kill feed ROI confirmation on real footage; then real video OCR calibration once observer footage provided
 
 ---
 
@@ -508,11 +540,10 @@ Completed
 - OCR Profiles (backend + seed + frontend) - per-game calibration profile CRUD, Phase 3 OCR grounding
 - OCR Spectator Layout (config model + scaling + structured ROI editor) - PUBG Mobile 1920x1080 ROI foundation
 - OCR Analysis Core (backend) - provider interface, ROI preprocessor, detectors, normalization + fuzzy team matching, temporal validation, duplicate protection, confidence tiers, dry-run analyze endpoint + 36 unit tests
+- OCR Monitor + ROI Overlay (backend + frontend) - dry-run tick-loop monitor (start/stop/status/latest + match:ocr:analysis socket), mock spectator scene, ROI debug overlay endpoint + SVG layout, live analysis panel, /live/[matchId]/ocr route + 42 unit tests
 
 Next Commit
 
-Frame input + ROI debug overlay (session with frame capture) + OCR monitor/
-review panel (backend + frontend); then candidate -> manual review -> match
-event wiring; then real video OCR calibration once observer footage is
-provided (tesseract/ffmpeg).
-real video OCR calibration once observer footage is provided (tesseract/ffmpeg)
+Candidate -> manual review -> match event wiring (spec 20,21,30); kill feed ROI
+confirmation on real footage; then real video OCR calibration once observer
+footage is provided (tesseract/ffmpeg).
