@@ -3,6 +3,7 @@
 import { use, useCallback, useEffect, useState } from "react";
 
 import {
+  Copy,
   Crosshair,
   Flag,
   Lock,
@@ -11,11 +12,13 @@ import {
   Play,
   Plus,
   Skull,
+  Timer,
   Trophy,
   Undo2,
   Unlock,
   Wifi,
   WifiOff,
+  Zap,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -54,6 +57,13 @@ function formatTime(value: string | null): string {
   });
 }
 
+function formatClock(totalSeconds: number): string {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  return `${minutes}:${String(seconds).padStart(2, "0")}`;
+}
+
 const statusVariant: Record<
   LiveMatchStatus,
   "default" | "secondary" | "outline" | "destructive"
@@ -85,6 +95,7 @@ export default function LiveControlPage({
     teamId: "",
     amount: "1",
   });
+  const [zoneSeconds, setZoneSeconds] = useState("60");
 
   const socket = useLiveMatch(matchId || undefined);
 
@@ -244,6 +255,48 @@ export default function LiveControlPage({
 
     setKillerId("");
     setVictimId("");
+  }
+
+  function currentZonePhase(): number {
+    return state?.zone?.phase ?? 0;
+  }
+
+  function zoneTimerTargetPhase(): number {
+    return Math.min(currentZonePhase() + 1, state?.zoneCount ?? 8);
+  }
+
+  async function handleZonePhase(phase: number) {
+    await applyEvent("ZONE_STARTED", { phase });
+  }
+
+  async function handleZoneNext() {
+    await handleZonePhase(zoneTimerTargetPhase());
+  }
+
+  async function handleZoneTimer(seconds: number) {
+    if (!Number.isInteger(seconds) || seconds < 1 || seconds > 600) {
+      report({ kind: "err", text: "Zone timer must be 1–600 seconds" });
+      return;
+    }
+
+    await applyEvent("ZONE_TIMER", {
+      phase: zoneTimerTargetPhase(),
+      seconds,
+    });
+  }
+
+  function gfxUrl(path: string): string {
+    return `${window.location.origin}/live/overlay/gfx/${matchId}${path}`;
+  }
+
+  async function copyGfxUrl(path: string) {
+    try {
+      await navigator.clipboard.writeText(gfxUrl(path));
+      report({ kind: "ok", text: "Overlay URL copied to clipboard" });
+    } catch (err) {
+      console.error(err);
+      report({ kind: "err", text: "Could not copy URL" });
+    }
   }
 
   if (!match || !state) {
@@ -542,6 +595,141 @@ export default function LiveControlPage({
         </div>
 
         <div className="space-y-6">
+          <Section title="Zone / Broadcast GFX">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-black tabular-nums">
+                    {state.zone.phase ?? "—"}
+                  </span>
+                  <span className="text-sm font-semibold text-muted-foreground">
+                    / {state.zoneCount} zones
+                  </span>
+
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    disabled={!controlsEnabled}
+                    onClick={handleZoneNext}
+                  >
+                    Next zone
+                  </Button>
+                </div>
+
+                {state.zone.timerSeconds !== null &&
+                  state.zone.timerSeconds > 0 && (
+                    <span className="flex items-center gap-1.5 text-sm font-semibold text-destructive">
+                      <Timer className="size-4" />
+                      Next zone in {formatClock(state.zone.timerSeconds)}
+                    </span>
+                  )}
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  Current zone
+                </label>
+                <div className="grid grid-cols-8 gap-1.5">
+                  {Array.from(
+                    { length: state.zoneCount },
+                    (_, i) => i + 1,
+                  ).map((phase) => (
+                    <Button
+                      key={phase}
+                      size="sm"
+                      variant={
+                        phase === state.zone.phase
+                          ? "default"
+                          : "outline"
+                      }
+                      disabled={
+                        !controlsEnabled ||
+                        phase === state.zone.phase
+                      }
+                      onClick={() => handleZonePhase(phase)}
+                    >
+                      {phase}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  Zone timer (countdown shown by OCR / broadcast)
+                </label>
+                <div className="flex flex-wrap gap-1.5">
+                  {[60, 90, 120, 180, 300].map((seconds) => (
+                    <Button
+                      key={seconds}
+                      size="sm"
+                      variant="outline"
+                      disabled={!controlsEnabled}
+                      onClick={() => handleZoneTimer(seconds)}
+                    >
+                      {formatClock(seconds)}
+                    </Button>
+                  ))}
+
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="number"
+                      min={1}
+                      max={600}
+                      className="h-8 w-16 rounded-md border bg-background px-2 text-sm outline-none focus:ring-2 focus:ring-ring/20 disabled:cursor-not-allowed disabled:opacity-50"
+                      value={zoneSeconds}
+                      disabled={!controlsEnabled}
+                      onChange={(event) =>
+                        setZoneSeconds(event.target.value)
+                      }
+                    />
+                    <Button
+                      size="sm"
+                      disabled={!controlsEnabled}
+                      onClick={() =>
+                        handleZoneTimer(Number(zoneSeconds))
+                      }
+                    >
+                      <Zap className="size-4" />
+                      Set
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  OBS overlays (copy URL)
+                </label>
+                <div className="flex flex-wrap gap-1.5">
+                  {(
+                    [
+                      ["Eliminated", "elimination"],
+                      ["Winner", "winner"],
+                      ["Kill feed", "killfeed"],
+                      ["Zone", "zone"],
+                      ["Preview", "/preview"],
+                    ] as const
+                  ).map(([label, path]) => (
+                    <Button
+                      key={path}
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => copyGfxUrl(path)}
+                    >
+                      <Copy className="size-3.5" />
+                      {label}
+                    </Button>
+                  ))}
+                </div>
+
+                <p className="mt-2 truncate rounded-md bg-muted/40 px-2 py-1.5 text-[11px] text-muted-foreground">
+                  {gfxUrl("elimination")}
+                </p>
+              </div>
+            </div>
+          </Section>
+
           <Section title="Kill Feed">
             {state.killFeed.length === 0 ? (
               <p className="py-6 text-center text-sm text-muted-foreground">

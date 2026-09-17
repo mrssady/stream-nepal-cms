@@ -19,6 +19,8 @@ export type MatchEventKind =
   | "PLACEMENT_CONFIRMED"
   | "PLACEMENT_SET"
   | "WINNER_DECLARED"
+  | "ZONE_STARTED"
+  | "ZONE_TIMER"
   | "MANUAL_CORRECTION"
   | "UNDO"
   | "MATCH_LOCKED"
@@ -111,6 +113,27 @@ export type MatchEventRecord = {
   confidence: number | null;
   payload: Record<string, unknown>;
   timestamp: string;
+  derived?: EventDerived;
+};
+
+export type EventDerived = {
+  teamId?: string;
+  teamName?: string;
+  shortName?: string;
+  placement?: number | null;
+  placementPoints?: number;
+  isWinner?: boolean;
+  killerTeamId?: string | null;
+  victimTeamId?: string | null;
+  killerTeamShort?: string | null;
+  victimTeamShort?: string | null;
+};
+
+export type ZoneState = {
+  phase: number | null;
+  startedAt: string | null;
+  timerSeconds: number | null;
+  timerSetAt: string | null;
 };
 
 export type MatchState = {
@@ -125,6 +148,8 @@ export type MatchState = {
   pausedAt: string | null;
   locked: boolean;
   winnerTeamId: string | null;
+  zone: ZoneState;
+  zoneCount: number;
   teams: Record<string, TeamStanding>;
   players: Record<string, PlayerSnapshot>;
   scoreboard: TeamStanding[];
@@ -148,6 +173,7 @@ export type SnapshotPayload = {
     killPoint: number;
     booyahBonus: number;
     placementPoints: Record<string, number>;
+    zoneCount: number;
   };
   state: MatchState;
   participantCount: number;

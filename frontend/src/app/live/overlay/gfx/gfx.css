@@ -1,0 +1,103 @@
+.gfx-stage {
+  min-height: 100vh;
+  overflow: hidden;
+  background: transparent;
+  color: #fff;
+  font-family: Rajdhani, "Arial Narrow", "Segoe UI", sans-serif;
+}
+
+.gfx-hide-when-empty:empty {
+  display: none;
+}
+
+@keyframes gfx-swipe-up {
+  0% {
+    opacity: 0;
+    transform: translateY(60px);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes gfx-pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes gfx-slide-in-left {
+  0% {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes gfx-count-flash {
+  0%,
+  100% {
+    transform: scale(1);
+    color: #fff;
+  }
+  50% {
+    transform: scale(1.12);
+    color: #fbbf24;
+  }
+}
+
+@keyframes gfx-pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  100% {
+    box-shadow: 0 0 0 18px rgba(239, 68, 68, 0);
+  }
+}
+
+.gfx-enter-up {
+  animation: gfx-swipe-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.gfx-enter-pop {
+  animation: gfx-pop-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.gfx-enter-row {
+  animation: gfx-slide-in-left 0.35s ease-out both;
+}
+
+.gfx-exit-row {
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.gfx-row-leaving {
+  opacity: 0;
+  transform: translateX(-24px);
+}
+
+.gfx-tick {
+  animation: gfx-count-flash 1s ease-in-out both;
+  font-variant-numeric: tabular-nums;
+}
+
+.gfx-live-dot {
+  animation: gfx-pulse-ring 1.6s ease-out infinite;
+}
