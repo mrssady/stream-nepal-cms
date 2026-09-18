@@ -253,6 +253,15 @@ Search + Pagination polish
 - Shared Pagination component (results summary, ellipsis window)
 - Search + pagination on all dashboard pages (Events, Users, Services, Sponsors, Gallery, Event Series, Projects)
 
+Players Page (CRUD) - /players
+
+- List: player avatar/name + IGN + slot, team name, game UID, role badge, active/inactive badge, created date
+- Create / Edit dialog: team select (grouped by tournament name), full name, IGN, game UID, role (CAPTAIN/PLAYER/SUBSTITUTE/COACH/MANAGER), country, nationality, slot number, profile image upload, active toggle
+- Search (name / IGN / UID / team / role) + pagination (10 per page)
+- Delete confirmation dialog; duplicates blocked by backend (team + gameUID 409 surfaced in form)
+- Teams dropdown loads from /tournament-teams + /tournaments; friendly empty state when no teams exist
+- Backend already existed (/players CRUD, OWNER/ADMIN)
+
 Public Website
 
 - Home Page
@@ -347,6 +356,8 @@ Working
 ✅ OCR Monitor + ROI Overlay - dry-run tick-loop monitor (start/stop/status/latest + live socket analysis), mock spectator scene w/ deterministic seeded PRNG, ROI debug overlay endpoint, live analysis panel with ROI readouts, suggested events + review flags (read-only; kill feed ROI ships disabled, minimap CV-only)
 
 ✅ OCR Review + Wiring (backend) - in-memory per-match candidate queue from confirmed suggestions, GET /ocr/review + approve/reject endpoints; approve is LIVE+unlocked gated, ZONE_TIMER/ZONE_STARTED only, dedupes per fingerprint and wires via SYSTEM match event (spec 20/21/30) + 10 unit tests
+
+✅ Players Dashboard Page - /players CRUD (list / create / edit / delete, search + pagination, tournament-grouped team select) on top of existing backend
 
 Current Screen
 
@@ -499,14 +510,12 @@ OCR Review + Wiring (Phase 6 backend - candidate -> manual review -> event wirin
 
 # Next Tasks
 
-1. Players Dashboard Page (backend exists)
-2. Team Members Dashboard Page (backend exists)
-3. Tournaments Admin Page (registrations/matches)
-4. Roles Management
-5. Media upload integration (Cloudinary / local uploads)
-6. Organization switching
-7. OCR / auto-capture pipeline (mock dry-run shipped; OCR profile management shipped; real footage calibration pending) - OCR analysis core shipped (Phase 4)
-8. OCR next: review panel UI (approve/reject pending candidates) on /live/[matchId]/ocr; kill feed ROI confirmation on real footage; then real video OCR calibration once observer footage provided
+1. Team Members Dashboard Page (backend exists)
+2. Tournaments Admin Page (registrations/matches)
+3. Roles Management
+4. Media upload integration (Cloudinary / local uploads)
+5. Organization switching
+6. OCR / real video calibration (mock dry-run + profiles + analysis core + monitor/overlay + review panel UI all shipped; blocked on PUBG Mobile observer footage for ROI calibration / kill feed confirmation)
 
 ---
 
@@ -570,9 +579,12 @@ Completed
 - OCR Analysis Core (backend) - provider interface, ROI preprocessor, detectors, normalization + fuzzy team matching, temporal validation, duplicate protection, confidence tiers, dry-run analyze endpoint + 36 unit tests
 - OCR Monitor + ROI Overlay (backend + frontend) - dry-run tick-loop monitor (start/stop/status/latest + match:ocr:analysis socket), mock spectator scene, ROI debug overlay endpoint + SVG layout, live analysis panel, /live/[matchId]/ocr route + 42 unit tests
 - OCR Review + Wiring (backend) - in-memory candidate queue, approve/reject endpoints, LIVE-gated ZONE_* wiring to SYSTEM match events + 10 unit tests
+- OCR Review Panel UI (frontend) - approve/reject pending candidates on /live/[matchId]/ocr wired to backend
+- Players Dashboard Page (frontend) - /players CRUD (list / create / edit / delete, search + pagination, tournament-grouped team select)
 
 Next Commit
 
-Review panel UI (approve/reject pending candidates) on /live/[matchId]/ocr; then
-kill feed ROI confirmation on real footage; then real video OCR calibration once
-observer footage is provided (tesseract/ffmpeg).
+Team Members Dashboard Page (backend exists); then Tournaments Admin Page
+(registrations/matches). Kill feed ROI confirmation on real footage + real video
+OCR calibration remain blocked until PUBG Mobile observer footage is provided
+(tesseract/ffmpeg).

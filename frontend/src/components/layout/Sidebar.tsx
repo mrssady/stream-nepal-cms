@@ -15,6 +15,7 @@ import {
   Trophy,
   Users,
   Layers3,
+  Gamepad2,
 } from "lucide-react";
 
 import {
@@ -86,6 +87,11 @@ const contentMenu = [
     name: "Sponsors",
     href: "/sponsors",
     icon: Handshake,
+  },
+  {
+    name: "Players",
+    href: "/players",
+    icon: Gamepad2,
   },
 ];
 
