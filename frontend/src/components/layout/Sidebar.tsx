@@ -16,6 +16,7 @@ import {
   Users,
   Layers3,
   Gamepad2,
+  UsersRound,
 } from "lucide-react";
 
 import {
@@ -92,6 +93,11 @@ const contentMenu = [
     name: "Players",
     href: "/players",
     icon: Gamepad2,
+  },
+  {
+    name: "Team Members",
+    href: "/team-members",
+    icon: UsersRound,
   },
 ];
 

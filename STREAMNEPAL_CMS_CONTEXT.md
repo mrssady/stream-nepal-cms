@@ -262,6 +262,14 @@ Players Page (CRUD) - /players
 - Teams dropdown loads from /tournament-teams + /tournaments; friendly empty state when no teams exist
 - Backend already existed (/players CRUD, OWNER/ADMIN)
 
+Team Members Page (CRUD) - /team-members
+
+- Card grid: profile photo/initial avatar, name + nickname + position, department badge, active/inactive badge, edit/delete actions
+- Create / Edit modal: full name, nickname, position (12 options), department (6 options), bio, profile image upload, phone/email, social links (Facebook/Instagram/YouTube/Discord), display order, active toggle
+- Search (name / nickname / position / department) + pagination (9 per page)
+- Delete confirmation
+- Backend already existed (/team CRUD on TeamMember, OWNER/ADMIN)
+
 Public Website
 
 - Home Page
@@ -358,6 +366,8 @@ Working
 ✅ OCR Review + Wiring (backend) - in-memory per-match candidate queue from confirmed suggestions, GET /ocr/review + approve/reject endpoints; approve is LIVE+unlocked gated, ZONE_TIMER/ZONE_STARTED only, dedupes per fingerprint and wires via SYSTEM match event (spec 20/21/30) + 10 unit tests
 
 ✅ Players Dashboard Page - /players CRUD (list / create / edit / delete, search + pagination, tournament-grouped team select) on top of existing backend
+
+✅ Team Members Dashboard Page - /team-members CRUD (card grid / create / edit / delete, search + pagination) on top of existing backend
 
 Current Screen
 
@@ -510,12 +520,11 @@ OCR Review + Wiring (Phase 6 backend - candidate -> manual review -> event wirin
 
 # Next Tasks
 
-1. Team Members Dashboard Page (backend exists)
-2. Tournaments Admin Page (registrations/matches)
-3. Roles Management
-4. Media upload integration (Cloudinary / local uploads)
-5. Organization switching
-6. OCR / real video calibration (mock dry-run + profiles + analysis core + monitor/overlay + review panel UI all shipped; blocked on PUBG Mobile observer footage for ROI calibration / kill feed confirmation)
+1. Tournaments Admin Page (registrations/matches)
+2. Roles Management
+3. Media upload integration (Cloudinary / local uploads)
+4. Organization switching
+5. OCR / real video calibration (mock dry-run + profiles + analysis core + monitor/overlay + review panel UI all shipped; blocked on PUBG Mobile observer footage for ROI calibration / kill feed confirmation)
 
 ---
 
@@ -581,10 +590,10 @@ Completed
 - OCR Review + Wiring (backend) - in-memory candidate queue, approve/reject endpoints, LIVE-gated ZONE_* wiring to SYSTEM match events + 10 unit tests
 - OCR Review Panel UI (frontend) - approve/reject pending candidates on /live/[matchId]/ocr wired to backend
 - Players Dashboard Page (frontend) - /players CRUD (list / create / edit / delete, search + pagination, tournament-grouped team select)
+- Team Members Dashboard Page (frontend) - /team-members CRUD (card grid / create / edit / delete, search + pagination)
 
 Next Commit
 
-Team Members Dashboard Page (backend exists); then Tournaments Admin Page
-(registrations/matches). Kill feed ROI confirmation on real footage + real video
-OCR calibration remain blocked until PUBG Mobile observer footage is provided
-(tesseract/ffmpeg).
+Tournaments Admin Page (registrations/matches); then Roles Management. Kill
+feed ROI confirmation on real footage + real video OCR calibration remain
+blocked until PUBG Mobile observer footage is provided (tesseract/ffmpeg).
