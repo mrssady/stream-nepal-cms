@@ -17,6 +17,7 @@ import {
   Layers3,
   Gamepad2,
   UsersRound,
+  Swords,
 } from "lucide-react";
 
 import {
@@ -98,6 +99,11 @@ const contentMenu = [
     name: "Team Members",
     href: "/team-members",
     icon: UsersRound,
+  },
+  {
+    name: "Tournaments",
+    href: "/dashboard/tournaments",
+    icon: Swords,
   },
 ];
 

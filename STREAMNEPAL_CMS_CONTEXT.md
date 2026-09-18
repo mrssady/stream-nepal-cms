@@ -270,6 +270,26 @@ Team Members Page (CRUD) - /team-members
 - Delete confirmation
 - Backend already existed (/team CRUD on TeamMember, OWNER/ADMIN)
 
+Tournaments Admin Page (CRUD + Detail) - /dashboard/tournaments
+
+- List: banner or initial avatar, name + slug, game badge, status badge (DRAFT/PUBLISHED/REGISTRATION_OPEN/REGISTRATION_CLOSED/LIVE/COMPLETED/CANCELLED), teams current/max, start date, Manage/Edit/Delete, Create Tournament modal
+- Create / Edit modal (TournamentFormModal): name, slug, game, organizer, registration fee, prize pool, max/current teams, featured + isPublic toggles, 4 datetime-local schedule dates (registration open/close, tournament start/end), links (Discord/WhatsApp/Stream/Website), media upload (logo + banner via ImageUpload), description + rules textareas
+- Search (name / slug / organizer / game) + pagination (9 per page) via shared SearchBar + Pagination
+- Backend already existed (/tournaments CRUD, OWNER/ADMIN); reuse existing services/tournaments.ts + new useTournaments hook
+
+Tournament Detail Page - /dashboard/tournaments/[id]
+
+- Tabs: Overview / Registrations / Matches
+- Header: banner, status + game + featured badges, name/slug, description, dates, teams, entry fee, prize pool, stats (registrations / approved / matches)
+- Overview tab: schedule, competition (organizer/game/max+current teams/fee/prize), availability (public/featured), rules, external links
+- Registrations tab: table (team logo+name+manager, captain email, IGN/UID, registration status, payment status), quick Approve/Reject on PENDING, Add/Edit via RegistrationModal, delete confirm
+  - RegistrationModal fields: team name, team logo upload, captain (name/email/phone), manager (name/phone), game UID/IGN, roster size, discord username, registration status, payment status, remarks
+- Matches tab: table (title+round, home vs away with scores, match type, scheduledAt, status), Add/Edit via MatchModal, delete confirm
+  - MatchModal fields: title, round, match type (BO1/BO3/BO5/CUSTOM), status (SCHEDULED/LIVE/COMPLETED/CANCELLED), scheduledAt datetime-local, home/away team selects (from /tournament-teams), winner select, home/away score, notes
+- Data via useRegistrations + useMatches hooks (filtered client-side by tournamentId) + getTournamentTeams from /services/players.ts
+- Backend already existed (/registrations, /matches, /tournament-teams CRUD, OWNER/ADMIN)
+- Sidebar "Tournaments" entry (Swords icon) added to Content menu; route is /dashboard/tournaments (public site owns /tournaments)
+
 Public Website
 
 - Home Page
@@ -368,6 +388,8 @@ Working
 ✅ Players Dashboard Page - /players CRUD (list / create / edit / delete, search + pagination, tournament-grouped team select) on top of existing backend
 
 ✅ Team Members Dashboard Page - /team-members CRUD (card grid / create / edit / delete, search + pagination) on top of existing backend
+
+✅ Tournaments Admin - /dashboard/tournaments CRUD (list + create/edit modal, search + pagination) + detail page with Overview / Registrations / Matches tabs (registration approve/reject + payment status, match fixtures) on top of existing backend
 
 Current Screen
 
@@ -520,11 +542,10 @@ OCR Review + Wiring (Phase 6 backend - candidate -> manual review -> event wirin
 
 # Next Tasks
 
-1. Tournaments Admin Page (registrations/matches)
-2. Roles Management
-3. Media upload integration (Cloudinary / local uploads)
-4. Organization switching
-5. OCR / real video calibration (mock dry-run + profiles + analysis core + monitor/overlay + review panel UI all shipped; blocked on PUBG Mobile observer footage for ROI calibration / kill feed confirmation)
+1. Roles Management
+2. Media upload integration (Cloudinary / local uploads)
+3. Organization switching
+4. OCR / real video calibration (mock dry-run + profiles + analysis core + monitor/overlay + review panel UI all shipped; blocked on PUBG Mobile observer footage for ROI calibration / kill feed confirmation)
 
 ---
 
@@ -591,9 +612,11 @@ Completed
 - OCR Review Panel UI (frontend) - approve/reject pending candidates on /live/[matchId]/ocr wired to backend
 - Players Dashboard Page (frontend) - /players CRUD (list / create / edit / delete, search + pagination, tournament-grouped team select)
 - Team Members Dashboard Page (frontend) - /team-members CRUD (card grid / create / edit / delete, search + pagination)
+- Tournaments Admin (frontend) - /dashboard/tournaments CRUD (list + create/edit modal, search + pagination) + detail page (Overview / Registrations / Matches tabs, quick approve/reject, fixtures) + Sidebar entry
 
 Next Commit
 
-Tournaments Admin Page (registrations/matches); then Roles Management. Kill
-feed ROI confirmation on real footage + real video OCR calibration remain
-blocked until PUBG Mobile observer footage is provided (tesseract/ffmpeg).
+Roles Management. Media upload integration (Cloudinary / local uploads) and
+organization switching follow. Kill feed ROI confirmation on real footage + real
+video OCR calibration remain blocked until PUBG Mobile observer footage is
+provided (tesseract/ffmpeg).

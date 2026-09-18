@@ -20,6 +20,7 @@ Professional Content Management System for Stream Nepal.
 ✅ OCR pipeline: profiles + ROI editor + analysis core + monitor/ROI overlay + review/wiring (spec phases 1-4)
 ✅ Players Dashboard: /players CRUD (list / create / edit / delete, search + pagination, tournament-grouped team select)
 ✅ Team Members Dashboard: /team-members CRUD (card grid / create / edit / delete, search + pagination)
+✅ Tournaments Admin: /dashboard/tournaments CRUD + detail page (Overview / Registrations / Matches tabs, quick approve/reject, fixtures)
 
 ## Continuation Notes — READ THIS FIRST
 
