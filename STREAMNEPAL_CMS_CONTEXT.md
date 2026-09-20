@@ -211,6 +211,25 @@ Live Match Engine Zone System (Phase 2 - broadcast prep)
   untouched so scoring stays deterministic on replay
 - Public snapshot rule payload now includes zoneCount
 
+Organizations Module (multi-tenant org switching)
+
+- Prisma Organization model; full CRUD + conflict/not-found guards + activity logging
+- Global OrganizationResolveInterceptor (APP_INTERCEPTOR): resolves org from
+  x-organization-id header, falls back to default slug stream-nepal (constant),
+  attaches request.organization; @CurrentOrganization() decorator reads it
+- Auth: JWT payload/strategy + AuthenticatedUser now carry organizationId
+- All org-scoped services refactored to take organization: Organization as first
+  param (services, projects, team, media, sponsors, settings, event-series,
+  events + event photos/videos/timeline/sponsors, dashboard); controllers pass
+  @CurrentOrganization()
+- Public controllers (services, projects, events, sponsors, settings, media)
+  resolve org from header, default stream-nepal when absent
+- Cloudinary storage folder no longer hardcodes stream-nepal; media uploads are
+  namespaced by org slug (default slug preserves old behavior)
+- Guards: default org cannot be deleted; org with assigned users cannot be deleted
+- Seed: second organization demo-org
+- Spec: organizations.service.spec.ts (10 tests)
+
 ---
 
 # Frontend Completed
@@ -245,6 +264,17 @@ Roles Page (read-only) - /roles
 - Legend + level-inheritance note; data from GET /api/roles via useRoles hook
   (services/roles.ts + types/role.ts); promise-chain effect pattern (lint-clean)
 - Sidebar "Roles" entry added to System group (ShieldCheck icon)
+
+Organizations Page (CRUD) - /organizations
+
+- List: logo/initial avatar, name + slug, user count, created date; search + pagination
+- Create / Edit dialog: name with auto-generated slug, website, brand color, logo upload
+- Delete confirmation dialog; editing/deleting the active org falls back to another; default org protected by backend
+- Sidebar OrganizationSwitcher (dropdown, active org marked, reload on switch)
+  + Organizations entry added to System menu (Building2 icon); Topbar title mapped
+- Active org persisted in localStorage (active_organization_id via lib/org.ts),
+  seeded on login + after auth hydration when absent, injected as X-Organization-Id
+  header by services/api.ts interceptor
 
 Services Page (CRUD)
 
@@ -431,6 +461,8 @@ Public Tournament Detail + Registration - /tournaments/[slug] (frontend + backen
   success confirmation panel; blocked state when not accepting (not open/closed/
   filled/cancelled/completed/draft)
 
+✅ Organization switching - Organizations backend module (CRUD + guards + global org-resolution interceptor + header-driven public routes + org-scoped media storage), auth organizationId, seed demo-org + frontend /organizations admin CRUD, sidebar OrganizationSwitcher, X-Organization-Id header injection (localStorage active org)
+
 Current Screen
 
 Phase 2 (broadcast) is feature-complete for the manual + GFX + OCR-dry-run flow:
@@ -583,8 +615,7 @@ OCR Review + Wiring (Phase 6 backend - candidate -> manual review -> event wirin
 # Next Tasks
 
 1. Media upload integration (Cloudinary / local uploads)
-2. Organization switching
-3. OCR / real video calibration (mock dry-run + profiles + analysis core + monitor/overlay + review panel UI all shipped; blocked on PUBG Mobile observer footage for ROI calibration / kill feed confirmation)
+2. OCR / real video calibration (mock dry-run + profiles + analysis core + monitor/overlay + review panel UI all shipped; blocked on PUBG Mobile observer footage for ROI calibration / kill feed confirmation)
 
 ---
 
@@ -654,10 +685,10 @@ Completed
 - Tournaments Admin (frontend) - /dashboard/tournaments CRUD (list + create/edit modal, search + pagination) + detail page (Overview / Registrations / Matches tabs, quick approve/reject, fixtures) + Sidebar entry
 - Public Tournament Detail + Registration (frontend + backend) - GET/POST /api/public/tournaments/:slug endpoints, /tournaments/[slug] public page with fixtures/teams/links + team registration form
 - Roles Management (frontend + backend) - read-only GET /api/roles catalog + permission matrix, /roles page (role cards + level ladder + grouped matrix), sidebar entry
+- Organization switching (backend + frontend) - Organizations CRUD module + guards + global org-resolution interceptor + header-driven public routes + org-scoped media storage, auth organizationId, seed demo-org, /organizations admin CRUD page + sidebar OrganizationSwitcher + X-Organization-Id header wiring + organizations.service.spec (10 tests)
 
 Next Commit
 
-Media upload integration (Cloudinary / local uploads) and
-organization switching follow. Kill feed ROI confirmation on real footage + real
-video OCR calibration remain blocked until PUBG Mobile observer footage is
-provided (tesseract/ffmpeg).
+Media upload integration (Cloudinary / local uploads) follows. Kill feed ROI
+confirmation on real footage + real video OCR calibration remain blocked until
+PUBG Mobile observer footage is provided (tesseract/ffmpeg).
