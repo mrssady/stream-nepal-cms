@@ -22,6 +22,7 @@ import { ProjectsModule } from './modules/projects/projects.module';
 import { EventsModule } from './modules/events/events.module';
 import { EventSeriesModule } from './modules/event-series/event-series.module';
 import { SponsorsModule } from './modules/sponsors/sponsors.module';
+import { RolesModule } from './modules/roles/roles.module';
 import { ActivityLogsModule } from './modules/activity-logs/activity-logs.module';
 import { LiveMatchesModule } from './modules/live-matches/live-matches.module';
 
@@ -53,6 +54,7 @@ import { LiveMatchesModule } from './modules/live-matches/live-matches.module';
     EventSeriesModule,
     SponsorsModule,
 
+    RolesModule,
     ActivityLogsModule,
     LiveMatchesModule,
   ],

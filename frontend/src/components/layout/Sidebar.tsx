@@ -18,6 +18,7 @@ import {
   Gamepad2,
   UsersRound,
   Swords,
+  ShieldCheck,
 } from "lucide-react";
 
 import {
@@ -108,6 +109,11 @@ const contentMenu = [
 ];
 
 const systemMenu = [
+  {
+    name: "Roles",
+    href: "/roles",
+    icon: ShieldCheck,
+  },
   {
     name: "Settings",
     href: "/settings",

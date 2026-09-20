@@ -107,6 +107,15 @@ Role Guard
 - OWNER
 - ADMIN
 
+Roles Module (read-only catalog + permission matrix)
+
+- GET /api/roles (OWNER/ADMIN): role catalog (all 5 roles with label, level,
+  description, example capabilities, member counts) + permission matrix
+  (17 rows across 4 groups: System & Access / Content & Portfolio / Tournaments
+  & Roster / Live Broadcast & OCR)
+- Grants computed with the same min-level threshold as RolesGuard, so the matrix
+  always mirrors real enforcement (admin-only rows also grant CO_OWNER/OWNER)
+
 Prisma Connected
 
 Services Module
@@ -225,6 +234,17 @@ EmptyState Component
 API Service
 
 Authentication Service
+
+Roles Page (read-only) - /roles
+
+- Role catalog cards: badge, label, level, member count, description, example
+  capabilities list, "You" highlight for the signed-in role
+- Level ladder card: 1-5 hierarchy bars + last-Owner note
+- Permission matrix: grouped tables (System & Access / Content & Portfolio /
+  Tournaments & Roster / Live Broadcast & OCR) with allowed/denied cell per role
+- Legend + level-inheritance note; data from GET /api/roles via useRoles hook
+  (services/roles.ts + types/role.ts); promise-chain effect pattern (lint-clean)
+- Sidebar "Roles" entry added to System group (ShieldCheck icon)
 
 Services Page (CRUD)
 
@@ -388,6 +408,8 @@ Working
 ✅ Players Dashboard Page - /players CRUD (list / create / edit / delete, search + pagination, tournament-grouped team select) on top of existing backend
 
 ✅ Team Members Dashboard Page - /team-members CRUD (card grid / create / edit / delete, search + pagination) on top of existing backend
+
+✅ Roles Management Page - /roles read-only role catalog + permission matrix (backend GET /api/roles + role cards, level ladder, grouped matrix tables) on top of the existing role hierarchy + RolesGuard
 
 ✅ Tournaments Admin - /dashboard/tournaments CRUD (list + create/edit modal, search + pagination) + detail page with Overview / Registrations / Matches tabs (registration approve/reject + payment status, match fixtures) on top of existing backend
 
@@ -560,10 +582,9 @@ OCR Review + Wiring (Phase 6 backend - candidate -> manual review -> event wirin
 
 # Next Tasks
 
-1. Roles Management
-2. Media upload integration (Cloudinary / local uploads)
-3. Organization switching
-4. OCR / real video calibration (mock dry-run + profiles + analysis core + monitor/overlay + review panel UI all shipped; blocked on PUBG Mobile observer footage for ROI calibration / kill feed confirmation)
+1. Media upload integration (Cloudinary / local uploads)
+2. Organization switching
+3. OCR / real video calibration (mock dry-run + profiles + analysis core + monitor/overlay + review panel UI all shipped; blocked on PUBG Mobile observer footage for ROI calibration / kill feed confirmation)
 
 ---
 
@@ -632,10 +653,11 @@ Completed
 - Team Members Dashboard Page (frontend) - /team-members CRUD (card grid / create / edit / delete, search + pagination)
 - Tournaments Admin (frontend) - /dashboard/tournaments CRUD (list + create/edit modal, search + pagination) + detail page (Overview / Registrations / Matches tabs, quick approve/reject, fixtures) + Sidebar entry
 - Public Tournament Detail + Registration (frontend + backend) - GET/POST /api/public/tournaments/:slug endpoints, /tournaments/[slug] public page with fixtures/teams/links + team registration form
+- Roles Management (frontend + backend) - read-only GET /api/roles catalog + permission matrix, /roles page (role cards + level ladder + grouped matrix), sidebar entry
 
 Next Commit
 
-Roles Management. Media upload integration (Cloudinary / local uploads) and
+Media upload integration (Cloudinary / local uploads) and
 organization switching follow. Kill feed ROI confirmation on real footage + real
 video OCR calibration remain blocked until PUBG Mobile observer footage is
 provided (tesseract/ffmpeg).
