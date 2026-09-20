@@ -1,10 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 
 import { TournamentsService } from './tournaments.service';
 import { CreatePublicRegistrationDto } from './dto/create-public-registration.dto';

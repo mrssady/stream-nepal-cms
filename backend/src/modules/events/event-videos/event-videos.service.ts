@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import type { Organization } from '@prisma/client';
 
 import { PrismaService } from '../../../prisma/prisma.service';
 
@@ -9,23 +10,7 @@ import { UpdateEventVideoDto } from './dto/update-event-video.dto';
 export class EventVideosService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private async getOrganization() {
-    const organization = await this.prisma.organization.findFirst({
-      orderBy: {
-        createdAt: 'asc',
-      },
-    });
-
-    if (!organization) {
-      throw new NotFoundException('Organization not found');
-    }
-
-    return organization;
-  }
-
-  private async getEvent(eventId: string) {
-    const organization = await this.getOrganization();
-
+  private async getEvent(organization: Organization, eventId: string) {
     const event = await this.prisma.event.findFirst({
       where: {
         id: eventId,
@@ -40,8 +25,12 @@ export class EventVideosService {
     return event;
   }
 
-  async create(eventId: string, dto: CreateEventVideoDto) {
-    await this.getEvent(eventId);
+  async create(
+    organization: Organization,
+    eventId: string,
+    dto: CreateEventVideoDto,
+  ) {
+    await this.getEvent(organization, eventId);
 
     return this.prisma.eventVideo.create({
       data: {
@@ -62,8 +51,8 @@ export class EventVideosService {
     });
   }
 
-  async findAll(eventId: string) {
-    await this.getEvent(eventId);
+  async findAll(organization: Organization, eventId: string) {
+    await this.getEvent(organization, eventId);
 
     return this.prisma.eventVideo.findMany({
       where: {
@@ -80,8 +69,8 @@ export class EventVideosService {
     });
   }
 
-  async findOne(eventId: string, id: string) {
-    await this.getEvent(eventId);
+  async findOne(organization: Organization, eventId: string, id: string) {
+    await this.getEvent(organization, eventId);
 
     const video = await this.prisma.eventVideo.findFirst({
       where: {
@@ -97,8 +86,13 @@ export class EventVideosService {
     return video;
   }
 
-  async update(eventId: string, id: string, dto: UpdateEventVideoDto) {
-    await this.findOne(eventId, id);
+  async update(
+    organization: Organization,
+    eventId: string,
+    id: string,
+    dto: UpdateEventVideoDto,
+  ) {
+    await this.findOne(organization, eventId, id);
 
     return this.prisma.eventVideo.update({
       where: {
@@ -108,8 +102,8 @@ export class EventVideosService {
     });
   }
 
-  async remove(eventId: string, id: string) {
-    await this.findOne(eventId, id);
+  async remove(organization: Organization, eventId: string, id: string) {
+    await this.findOne(organization, eventId, id);
 
     return this.prisma.eventVideo.delete({
       where: {

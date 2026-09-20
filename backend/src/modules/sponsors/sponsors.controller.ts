@@ -8,7 +8,7 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { ActivityAction } from '@prisma/client';
+import { ActivityAction, type Organization } from '@prisma/client';
 
 import { SponsorsService } from './sponsors.service';
 
@@ -20,6 +20,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import type { AuthenticatedUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { CurrentOrganization } from '../../common/decorators/current-organization.decorator';
 import { Role } from '../../common/enums/role.enum';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 
@@ -34,11 +35,15 @@ export class SponsorsController {
   @Post()
   @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER)
   async create(
+    @CurrentOrganization() organization: Organization,
     @Body()
     createSponsorDto: CreateSponsorDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    const sponsor = await this.sponsorsService.create(createSponsorDto);
+    const sponsor = await this.sponsorsService.create(
+      organization,
+      createSponsorDto,
+    );
 
     await this.activityLogs.record(
       user,
@@ -53,25 +58,33 @@ export class SponsorsController {
 
   @Get()
   @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER, Role.STAFF)
-  findAll() {
-    return this.sponsorsService.findAll();
+  findAll(@CurrentOrganization() organization: Organization) {
+    return this.sponsorsService.findAll(organization);
   }
 
   @Get(':id')
   @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER, Role.STAFF)
-  findOne(@Param('id') id: string) {
-    return this.sponsorsService.findOne(id);
+  findOne(
+    @CurrentOrganization() organization: Organization,
+    @Param('id') id: string,
+  ) {
+    return this.sponsorsService.findOne(organization, id);
   }
 
   @Patch(':id')
   @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER)
   async update(
+    @CurrentOrganization() organization: Organization,
     @Param('id') id: string,
     @Body()
     updateSponsorDto: UpdateSponsorDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    const sponsor = await this.sponsorsService.update(id, updateSponsorDto);
+    const sponsor = await this.sponsorsService.update(
+      organization,
+      id,
+      updateSponsorDto,
+    );
 
     await this.activityLogs.record(
       user,
@@ -87,11 +100,12 @@ export class SponsorsController {
   @Delete(':id')
   @Roles(Role.OWNER, Role.ADMIN)
   async remove(
+    @CurrentOrganization() organization: Organization,
     @Param('id') id: string,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    const existing = await this.sponsorsService.findOne(id);
-    const sponsor = await this.sponsorsService.remove(id);
+    const existing = await this.sponsorsService.findOne(organization, id);
+    const sponsor = await this.sponsorsService.remove(organization, id);
 
     await this.activityLogs.record(
       user,

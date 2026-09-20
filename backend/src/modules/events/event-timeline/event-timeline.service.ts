@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import type { Organization } from '@prisma/client';
 
 import { PrismaService } from '../../../prisma/prisma.service';
 
@@ -9,23 +10,7 @@ import { UpdateEventTimelineDto } from './dto/update-event-timeline.dto';
 export class EventTimelineService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private async getOrganization() {
-    const organization = await this.prisma.organization.findFirst({
-      orderBy: {
-        createdAt: 'asc',
-      },
-    });
-
-    if (!organization) {
-      throw new NotFoundException('Organization not found');
-    }
-
-    return organization;
-  }
-
-  private async getEvent(eventId: string) {
-    const organization = await this.getOrganization();
-
+  private async getEvent(organization: Organization, eventId: string) {
     const event = await this.prisma.event.findFirst({
       where: {
         id: eventId,
@@ -40,8 +25,12 @@ export class EventTimelineService {
     return event;
   }
 
-  async create(eventId: string, dto: CreateEventTimelineDto) {
-    await this.getEvent(eventId);
+  async create(
+    organization: Organization,
+    eventId: string,
+    dto: CreateEventTimelineDto,
+  ) {
+    await this.getEvent(organization, eventId);
 
     return this.prisma.eventTimeline.create({
       data: {
@@ -63,8 +52,8 @@ export class EventTimelineService {
     });
   }
 
-  async findAll(eventId: string) {
-    await this.getEvent(eventId);
+  async findAll(organization: Organization, eventId: string) {
+    await this.getEvent(organization, eventId);
 
     return this.prisma.eventTimeline.findMany({
       where: {
@@ -81,8 +70,8 @@ export class EventTimelineService {
     });
   }
 
-  async findOne(eventId: string, id: string) {
-    await this.getEvent(eventId);
+  async findOne(organization: Organization, eventId: string, id: string) {
+    await this.getEvent(organization, eventId);
 
     const timeline = await this.prisma.eventTimeline.findFirst({
       where: {
@@ -98,8 +87,13 @@ export class EventTimelineService {
     return timeline;
   }
 
-  async update(eventId: string, id: string, dto: UpdateEventTimelineDto) {
-    await this.findOne(eventId, id);
+  async update(
+    organization: Organization,
+    eventId: string,
+    id: string,
+    dto: UpdateEventTimelineDto,
+  ) {
+    await this.findOne(organization, eventId, id);
 
     const data: Record<string, unknown> = {
       ...dto,
@@ -117,8 +111,8 @@ export class EventTimelineService {
     });
   }
 
-  async remove(eventId: string, id: string) {
-    await this.findOne(eventId, id);
+  async remove(organization: Organization, eventId: string, id: string) {
+    await this.findOne(organization, eventId, id);
 
     return this.prisma.eventTimeline.delete({
       where: {

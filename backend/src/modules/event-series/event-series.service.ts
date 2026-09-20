@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import type { Organization } from '@prisma/client';
 
 import { PrismaService } from '../../prisma/prisma.service';
 
@@ -13,23 +14,10 @@ import { UpdateEventSeriesDto } from './dto/update-event-series.dto';
 export class EventSeriesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private async getOrganization() {
-    const organization = await this.prisma.organization.findFirst({
-      orderBy: {
-        createdAt: 'asc',
-      },
-    });
-
-    if (!organization) {
-      throw new NotFoundException('Organization not found');
-    }
-
-    return organization;
-  }
-
-  async create(createEventSeriesDto: CreateEventSeriesDto) {
-    const organization = await this.getOrganization();
-
+  async create(
+    organization: Organization,
+    createEventSeriesDto: CreateEventSeriesDto,
+  ) {
     const existingSeries = await this.prisma.eventSeries.findFirst({
       where: {
         organizationId: organization.id,
@@ -62,9 +50,7 @@ export class EventSeriesService {
     });
   }
 
-  async findAll() {
-    const organization = await this.getOrganization();
-
+  async findAll(organization: Organization) {
     return this.prisma.eventSeries.findMany({
       where: {
         organizationId: organization.id,
@@ -87,9 +73,7 @@ export class EventSeriesService {
     });
   }
 
-  async findOne(id: string) {
-    const organization = await this.getOrganization();
-
+  async findOne(organization: Organization, id: string) {
     const series = await this.prisma.eventSeries.findFirst({
       where: {
         id,
@@ -121,9 +105,11 @@ export class EventSeriesService {
     return series;
   }
 
-  async update(id: string, updateEventSeriesDto: UpdateEventSeriesDto) {
-    const organization = await this.getOrganization();
-
+  async update(
+    organization: Organization,
+    id: string,
+    updateEventSeriesDto: UpdateEventSeriesDto,
+  ) {
     const existing = await this.prisma.eventSeries.findFirst({
       where: {
         id,
@@ -166,9 +152,7 @@ export class EventSeriesService {
     });
   }
 
-  async remove(id: string) {
-    const organization = await this.getOrganization();
-
+  async remove(organization: Organization, id: string) {
     const existing = await this.prisma.eventSeries.findFirst({
       where: {
         id,
@@ -187,9 +171,7 @@ export class EventSeriesService {
     });
   }
 
-  async findPublic() {
-    const organization = await this.getOrganization();
-
+  async findPublic(organization: Organization) {
     return this.prisma.eventSeries.findMany({
       where: {
         organizationId: organization.id,

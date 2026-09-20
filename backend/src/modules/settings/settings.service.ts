@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import type { Organization } from '@prisma/client';
 
 import { PrismaService } from '../../prisma/prisma.service';
 
@@ -13,23 +14,7 @@ import { UpdateSettingDto } from './dto/update-setting.dto';
 export class SettingsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private async getOrganization() {
-    const organization = await this.prisma.organization.findUnique({
-      where: {
-        slug: 'stream-nepal',
-      },
-    });
-
-    if (!organization) {
-      throw new NotFoundException('Stream Nepal organization not found');
-    }
-
-    return organization;
-  }
-
-  async create(createSettingDto: CreateSettingDto) {
-    const organization = await this.getOrganization();
-
+  async create(organization: Organization, createSettingDto: CreateSettingDto) {
     const existingSetting = await this.prisma.websiteSetting.findFirst({
       where: {
         organizationId: organization.id,
@@ -52,9 +37,7 @@ export class SettingsService {
     });
   }
 
-  async find() {
-    const organization = await this.getOrganization();
-
+  async find(organization: Organization) {
     const setting = await this.prisma.websiteSetting.findFirst({
       where: {
         organizationId: organization.id,
@@ -68,9 +51,7 @@ export class SettingsService {
     return setting;
   }
 
-  async update(updateSettingDto: UpdateSettingDto) {
-    const organization = await this.getOrganization();
-
+  async update(organization: Organization, updateSettingDto: UpdateSettingDto) {
     const setting = await this.prisma.websiteSetting.findFirst({
       where: {
         organizationId: organization.id,

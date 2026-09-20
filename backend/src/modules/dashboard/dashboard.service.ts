@@ -1,7 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Role } from '../../common/enums/role.enum';
-import { TournamentStatus } from '@prisma/client';
+import { TournamentStatus, type Organization } from '@prisma/client';
 
 function dateKey(date: Date) {
   const year = date.getFullYear();
@@ -31,26 +31,9 @@ function weekLabel(monday: Date) {
 export class DashboardService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private async getOrganizationId() {
-    const organization = await this.prisma.organization.findFirst({
-      orderBy: {
-        createdAt: 'asc',
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    if (!organization) {
-      throw new NotFoundException('Organization not found');
-    }
-
-    return organization.id;
-  }
-
-  async getStats() {
+  async getStats(organization: Organization) {
     const now = new Date();
-    const organizationId = await this.getOrganizationId();
+    const organizationId = organization.id;
 
     const [
       totalUsers,
@@ -445,9 +428,10 @@ export class DashboardService {
     for (const event of events) {
       const date = new Date(event.eventDate);
 
-      const key = `${date.getFullYear()}-${String(
-        date.getMonth() + 1,
-      ).padStart(2, '0')}`;
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+        2,
+        '0',
+      )}`;
 
       if (buckets.has(key)) {
         buckets.set(key, (buckets.get(key) as number) + 1);
@@ -458,7 +442,7 @@ export class DashboardService {
       const [year, month] = key.split('-').map(Number);
 
       return {
-        label: monthLabel(year, (month as number) - 1),
+        label: monthLabel(year, month - 1),
         count: buckets.get(key) as number,
       };
     });

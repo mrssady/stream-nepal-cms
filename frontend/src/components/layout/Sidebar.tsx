@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 import {
   BriefcaseBusiness,
+  Building2,
   FolderKanban,
   GalleryVerticalEnd,
   Handshake,
@@ -36,6 +37,8 @@ import {
 } from "@/components/ui/sidebar";
 
 import { useAuth } from "@/providers/auth-provider";
+
+import OrganizationSwitcher from "@/components/layout/OrganizationSwitcher";
 
 const mainMenu = [
   {
@@ -109,6 +112,11 @@ const contentMenu = [
 ];
 
 const systemMenu = [
+  {
+    name: "Organizations",
+    href: "/organizations",
+    icon: Building2,
+  },
   {
     name: "Roles",
     href: "/roles",
@@ -261,6 +269,10 @@ export default function Sidebar() {
 
       <SidebarFooter className="border-t">
         <SidebarMenu>
+          <SidebarMenuItem>
+            <OrganizationSwitcher />
+          </SidebarMenuItem>
+
           <SidebarMenuItem>
             <SidebarMenuButton
               size="lg"

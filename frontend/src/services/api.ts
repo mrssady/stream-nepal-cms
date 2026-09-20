@@ -1,5 +1,6 @@
 import axios from "axios";
 import { getToken, logout, removeToken } from "@/lib/auth";
+import { getActiveOrganizationId } from "@/lib/org";
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
@@ -19,6 +20,14 @@ api.interceptors.request.use((config) => {
     if (token === "undefined" || token === "null") {
       removeToken();
     }
+  }
+
+  const organizationId = getActiveOrganizationId();
+
+  if (organizationId) {
+    config.headers["X-Organization-Id"] = organizationId;
+  } else {
+    delete config.headers["X-Organization-Id"];
   }
 
   return config;

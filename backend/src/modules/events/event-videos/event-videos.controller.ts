@@ -8,7 +8,7 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { ActivityAction } from '@prisma/client';
+import { ActivityAction, type Organization } from '@prisma/client';
 
 import { EventVideosService } from './event-videos.service';
 
@@ -20,6 +20,7 @@ import { RolesGuard } from '../../../common/guards/roles.guard';
 import { Roles } from '../../../common/decorators/roles.decorator';
 import type { AuthenticatedUser } from '../../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../../common/decorators/current-user.decorator';
+import { CurrentOrganization } from '../../../common/decorators/current-organization.decorator';
 import { Role } from '../../../common/enums/role.enum';
 import { ActivityLogsService } from '../../activity-logs/activity-logs.service';
 
@@ -34,11 +35,12 @@ export class EventVideosController {
   @Post()
   @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER)
   async create(
+    @CurrentOrganization() organization: Organization,
     @Param('eventId') eventId: string,
     @Body() dto: CreateEventVideoDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    const video = await this.service.create(eventId, dto);
+    const video = await this.service.create(organization, eventId, dto);
 
     await this.activityLogs.record(
       user,
@@ -53,25 +55,33 @@ export class EventVideosController {
 
   @Get()
   @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER, Role.STAFF)
-  findAll(@Param('eventId') eventId: string) {
-    return this.service.findAll(eventId);
+  findAll(
+    @CurrentOrganization() organization: Organization,
+    @Param('eventId') eventId: string,
+  ) {
+    return this.service.findAll(organization, eventId);
   }
 
   @Get(':id')
   @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER, Role.STAFF)
-  findOne(@Param('eventId') eventId: string, @Param('id') id: string) {
-    return this.service.findOne(eventId, id);
+  findOne(
+    @CurrentOrganization() organization: Organization,
+    @Param('eventId') eventId: string,
+    @Param('id') id: string,
+  ) {
+    return this.service.findOne(organization, eventId, id);
   }
 
   @Patch(':id')
   @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER)
   async update(
+    @CurrentOrganization() organization: Organization,
     @Param('eventId') eventId: string,
     @Param('id') id: string,
     @Body() dto: UpdateEventVideoDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    const video = await this.service.update(eventId, id, dto);
+    const video = await this.service.update(organization, eventId, id, dto);
 
     await this.activityLogs.record(
       user,
@@ -87,11 +97,12 @@ export class EventVideosController {
   @Delete(':id')
   @Roles(Role.OWNER, Role.ADMIN)
   async remove(
+    @CurrentOrganization() organization: Organization,
     @Param('eventId') eventId: string,
     @Param('id') id: string,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    const video = await this.service.remove(eventId, id);
+    const video = await this.service.remove(organization, eventId, id);
 
     await this.activityLogs.record(
       user,

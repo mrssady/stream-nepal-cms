@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import type { Organization } from '@prisma/client';
 
 import { PrismaService } from '../../prisma/prisma.service';
 
@@ -13,23 +14,7 @@ import { UpdateMediaDto } from './dto/update-media.dto';
 export class MediaService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private async getOrganization() {
-    const organization = await this.prisma.organization.findUnique({
-      where: {
-        slug: 'stream-nepal',
-      },
-    });
-
-    if (!organization) {
-      throw new NotFoundException('Stream Nepal organization not found');
-    }
-
-    return organization;
-  }
-
-  async create(createMediaDto: CreateMediaDto) {
-    const organization = await this.getOrganization();
-
+  async create(organization: Organization, createMediaDto: CreateMediaDto) {
     const existing = await this.prisma.media.findFirst({
       where: {
         organizationId: organization.id,
@@ -53,9 +38,7 @@ export class MediaService {
     });
   }
 
-  async findAll() {
-    const organization = await this.getOrganization();
-
+  async findAll(organization: Organization) {
     return this.prisma.media.findMany({
       where: {
         organizationId: organization.id,
@@ -71,9 +54,7 @@ export class MediaService {
     });
   }
 
-  async findPublic() {
-    const organization = await this.getOrganization();
-
+  async findPublic(organization: Organization) {
     return this.prisma.media.findMany({
       where: {
         organizationId: organization.id,
@@ -90,9 +71,7 @@ export class MediaService {
     });
   }
 
-  async findOne(id: string) {
-    const organization = await this.getOrganization();
-
+  async findOne(organization: Organization, id: string) {
     const media = await this.prisma.media.findFirst({
       where: {
         id,
@@ -107,8 +86,12 @@ export class MediaService {
     return media;
   }
 
-  async update(id: string, updateMediaDto: UpdateMediaDto) {
-    const media = await this.findOne(id);
+  async update(
+    organization: Organization,
+    id: string,
+    updateMediaDto: UpdateMediaDto,
+  ) {
+    const media = await this.findOne(organization, id);
 
     if (updateMediaDto.sourceUrl) {
       const existing = await this.prisma.media.findFirst({
@@ -134,8 +117,8 @@ export class MediaService {
     });
   }
 
-  async remove(id: string) {
-    await this.findOne(id);
+  async remove(organization: Organization, id: string) {
+    await this.findOne(organization, id);
 
     return this.prisma.media.delete({
       where: {

@@ -14,7 +14,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
-import { ActivityAction } from '@prisma/client';
+import { ActivityAction, type Organization } from '@prisma/client';
 
 import { MediaService } from './media.service';
 import { MediaStorageService } from './media-storage.service';
@@ -27,6 +27,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import type { AuthenticatedUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { CurrentOrganization } from '../../common/decorators/current-organization.decorator';
 import { Role } from '../../common/enums/role.enum';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 
@@ -69,6 +70,7 @@ export class MediaController {
     }),
   )
   async upload(
+    @CurrentOrganization() organization: Organization,
     @UploadedFile()
     file: Express.Multer.File,
     @Query('folder')
@@ -82,6 +84,7 @@ export class MediaController {
     const result = await this.mediaStorageService.upload(
       file,
       folder || 'general',
+      organization.slug,
     );
 
     await this.activityLogs.record(
@@ -101,10 +104,11 @@ export class MediaController {
   @Post()
   @Roles(Role.OWNER, Role.ADMIN)
   async create(
+    @CurrentOrganization() organization: Organization,
     @Body() createMediaDto: CreateMediaDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    const media = await this.mediaService.create(createMediaDto);
+    const media = await this.mediaService.create(organization, createMediaDto);
 
     await this.activityLogs.record(
       user,
@@ -119,24 +123,32 @@ export class MediaController {
 
   @Get()
   @Roles(Role.OWNER, Role.ADMIN)
-  findAll() {
-    return this.mediaService.findAll();
+  findAll(@CurrentOrganization() organization: Organization) {
+    return this.mediaService.findAll(organization);
   }
 
   @Get(':id')
   @Roles(Role.OWNER, Role.ADMIN)
-  findOne(@Param('id') id: string) {
-    return this.mediaService.findOne(id);
+  findOne(
+    @CurrentOrganization() organization: Organization,
+    @Param('id') id: string,
+  ) {
+    return this.mediaService.findOne(organization, id);
   }
 
   @Patch(':id')
   @Roles(Role.OWNER, Role.ADMIN)
   async update(
+    @CurrentOrganization() organization: Organization,
     @Param('id') id: string,
     @Body() updateMediaDto: UpdateMediaDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    const media = await this.mediaService.update(id, updateMediaDto);
+    const media = await this.mediaService.update(
+      organization,
+      id,
+      updateMediaDto,
+    );
 
     await this.activityLogs.record(
       user,
@@ -152,11 +164,12 @@ export class MediaController {
   @Delete(':id')
   @Roles(Role.OWNER, Role.ADMIN)
   async remove(
+    @CurrentOrganization() organization: Organization,
     @Param('id') id: string,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    const existing = await this.mediaService.findOne(id);
-    const media = await this.mediaService.remove(id);
+    const existing = await this.mediaService.findOne(organization, id);
+    const media = await this.mediaService.remove(organization, id);
 
     await this.activityLogs.record(
       user,

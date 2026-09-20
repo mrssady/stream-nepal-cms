@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import type { Organization } from '@prisma/client';
 
 import { PrismaService } from '../../../prisma/prisma.service';
 
@@ -9,23 +10,7 @@ import { UpdateEventPhotoDto } from './dto/update-event-photo.dto';
 export class EventPhotosService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private async getOrganization() {
-    const organization = await this.prisma.organization.findFirst({
-      orderBy: {
-        createdAt: 'asc',
-      },
-    });
-
-    if (!organization) {
-      throw new NotFoundException('Organization not found');
-    }
-
-    return organization;
-  }
-
-  private async getEvent(eventId: string) {
-    const organization = await this.getOrganization();
-
+  private async getEvent(organization: Organization, eventId: string) {
     const event = await this.prisma.event.findFirst({
       where: {
         id: eventId,
@@ -40,8 +25,12 @@ export class EventPhotosService {
     return event;
   }
 
-  async create(eventId: string, dto: CreateEventPhotoDto) {
-    await this.getEvent(eventId);
+  async create(
+    organization: Organization,
+    eventId: string,
+    dto: CreateEventPhotoDto,
+  ) {
+    await this.getEvent(organization, eventId);
 
     return this.prisma.eventPhoto.create({
       data: {
@@ -60,8 +49,8 @@ export class EventPhotosService {
     });
   }
 
-  async findAll(eventId: string) {
-    await this.getEvent(eventId);
+  async findAll(organization: Organization, eventId: string) {
+    await this.getEvent(organization, eventId);
 
     return this.prisma.eventPhoto.findMany({
       where: {
@@ -78,8 +67,8 @@ export class EventPhotosService {
     });
   }
 
-  async findOne(eventId: string, id: string) {
-    await this.getEvent(eventId);
+  async findOne(organization: Organization, eventId: string, id: string) {
+    await this.getEvent(organization, eventId);
 
     const photo = await this.prisma.eventPhoto.findFirst({
       where: {
@@ -95,8 +84,13 @@ export class EventPhotosService {
     return photo;
   }
 
-  async update(eventId: string, id: string, dto: UpdateEventPhotoDto) {
-    await this.findOne(eventId, id);
+  async update(
+    organization: Organization,
+    eventId: string,
+    id: string,
+    dto: UpdateEventPhotoDto,
+  ) {
+    await this.findOne(organization, eventId, id);
 
     return this.prisma.eventPhoto.update({
       where: {
@@ -106,8 +100,8 @@ export class EventPhotosService {
     });
   }
 
-  async remove(eventId: string, id: string) {
-    await this.findOne(eventId, id);
+  async remove(organization: Organization, eventId: string, id: string) {
+    await this.findOne(organization, eventId, id);
 
     return this.prisma.eventPhoto.delete({
       where: {

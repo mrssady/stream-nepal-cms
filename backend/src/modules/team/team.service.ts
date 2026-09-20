@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import type { Organization } from '@prisma/client';
 
 import { PrismaService } from '../../prisma/prisma.service';
 
@@ -9,23 +10,7 @@ import { UpdateTeamDto } from './dto/update-team.dto';
 export class TeamService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private async getOrganization() {
-    const organization = await this.prisma.organization.findUnique({
-      where: {
-        slug: 'stream-nepal',
-      },
-    });
-
-    if (!organization) {
-      throw new NotFoundException('Stream Nepal organization not found');
-    }
-
-    return organization;
-  }
-
-  async create(createTeamDto: CreateTeamDto) {
-    const organization = await this.getOrganization();
-
+  async create(organization: Organization, createTeamDto: CreateTeamDto) {
     return this.prisma.teamMember.create({
       data: {
         ...createTeamDto,
@@ -38,9 +23,7 @@ export class TeamService {
     });
   }
 
-  async findAll() {
-    const organization = await this.getOrganization();
-
+  async findAll(organization: Organization) {
     return this.prisma.teamMember.findMany({
       where: {
         organizationId: organization.id,
@@ -56,9 +39,7 @@ export class TeamService {
     });
   }
 
-  async findOne(id: string) {
-    const organization = await this.getOrganization();
-
+  async findOne(organization: Organization, id: string) {
     const member = await this.prisma.teamMember.findFirst({
       where: {
         id,
@@ -73,8 +54,12 @@ export class TeamService {
     return member;
   }
 
-  async update(id: string, updateTeamDto: UpdateTeamDto) {
-    await this.findOne(id);
+  async update(
+    organization: Organization,
+    id: string,
+    updateTeamDto: UpdateTeamDto,
+  ) {
+    await this.findOne(organization, id);
 
     return this.prisma.teamMember.update({
       where: {
@@ -84,8 +69,8 @@ export class TeamService {
     });
   }
 
-  async remove(id: string) {
-    await this.findOne(id);
+  async remove(organization: Organization, id: string) {
+    await this.findOne(organization, id);
 
     return this.prisma.teamMember.delete({
       where: {

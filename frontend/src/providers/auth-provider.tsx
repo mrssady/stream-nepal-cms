@@ -15,6 +15,10 @@ import {
   logout as clearSession,
   saveUser,
 } from "@/lib/auth";
+import {
+  getActiveOrganizationId,
+  saveActiveOrganizationId,
+} from "@/lib/org";
 
 interface AuthContextValue {
   user: AuthUser | null;
@@ -60,6 +64,10 @@ export function AuthProvider({
         if (mounted) {
           setUser(me);
           saveUser(me);
+
+          if (me.organizationId && !getActiveOrganizationId()) {
+            saveActiveOrganizationId(me.organizationId);
+          }
         }
       } catch {
         if (mounted) {

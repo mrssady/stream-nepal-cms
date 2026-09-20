@@ -8,7 +8,7 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { ActivityAction } from '@prisma/client';
+import { ActivityAction, type Organization } from '@prisma/client';
 
 import { EventsService } from './events.service';
 
@@ -20,6 +20,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import type { AuthenticatedUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { CurrentOrganization } from '../../common/decorators/current-organization.decorator';
 import { Role } from '../../common/enums/role.enum';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 
@@ -34,11 +35,12 @@ export class EventsController {
   @Post()
   @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER)
   async create(
+    @CurrentOrganization() organization: Organization,
     @Body()
     createEventDto: CreateEventDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    const event = await this.eventsService.create(createEventDto);
+    const event = await this.eventsService.create(organization, createEventDto);
 
     await this.activityLogs.record(
       user,
@@ -53,25 +55,33 @@ export class EventsController {
 
   @Get()
   @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER, Role.STAFF)
-  findAll() {
-    return this.eventsService.findAll();
+  findAll(@CurrentOrganization() organization: Organization) {
+    return this.eventsService.findAll(organization);
   }
 
   @Get(':id')
   @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER, Role.STAFF)
-  findOne(@Param('id') id: string) {
-    return this.eventsService.findOne(id);
+  findOne(
+    @CurrentOrganization() organization: Organization,
+    @Param('id') id: string,
+  ) {
+    return this.eventsService.findOne(organization, id);
   }
 
   @Patch(':id')
   @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER)
   async update(
+    @CurrentOrganization() organization: Organization,
     @Param('id') id: string,
     @Body()
     updateEventDto: UpdateEventDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    const event = await this.eventsService.update(id, updateEventDto);
+    const event = await this.eventsService.update(
+      organization,
+      id,
+      updateEventDto,
+    );
 
     await this.activityLogs.record(
       user,
@@ -87,10 +97,11 @@ export class EventsController {
   @Delete(':id')
   @Roles(Role.OWNER, Role.ADMIN)
   async remove(
+    @CurrentOrganization() organization: Organization,
     @Param('id') id: string,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    const event = await this.eventsService.remove(id);
+    const event = await this.eventsService.remove(organization, id);
 
     await this.activityLogs.record(
       user,

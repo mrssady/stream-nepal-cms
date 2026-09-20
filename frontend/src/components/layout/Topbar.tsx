@@ -72,6 +72,10 @@ const PAGE_TITLES: {
     title: "Sponsors",
   },
   {
+    match: /^\/organizations/,
+    title: "Organizations",
+  },
+  {
     match: /^\/settings/,
     title: "Settings",
   },

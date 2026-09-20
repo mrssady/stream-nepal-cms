@@ -41,12 +41,17 @@ export class MediaStorageService {
   async upload(
     file: Express.Multer.File,
     folder = 'general',
+    organizationSlug?: string,
   ): Promise<UploadResult> {
     if (!file) {
       throw new BadRequestException('File is required');
     }
 
-    return this.getStorage().upload(file, folder);
+    const namespacedFolder = organizationSlug
+      ? `${organizationSlug}/${folder}`
+      : folder;
+
+    return this.getStorage().upload(file, namespacedFolder);
   }
 
   async delete(

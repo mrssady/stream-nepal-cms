@@ -8,6 +8,7 @@ export interface StoredUser {
   name: string;
   email: string;
   role: string;
+  organizationId?: string | null;
 }
 
 export function saveToken(token: string) {

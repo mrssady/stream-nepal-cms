@@ -31,7 +31,7 @@ export class CloudinaryStorageService implements StorageService {
     const result = await new Promise<UploadApiResponse>((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
         {
-          folder: `stream-nepal/${this.sanitizeFolder(folder)}`,
+          folder: this.sanitizeFolder(folder),
           resource_type: resourceType,
           use_filename: false,
           unique_filename: true,

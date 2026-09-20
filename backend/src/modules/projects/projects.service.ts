@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import type { Organization } from '@prisma/client';
 
 import { PrismaService } from '../../prisma/prisma.service';
 
@@ -13,23 +14,7 @@ import { UpdateProjectDto } from './dto/update-project.dto';
 export class ProjectsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private async getOrganization() {
-    const organization = await this.prisma.organization.findUnique({
-      where: {
-        slug: 'stream-nepal',
-      },
-    });
-
-    if (!organization) {
-      throw new NotFoundException('Stream Nepal organization not found');
-    }
-
-    return organization;
-  }
-
-  async create(createProjectDto: CreateProjectDto) {
-    const organization = await this.getOrganization();
-
+  async create(organization: Organization, createProjectDto: CreateProjectDto) {
     const existing = await this.prisma.project.findUnique({
       where: {
         organizationId_slug: {
@@ -64,9 +49,7 @@ export class ProjectsService {
     });
   }
 
-  async findAll() {
-    const organization = await this.getOrganization();
-
+  async findAll(organization: Organization) {
     return this.prisma.project.findMany({
       where: {
         organizationId: organization.id,
@@ -82,9 +65,7 @@ export class ProjectsService {
     });
   }
 
-  async findOne(id: string) {
-    const organization = await this.getOrganization();
-
+  async findOne(organization: Organization, id: string) {
     const project = await this.prisma.project.findFirst({
       where: {
         id,
@@ -99,8 +80,12 @@ export class ProjectsService {
     return project;
   }
 
-  async update(id: string, updateProjectDto: UpdateProjectDto) {
-    const project = await this.findOne(id);
+  async update(
+    organization: Organization,
+    id: string,
+    updateProjectDto: UpdateProjectDto,
+  ) {
+    const project = await this.findOne(organization, id);
 
     if (updateProjectDto.slug) {
       const existing = await this.prisma.project.findFirst({
@@ -136,8 +121,8 @@ export class ProjectsService {
     });
   }
 
-  async remove(id: string) {
-    await this.findOne(id);
+  async remove(organization: Organization, id: string) {
+    await this.findOne(organization, id);
 
     return this.prisma.project.delete({
       where: {
@@ -146,9 +131,7 @@ export class ProjectsService {
     });
   }
 
-  async findPublic() {
-    const organization = await this.getOrganization();
-
+  async findPublic(organization: Organization) {
     return this.prisma.project.findMany({
       where: {
         organizationId: organization.id,
@@ -165,9 +148,7 @@ export class ProjectsService {
     });
   }
 
-  async findPublicOne(slug: string) {
-    const organization = await this.getOrganization();
-
+  async findPublicOne(organization: Organization, slug: string) {
     const project = await this.prisma.project.findFirst({
       where: {
         organizationId: organization.id,

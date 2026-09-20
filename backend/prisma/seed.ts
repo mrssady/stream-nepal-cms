@@ -32,6 +32,25 @@ async function main() {
     "✅ Stream Nepal organization ready",
   );
 
+  // Demo organization for testing organization switching
+  await prisma.organization.upsert({
+    where: {
+      slug: "demo-org",
+    },
+    update: {
+      name: "Demo Org",
+    },
+    create: {
+      name: "Demo Org",
+      slug: "demo-org",
+      logo: null,
+    },
+  });
+
+  console.log(
+    "✅ Demo organization ready (organization switching)",
+  );
+
   // Find existing owner
   const existingUser =
     await prisma.user.findUnique({

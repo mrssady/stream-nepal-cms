@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import type { Organization } from '@prisma/client';
 
 import { PrismaService } from '../../prisma/prisma.service';
 
@@ -9,23 +10,7 @@ import { UpdateSponsorDto } from './dto/update-sponsor.dto';
 export class SponsorsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private async getOrganization() {
-    const organization = await this.prisma.organization.findUnique({
-      where: {
-        slug: 'stream-nepal',
-      },
-    });
-
-    if (!organization) {
-      throw new NotFoundException('Stream Nepal organization not found');
-    }
-
-    return organization;
-  }
-
-  async create(createSponsorDto: CreateSponsorDto) {
-    const organization = await this.getOrganization();
-
+  async create(organization: Organization, createSponsorDto: CreateSponsorDto) {
     return this.prisma.sponsor.create({
       data: {
         ...createSponsorDto,
@@ -38,9 +23,7 @@ export class SponsorsService {
     });
   }
 
-  async findAll() {
-    const organization = await this.getOrganization();
-
+  async findAll(organization: Organization) {
     return this.prisma.sponsor.findMany({
       where: {
         organizationId: organization.id,
@@ -56,9 +39,7 @@ export class SponsorsService {
     });
   }
 
-  async findOne(id: string) {
-    const organization = await this.getOrganization();
-
+  async findOne(organization: Organization, id: string) {
     const sponsor = await this.prisma.sponsor.findFirst({
       where: {
         id,
@@ -73,8 +54,12 @@ export class SponsorsService {
     return sponsor;
   }
 
-  async update(id: string, updateSponsorDto: UpdateSponsorDto) {
-    await this.findOne(id);
+  async update(
+    organization: Organization,
+    id: string,
+    updateSponsorDto: UpdateSponsorDto,
+  ) {
+    await this.findOne(organization, id);
 
     return this.prisma.sponsor.update({
       where: {
@@ -84,8 +69,8 @@ export class SponsorsService {
     });
   }
 
-  async remove(id: string) {
-    await this.findOne(id);
+  async remove(organization: Organization, id: string) {
+    await this.findOne(organization, id);
 
     return this.prisma.sponsor.delete({
       where: {
@@ -94,9 +79,7 @@ export class SponsorsService {
     });
   }
 
-  async findPublic() {
-    const organization = await this.getOrganization();
-
+  async findPublic(organization: Organization) {
     return this.prisma.sponsor.findMany({
       where: {
         organizationId: organization.id,

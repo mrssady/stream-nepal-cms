@@ -1,23 +1,15 @@
 import { Controller, Get, NotFoundException } from '@nestjs/common';
+import type { Organization } from '@prisma/client';
 
 import { PrismaService } from '../../prisma/prisma.service';
+import { CurrentOrganization } from '../../common/decorators/current-organization.decorator';
 
 @Controller('public/settings')
 export class PublicSettingsController {
   constructor(private readonly prisma: PrismaService) {}
 
   @Get()
-  async find() {
-    const organization = await this.prisma.organization.findUnique({
-      where: {
-        slug: 'stream-nepal',
-      },
-    });
-
-    if (!organization) {
-      throw new NotFoundException('Stream Nepal organization not found');
-    }
-
+  async find(@CurrentOrganization() organization: Organization) {
     const setting = await this.prisma.websiteSetting.findFirst({
       where: {
         organizationId: organization.id,

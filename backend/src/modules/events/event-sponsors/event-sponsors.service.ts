@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import type { Organization } from '@prisma/client';
 
 import { PrismaService } from '../../../prisma/prisma.service';
 
@@ -13,23 +14,7 @@ import { UpdateEventSponsorDto } from './update-event-sponsor.dto';
 export class EventSponsorsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private async getOrganization() {
-    const organization = await this.prisma.organization.findFirst({
-      orderBy: {
-        createdAt: 'asc',
-      },
-    });
-
-    if (!organization) {
-      throw new NotFoundException('Organization not found');
-    }
-
-    return organization;
-  }
-
-  private async getEvent(eventId: string) {
-    const organization = await this.getOrganization();
-
+  private async getEvent(organization: Organization, eventId: string) {
     const event = await this.prisma.event.findFirst({
       where: {
         id: eventId,
@@ -44,9 +29,7 @@ export class EventSponsorsService {
     return event;
   }
 
-  private async validateSponsor(sponsorId: string) {
-    const organization = await this.getOrganization();
-
+  private async validateSponsor(organization: Organization, sponsorId: string) {
     const sponsor = await this.prisma.sponsor.findFirst({
       where: {
         id: sponsorId,
@@ -61,9 +44,13 @@ export class EventSponsorsService {
     return sponsor;
   }
 
-  async create(eventId: string, dto: CreateEventSponsorDto) {
-    await this.getEvent(eventId);
-    await this.validateSponsor(dto.sponsorId);
+  async create(
+    organization: Organization,
+    eventId: string,
+    dto: CreateEventSponsorDto,
+  ) {
+    await this.getEvent(organization, eventId);
+    await this.validateSponsor(organization, dto.sponsorId);
 
     const existing = await this.prisma.eventSponsor.findFirst({
       where: {
@@ -92,8 +79,8 @@ export class EventSponsorsService {
     });
   }
 
-  async findAll(eventId: string) {
-    await this.getEvent(eventId);
+  async findAll(organization: Organization, eventId: string) {
+    await this.getEvent(organization, eventId);
 
     return this.prisma.eventSponsor.findMany({
       where: {
@@ -116,8 +103,8 @@ export class EventSponsorsService {
     });
   }
 
-  async findOne(eventId: string, id: string) {
-    await this.getEvent(eventId);
+  async findOne(organization: Organization, eventId: string, id: string) {
+    await this.getEvent(organization, eventId);
 
     const link = await this.prisma.eventSponsor.findFirst({
       where: {
@@ -136,11 +123,16 @@ export class EventSponsorsService {
     return link;
   }
 
-  async update(eventId: string, id: string, dto: UpdateEventSponsorDto) {
-    const link = await this.findOne(eventId, id);
+  async update(
+    organization: Organization,
+    eventId: string,
+    id: string,
+    dto: UpdateEventSponsorDto,
+  ) {
+    const link = await this.findOne(organization, eventId, id);
 
     if (dto.sponsorId && dto.sponsorId !== link.sponsorId) {
-      await this.validateSponsor(dto.sponsorId);
+      await this.validateSponsor(organization, dto.sponsorId);
 
       const existing = await this.prisma.eventSponsor.findFirst({
         where: {
@@ -170,8 +162,8 @@ export class EventSponsorsService {
     });
   }
 
-  async remove(eventId: string, id: string) {
-    await this.findOne(eventId, id);
+  async remove(organization: Organization, eventId: string, id: string) {
+    await this.findOne(organization, eventId, id);
 
     return this.prisma.eventSponsor.delete({
       where: {

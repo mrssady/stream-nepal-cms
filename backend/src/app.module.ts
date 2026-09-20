@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -9,6 +10,8 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { OrganizationsModule } from './modules/organizations/organizations.module';
+import { OrganizationResolveInterceptor } from './modules/organizations/organization-resolve.interceptor';
 import { TeamModule } from './modules/team/team.module';
 import { TournamentsModule } from './modules/tournaments/tournaments.module';
 import { RegistrationsModule } from './modules/registrations/registrations.module';
@@ -38,6 +41,7 @@ import { LiveMatchesModule } from './modules/live-matches/live-matches.module';
     AuthModule,
     UsersModule,
     DashboardModule,
+    OrganizationsModule,
     TeamModule,
 
     TournamentsModule,
@@ -59,6 +63,12 @@ import { LiveMatchesModule } from './modules/live-matches/live-matches.module';
     LiveMatchesModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: OrganizationResolveInterceptor,
+    },
+  ],
 })
 export class AppModule {}

@@ -274,7 +274,9 @@ export class TournamentsService {
     }
 
     if (tournament.currentTeams >= tournament.maxTeams) {
-      throw new BadRequestException('This tournament has reached its team limit');
+      throw new BadRequestException(
+        'This tournament has reached its team limit',
+      );
     }
 
     const existingRegistration = await this.prisma.registration.findFirst({

@@ -8,7 +8,7 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { ActivityAction } from '@prisma/client';
+import { ActivityAction, type Organization } from '@prisma/client';
 
 import { ProjectsService } from './projects.service';
 
@@ -20,6 +20,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import type { AuthenticatedUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { CurrentOrganization } from '../../common/decorators/current-organization.decorator';
 import { Role } from '../../common/enums/role.enum';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 
@@ -34,11 +35,15 @@ export class ProjectsController {
   @Post()
   @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER)
   async create(
+    @CurrentOrganization() organization: Organization,
     @Body()
     createProjectDto: CreateProjectDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    const project = await this.projectsService.create(createProjectDto);
+    const project = await this.projectsService.create(
+      organization,
+      createProjectDto,
+    );
 
     await this.activityLogs.record(
       user,
@@ -53,25 +58,33 @@ export class ProjectsController {
 
   @Get()
   @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER, Role.STAFF)
-  findAll() {
-    return this.projectsService.findAll();
+  findAll(@CurrentOrganization() organization: Organization) {
+    return this.projectsService.findAll(organization);
   }
 
   @Get(':id')
   @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER, Role.STAFF)
-  findOne(@Param('id') id: string) {
-    return this.projectsService.findOne(id);
+  findOne(
+    @CurrentOrganization() organization: Organization,
+    @Param('id') id: string,
+  ) {
+    return this.projectsService.findOne(organization, id);
   }
 
   @Patch(':id')
   @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER)
   async update(
+    @CurrentOrganization() organization: Organization,
     @Param('id') id: string,
     @Body()
     updateProjectDto: UpdateProjectDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    const project = await this.projectsService.update(id, updateProjectDto);
+    const project = await this.projectsService.update(
+      organization,
+      id,
+      updateProjectDto,
+    );
 
     await this.activityLogs.record(
       user,
@@ -87,11 +100,12 @@ export class ProjectsController {
   @Delete(':id')
   @Roles(Role.OWNER, Role.ADMIN)
   async remove(
+    @CurrentOrganization() organization: Organization,
     @Param('id') id: string,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    const existing = await this.projectsService.findOne(id);
-    const project = await this.projectsService.remove(id);
+    const existing = await this.projectsService.findOne(organization, id);
+    const project = await this.projectsService.remove(organization, id);
 
     await this.activityLogs.record(
       user,

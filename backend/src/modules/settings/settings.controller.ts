@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Patch, Post, UseGuards } from '@nestjs/common';
-import { ActivityAction } from '@prisma/client';
+import { ActivityAction, type Organization } from '@prisma/client';
 
 import { SettingsService } from './settings.service';
 
@@ -11,6 +11,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import type { AuthenticatedUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { CurrentOrganization } from '../../common/decorators/current-organization.decorator';
 import { Role } from '../../common/enums/role.enum';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 
@@ -25,11 +26,15 @@ export class SettingsController {
   @Post()
   @Roles(Role.OWNER)
   async create(
+    @CurrentOrganization() organization: Organization,
     @Body()
     createSettingDto: CreateSettingDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    const settings = await this.settingsService.create(createSettingDto);
+    const settings = await this.settingsService.create(
+      organization,
+      createSettingDto,
+    );
 
     await this.activityLogs.record(
       user,
@@ -44,18 +49,22 @@ export class SettingsController {
 
   @Get()
   @Roles(Role.OWNER, Role.ADMIN)
-  find() {
-    return this.settingsService.find();
+  find(@CurrentOrganization() organization: Organization) {
+    return this.settingsService.find(organization);
   }
 
   @Patch()
   @Roles(Role.OWNER)
   async update(
+    @CurrentOrganization() organization: Organization,
     @Body()
     updateSettingDto: UpdateSettingDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    const settings = await this.settingsService.update(updateSettingDto);
+    const settings = await this.settingsService.update(
+      organization,
+      updateSettingDto,
+    );
 
     await this.activityLogs.record(
       user,

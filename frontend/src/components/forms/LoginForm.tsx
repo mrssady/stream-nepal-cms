@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 
 import { login } from "@/services/auth";
 import { saveToken, saveUser } from "@/lib/auth";
+import { saveActiveOrganizationId } from "@/lib/org";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -43,6 +44,10 @@ export default function LoginForm() {
 
       saveToken(data.access_token);
       saveUser(data.user);
+
+      if (data.user.organizationId) {
+        saveActiveOrganizationId(data.user.organizationId);
+      }
 
       const nextParam = new URLSearchParams(
         window.location.search,

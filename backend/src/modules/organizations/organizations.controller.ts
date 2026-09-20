@@ -10,10 +10,10 @@ import {
 } from '@nestjs/common';
 import { ActivityAction } from '@prisma/client';
 
-import { TournamentsService } from './tournaments.service';
+import { OrganizationsService } from './organizations.service';
 
-import { CreateTournamentDto } from './dto/create-tournament.dto';
-import { UpdateTournamentDto } from './dto/update-tournament.dto';
+import { CreateOrganizationDto } from './dto/create-organization.dto';
+import { UpdateOrganizationDto } from './dto/update-organization.dto';
 
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -23,67 +23,70 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Role } from '../../common/enums/role.enum';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 
-@Controller('tournaments')
+@Controller('organizations')
 @UseGuards(JwtAuthGuard, RolesGuard)
-export class TournamentsController {
+export class OrganizationsController {
   constructor(
-    private readonly tournamentsService: TournamentsService,
+    private readonly organizationsService: OrganizationsService,
     private readonly activityLogs: ActivityLogsService,
   ) {}
 
   @Post()
   @Roles(Role.OWNER, Role.ADMIN)
   async create(
-    @Body() createTournamentDto: CreateTournamentDto,
+    @Body()
+    createOrganizationDto: CreateOrganizationDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    const tournament =
-      await this.tournamentsService.create(createTournamentDto);
+    const organization = await this.organizationsService.create(
+      createOrganizationDto,
+    );
 
     await this.activityLogs.record(
       user,
       ActivityAction.CREATE,
-      'tournament',
-      tournament.id,
-      `Created tournament "${tournament.name}"`,
+      'organization',
+      organization.id,
+      `Created organization "${organization.name}"`,
     );
 
-    return tournament;
+    return organization;
   }
 
   @Get()
-  @Roles(Role.OWNER, Role.ADMIN)
+  @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER, Role.STAFF)
   findAll() {
-    return this.tournamentsService.findAll();
+    return this.organizationsService.findAll();
   }
 
   @Get(':id')
-  @Roles(Role.OWNER, Role.ADMIN)
+  @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER, Role.STAFF)
   findOne(@Param('id') id: string) {
-    return this.tournamentsService.findOne(id);
+    return this.organizationsService.findOne(id);
   }
 
   @Patch(':id')
   @Roles(Role.OWNER, Role.ADMIN)
   async update(
     @Param('id') id: string,
-    @Body() updateTournamentDto: UpdateTournamentDto,
+    @Body()
+    updateOrganizationDto: UpdateOrganizationDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    const tournament = await this.tournamentsService.update(
+    const organization = await this.organizationsService.update(
       id,
-      updateTournamentDto,
+      updateOrganizationDto,
     );
 
     await this.activityLogs.record(
       user,
       ActivityAction.UPDATE,
-      'tournament',
-      tournament.id,
-      `Updated tournament "${tournament.name}"`,
+      'organization',
+      organization.id,
+      `Updated organization "${organization.name}"`,
     );
 
-    return tournament;
+    return organization;
   }
 
   @Delete(':id')
@@ -92,17 +95,17 @@ export class TournamentsController {
     @Param('id') id: string,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    const existing = await this.tournamentsService.findOne(id);
-    const tournament = await this.tournamentsService.remove(id);
+    const existing = await this.organizationsService.findOne(id);
+    const organization = await this.organizationsService.remove(id);
 
     await this.activityLogs.record(
       user,
       ActivityAction.DELETE,
-      'tournament',
-      tournament.id,
-      `Deleted tournament "${existing.name}"`,
+      'organization',
+      organization.id,
+      `Removed organization "${existing.name}"`,
     );
 
-    return tournament;
+    return organization;
   }
 }
