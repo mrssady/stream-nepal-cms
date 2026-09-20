@@ -391,6 +391,24 @@ Working
 
 ✅ Tournaments Admin - /dashboard/tournaments CRUD (list + create/edit modal, search + pagination) + detail page with Overview / Registrations / Matches tabs (registration approve/reject + payment status, match fixtures) on top of existing backend
 
+Public Tournament Detail + Registration - /tournaments/[slug] (frontend + backend)
+
+- Backend: GET /api/public/tournaments/:slug (public detail: tournament + approved
+  registrations with team slot/shortName/status + match fixtures with team refs +
+  latest live match), POST /api/public/tournaments/:slug/register (public team
+  registration: validates tournament exists/isPublic, status not closed, open/close
+  window, team limit, duplicate teamName -> ConflictException; creates PENDING/UNPAID
+  registration; DTO CreatePublicRegistrationDto with class-validator)
+- Frontend: service funcs getPublicTournamentBySlug + submitPublicTournamentRegistration
+  in src/services/public.ts (GET + POST via fetch, unwraps {success,...} envelope)
+- /tournaments/[slug] page: dark hero (game/featured/status badges, organizer,
+  prize pool, entry fee, teams count, external links, banner/logo), Schedule card,
+  Tournament Rules, Matches fixture list, Registered Teams card (slot badges)
+- Registration form (TournamentRegistrationForm, client): team name, captain
+  name/email/phone, game UID/IGN, roster size (1-10), optional manager + discord;
+  success confirmation panel; blocked state when not accepting (not open/closed/
+  filled/cancelled/completed/draft)
+
 Current Screen
 
 Phase 2 (broadcast) is feature-complete for the manual + GFX + OCR-dry-run flow:
@@ -613,6 +631,7 @@ Completed
 - Players Dashboard Page (frontend) - /players CRUD (list / create / edit / delete, search + pagination, tournament-grouped team select)
 - Team Members Dashboard Page (frontend) - /team-members CRUD (card grid / create / edit / delete, search + pagination)
 - Tournaments Admin (frontend) - /dashboard/tournaments CRUD (list + create/edit modal, search + pagination) + detail page (Overview / Registrations / Matches tabs, quick approve/reject, fixtures) + Sidebar entry
+- Public Tournament Detail + Registration (frontend + backend) - GET/POST /api/public/tournaments/:slug endpoints, /tournaments/[slug] public page with fixtures/teams/links + team registration form
 
 Next Commit
 

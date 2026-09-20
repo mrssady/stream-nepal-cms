@@ -91,6 +91,71 @@ export interface PublicSponsor {
   featured: boolean;
 }
 
+export interface PublicRegistrationTeam {
+  id: string;
+  teamName: string;
+  teamLogo: string | null;
+  slotNumber: number | null;
+  shortName: string | null;
+  teamStatus: string | null;
+  createdAt: string;
+}
+
+export interface PublicMatchTeam {
+  id: string;
+  teamName: string;
+  shortName: string;
+  teamLogo: string | null;
+}
+
+export interface PublicMatch {
+  id: string;
+  title: string;
+  round: string | null;
+  matchType: string | null;
+  status: string;
+  scheduledAt: string;
+  homeScore: number | null;
+  awayScore: number | null;
+  winnerTeamId: string | null;
+  homeTeam: PublicMatchTeam;
+  awayTeam: PublicMatchTeam;
+}
+
+export interface PublicLiveMatch {
+  id: string;
+  name: string | null;
+  matchNumber: number | null;
+  round: string | null;
+  status: string;
+}
+
+export interface PublicTournamentDetail extends PublicTournament {
+  registrations: PublicRegistrationTeam[];
+  matches: PublicMatch[];
+  liveMatch: PublicLiveMatch | null;
+}
+
+export interface PublicTournamentRegistrationDto {
+  teamName: string;
+  captainName: string;
+  captainEmail: string;
+  captainPhone: string;
+  managerName?: string;
+  managerPhone?: string;
+  discordUsername?: string;
+  gameUID: string;
+  gameIGN: string;
+  rosterSize: number;
+}
+
+export interface PublicRegistrationCreated {
+  id: string;
+  teamName: string;
+  registrationStatus: string;
+  paymentStatus: string;
+}
+
 interface ApiResponse<T> {
   success: boolean;
   statusCode: number;
@@ -131,6 +196,39 @@ async function publicRequest<T>(
   return result.data;
 }
 
+async function publicPostRequest<T>(
+  endpoint: string,
+  body: Record<string, unknown>,
+): Promise<T> {
+  const response = await fetch(
+    `${API_URL}${endpoint}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      cache: "no-store",
+    },
+  );
+
+  const result =
+    (await response.json()) as ApiResponse<T> & {
+      message?: string;
+      error?: string;
+    };
+
+  if (!response.ok || !result.success) {
+    throw new Error(
+      result.message ||
+        result.error ||
+        `Public API request failed: ${response.status}`,
+    );
+  }
+
+  return result.data;
+}
+
 export function getPublicSettings() {
   return publicRequest<WebsiteSettings>(
     "/public/settings",
@@ -152,6 +250,24 @@ export function getPublicProjects() {
 export function getPublicTournaments() {
   return publicRequest<PublicTournament[]>(
     "/public/tournaments",
+  );
+}
+
+export function getPublicTournamentBySlug(
+  slug: string,
+) {
+  return publicRequest<PublicTournamentDetail>(
+    `/public/tournaments/${slug}`,
+  );
+}
+
+export function submitPublicTournamentRegistration(
+  slug: string,
+  data: PublicTournamentRegistrationDto,
+) {
+  return publicPostRequest<PublicRegistrationCreated>(
+    `/public/tournaments/${slug}/register`,
+    data as unknown as Record<string, unknown>,
   );
 }
 

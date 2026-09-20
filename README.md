@@ -21,6 +21,7 @@ Professional Content Management System for Stream Nepal.
 ✅ Players Dashboard: /players CRUD (list / create / edit / delete, search + pagination, tournament-grouped team select)
 ✅ Team Members Dashboard: /team-members CRUD (card grid / create / edit / delete, search + pagination)
 ✅ Tournaments Admin: /dashboard/tournaments CRUD + detail page (Overview / Registrations / Matches tabs, quick approve/reject, fixtures)
+✅ Public Tournament Detail + Registration: /tournaments/[slug] detail page (fixtures, registered teams, links) with public team registration form wired to POST /api/public/tournaments/:slug/register
 
 ## Continuation Notes — READ THIS FIRST
 
